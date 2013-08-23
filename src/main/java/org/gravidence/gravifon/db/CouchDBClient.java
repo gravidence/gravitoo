@@ -36,6 +36,7 @@ import javax.ws.rs.core.Response.Status.Family;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * CouchDB client instance.<p>
@@ -55,6 +56,7 @@ public class CouchDBClient implements InitializingBean {
     /**
      * Jackson JSON data binder instance.
      */
+    @Autowired
     private ObjectMapper objectMapper;
     
     /**
@@ -107,7 +109,6 @@ public class CouchDBClient implements InitializingBean {
     private void initDBConnection() throws IOException {
         LOGGER.info("Initializing DB layer");
         instance = ClientBuilder.newClient().target(url);
-        objectMapper = new ObjectMapper();
         
         LOGGER.info("Connecting to CouchDB instance at {}", url);
         Response response = instance.request(MediaType.APPLICATION_JSON_TYPE)
