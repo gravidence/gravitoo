@@ -60,7 +60,7 @@ public class CouchDBClientRequestFilter implements ClientRequestFilter {
         if (LOGGER.isDebugEnabled()) {
             String entity = "<no entity>";
             
-            if (requestContext.hasEntity() && MediaType.APPLICATION_JSON_TYPE == requestContext.getMediaType()) {
+            if (requestContext.hasEntity() && MediaType.APPLICATION_JSON_TYPE.equals(requestContext.getMediaType())) {
                 entity = objectMapper.writeValueAsString(requestContext.getEntity());
             }
             

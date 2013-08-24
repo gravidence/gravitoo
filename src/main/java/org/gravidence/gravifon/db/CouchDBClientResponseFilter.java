@@ -65,7 +65,7 @@ public class CouchDBClientResponseFilter implements ClientResponseFilter {
         if (LOGGER.isDebugEnabled()) {
             String entity = "<no entity>";
             
-            if (responseContext.hasEntity() && MediaType.APPLICATION_JSON_TYPE == responseContext.getMediaType()) {
+            if (responseContext.hasEntity() && MediaType.APPLICATION_JSON_TYPE.equals(responseContext.getMediaType())) {
                 try (InputStream in = responseContext.getEntityStream()) {
                     byte[] buf = IOUtils.toByteArray(in);
                     
