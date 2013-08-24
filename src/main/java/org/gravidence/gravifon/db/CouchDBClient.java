@@ -49,19 +49,24 @@ public class CouchDBClient implements InitializingBean {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(CouchDBClient.class);
     
+    // JAX-RS client instance
     private WebTarget instance;
     
+    // JSON data binding instance
     private ObjectMapper objectMapper;
     
+    // Associated filters
     private CouchDBClientRequestFilter requestFilter;
     private CouchDBClientResponseFilter responseFilter;
-    
+
+    // DB settings
     private String url;
-    
     private Boolean setup;
-    
     private Boolean cleanup;
 
+    /**
+     * @see #setUrl(java.lang.String)
+     */
     public String getUrl() {
         return url;
     }
@@ -75,6 +80,9 @@ public class CouchDBClient implements InitializingBean {
         this.url = url;
     }
 
+    /**
+     * @see #setSetup(java.lang.Boolean)
+     */
     public Boolean getSetup() {
         return setup;
     }
@@ -89,6 +97,9 @@ public class CouchDBClient implements InitializingBean {
         this.setup = setup;
     }
 
+    /**
+     * @see #setCleanup(java.lang.Boolean)
+     */
     public Boolean getCleanup() {
         return cleanup;
     }
@@ -184,16 +195,21 @@ public class CouchDBClient implements InitializingBean {
         }
     }
     
-    private void dropDatabase(final String name) {
+    private void dropDatabase(String name) {
         WebTarget database = instance.path(name);
         Response response = database.request(MediaType.APPLICATION_JSON_TYPE)
                 .delete();
         if (isSuccessful(response)) {
             LOGGER.info("'{}' database dropped", database.getUri().getPath());
         }
+        else {
+            LOGGER.error("Failed to drop {} database: [{}] {}", database.getUri().getPath(),
+                    response.getStatus(), response.getStatusInfo().getReasonPhrase());
+            throw new RuntimeException("DB layer initialization failed");
+        }
     }
     
-    private void createDatabase(final String name) {
+    private void createDatabase(String name) {
         WebTarget database = instance.path(name);
         Response response = database.request(MediaType.APPLICATION_JSON_TYPE)
                 .put(Entity.json(""));
@@ -217,7 +233,7 @@ public class CouchDBClient implements InitializingBean {
      * @return <code>true</code> if response status code belongs to 2xx range
      * @throws NullPointerException in case the supplied argument is <code>null</code>
      */
-    public static boolean isSuccessful(final Response response) {
+    public static boolean isSuccessful(Response response) {
         if (response == null) {
             throw new NullPointerException("response");
         }
