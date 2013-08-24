@@ -34,7 +34,19 @@ THE SOFTWARE.
     
     <bean id="objectMapper" class="com.fasterxml.jackson.databind.ObjectMapper"/>
     
+    <bean id="dbClientRequestFilter" class="org.gravidence.gravifon.db.CouchDBClientRequestFilter">
+        <property name="objectMapper" ref="objectMapper"/>
+    </bean>
+    
+    <bean id="dbClientResponseFilter" class="org.gravidence.gravifon.db.CouchDBClientResponseFilter">
+        <property name="objectMapper" ref="objectMapper"/>
+    </bean>
+    
     <bean id="dbClient" class="org.gravidence.gravifon.db.CouchDBClient">
+        <property name="objectMapper" ref="objectMapper"/>
+        <property name="requestFilter" ref="dbClientRequestFilter"/>
+        <property name="responseFilter" ref="dbClientResponseFilter"/>
+        
         <property name="url" value="${org.gravidence.gravifon.db.url}"/>
         <property name="setup" value="${org.gravidence.gravifon.db.init.setup:true}"/>
         <property name="cleanup" value="${org.gravidence.gravifon.db.init.cleanup:false}"/>

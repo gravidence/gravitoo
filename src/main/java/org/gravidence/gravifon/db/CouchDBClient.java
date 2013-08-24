@@ -33,14 +33,15 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status.Family;
+import org.glassfish.jersey.client.ClientConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * CouchDB client instance.<p>
- * Verifies connection during initialization and initializes DB according to {@link #setup}/{@link #cleanup} settings.
+ * CouchDB JAX-RS client instance.<p>
+ * Connection to DB instance is verified during initialization.<p>
+ * DB instance could be initialized (see {@link #setSetup(java.lang.Boolean) setup} and {@link #setCleanup(java.lang.Boolean) cleanup} settings).
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
@@ -48,38 +49,28 @@ public class CouchDBClient implements InitializingBean {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(CouchDBClient.class);
     
-    /**
-     * Jersey REST client instance associated with CouchDB instance.
-     */
     private WebTarget instance;
     
-    /**
-     * Jackson JSON data binder instance.
-     */
-    @Autowired
     private ObjectMapper objectMapper;
     
-    /**
-     * URL to CouchDB instance.
-     */
+    private CouchDBClientRequestFilter requestFilter;
+    private CouchDBClientResponseFilter responseFilter;
+    
     private String url;
     
-    /**
-     * Indicates if DB setup is required during client initialization.
-     * @see #cleanup
-     */
     private Boolean setup;
     
-    /**
-     * Indicates if DB cleanup is required before DB setup.
-     * @see #setup
-     */
     private Boolean cleanup;
 
     public String getUrl() {
         return url;
     }
 
+    /**
+     * Sets URL to CouchDB instance.
+     * 
+     * @param url URL to CouchDB instance
+     */
     public void setUrl(String url) {
         this.url = url;
     }
@@ -88,6 +79,12 @@ public class CouchDBClient implements InitializingBean {
         return setup;
     }
 
+    /**
+     * Sets 'create all databases' indicator.<p>
+     * Once set to <code>true</code>, DB setup is performed at last initialization step.
+     * 
+     * @param setup indicator value
+     */
     public void setSetup(Boolean setup) {
         this.setup = setup;
     }
@@ -96,8 +93,48 @@ public class CouchDBClient implements InitializingBean {
         return cleanup;
     }
 
+    /**
+     * Sets 'drop all databases' indicator.<p>
+     * Once set to <code>true</code>, DB cleanup is performed before {@link #setSetup(java.lang.Boolean) setup} step.
+     * 
+     * @param cleanup indicator value
+     */
     public void setCleanup(Boolean cleanup) {
         this.cleanup = cleanup;
+    }
+    
+    /**
+     * Returns JAX-RS client instance associated with CouchDB instance.
+     */
+    public WebTarget getTarget() {
+        return instance;
+    }
+
+    /**
+     * Injects JSON data binding instance.
+     * 
+     * @param objectMapper Jackson ObjectMapper instance
+     */
+    public void setObjectMapper(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
+
+    /**
+     * Injects JAX-RS client request filter instance.
+     * 
+     * @param requestFilter {@link CouchDBClientRequestFilter} instance which consumes JSON
+     */
+    public void setRequestFilter(CouchDBClientRequestFilter requestFilter) {
+        this.requestFilter = requestFilter;
+    }
+
+    /**
+     * Injects JAX-RS client response filter instance.
+     * 
+     * @param responseFilter {@link CouchDBClientResponseFilter} instance which produces JSON
+     */
+    public void setResponseFilter(CouchDBClientResponseFilter responseFilter) {
+        this.responseFilter = responseFilter;
     }
 
     @Override
@@ -108,13 +145,14 @@ public class CouchDBClient implements InitializingBean {
     
     private void initDBConnection() throws IOException {
         LOGGER.info("Initializing DB layer");
-        instance = ClientBuilder.newClient().target(url);
+        ClientConfig clientConfig = new ClientConfig()
+                .register(requestFilter)
+                .register(responseFilter);
+        instance = ClientBuilder.newClient(clientConfig).target(url);
         
         LOGGER.info("Connecting to CouchDB instance at {}", url);
         Response response = instance.request(MediaType.APPLICATION_JSON_TYPE)
                 .get();
-        
-        LOGGER.info("Response status code: {}", response.getStatus());
         
         if (isSuccessful(response)) {
             if (response.hasEntity()) {
@@ -122,11 +160,12 @@ public class CouchDBClient implements InitializingBean {
                 LOGGER.info("CouchDB version: {}", node.get("version").asText());
             }
             else {
-                LOGGER.warn("No reponse entity returned from CouchDB instance.");
+                LOGGER.warn("No reponse entity returned from CouchDB instance");
             }
         }
         else {
-            LOGGER.error("Failure reason: {}", response.getStatusInfo().getReasonPhrase());
+            LOGGER.error("DB connection failure: [{}] {}", response.getStatus(),
+                    response.getStatusInfo().getReasonPhrase());
             throw new RuntimeException("DB layer initialization failed");
         }
     }
@@ -146,26 +185,26 @@ public class CouchDBClient implements InitializingBean {
     }
     
     private void dropDatabase(final String name) {
-        WebTarget table = instance.path(name);
-        Response response = table.request(MediaType.APPLICATION_JSON_TYPE)
+        WebTarget database = instance.path(name);
+        Response response = database.request(MediaType.APPLICATION_JSON_TYPE)
                 .delete();
         if (isSuccessful(response)) {
-            LOGGER.info("'{}' database dropped", table.getUri().getPath());
+            LOGGER.info("'{}' database dropped", database.getUri().getPath());
         }
     }
     
     private void createDatabase(final String name) {
-        WebTarget table = instance.path(name);
-        Response response = table.request(MediaType.APPLICATION_JSON_TYPE)
+        WebTarget database = instance.path(name);
+        Response response = database.request(MediaType.APPLICATION_JSON_TYPE)
                 .put(Entity.json(""));
         if (isSuccessful(response)) {
-            LOGGER.info("'{}' database created", table.getUri().getPath());
+            LOGGER.info("'{}' database created", database.getUri().getPath());
         }
         else if (response.getStatus() == 412) {
-            LOGGER.info("'{}' database already exists", table.getUri().getPath());
+            LOGGER.info("'{}' database already exists", database.getUri().getPath());
         }
         else {
-            LOGGER.error("Failed to create {} database: [{}] {}", table.getUri().getPath(),
+            LOGGER.error("Failed to create {} database: [{}] {}", database.getUri().getPath(),
                     response.getStatus(), response.getStatusInfo().getReasonPhrase());
             throw new RuntimeException("DB layer initialization failed");
         }
