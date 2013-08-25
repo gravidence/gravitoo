@@ -24,6 +24,7 @@
 package org.gravidence.gravifon.resource;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.NotFoundException;
@@ -40,6 +41,7 @@ import javax.ws.rs.core.Response.Status;
 import org.gravidence.gravifon.db.CouchDBClient;
 import org.gravidence.gravifon.db.message.CreateDocumentResponse;
 import org.gravidence.gravifon.db.domain.UserDocument;
+import org.gravidence.gravifon.resource.bean.StatusBean;
 import org.gravidence.gravifon.resource.bean.UserBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,7 +76,8 @@ public class Users {
      */
     @POST
     public UserBean create(UserBean user) {
-        Response response = getResourceTarget().request(MediaType.APPLICATION_JSON_TYPE)
+        Response response = getResourceTarget()
+                .request(MediaType.APPLICATION_JSON_TYPE)
                 .post(Entity.json(user.createDocument()));
         
         if (CouchDBClient.isSuccessful(response)) {
@@ -109,14 +112,17 @@ public class Users {
      * 
      * @param id user identifier
      * @param user details bean
+     * @return updated user details bean
      */
     @PUT
     @Path("{user_id}")
-    public void update(@PathParam("user_id") String id, UserBean user) {
+    public UserBean update(@PathParam("user_id") String id, UserBean user) {
         UserDocument original = retrieveUserDocument(id);
         user.updateDocument(original);
         
-        Response response = getResourceTarget().path(id).request(MediaType.APPLICATION_JSON_TYPE)
+        Response response = getResourceTarget()
+                .path(id)
+                .request(MediaType.APPLICATION_JSON_TYPE)
                 .put(Entity.json(original));
         
         if (CouchDBClient.isSuccessful(response)) {
@@ -129,16 +135,54 @@ public class Users {
                     response.getStatus(), response.getStatusInfo().getReasonPhrase());
             throw new InternalServerErrorException("Database error: failed to update user.");
         }
+        
+        return user;
     }
     
     /**
-     * Retrieves existing user details.
+     * Deletes existing user.
      * 
      * @param id user identifier
-     * @return details document
+     * @return status bean
+     */
+    @DELETE
+    @Path("{user_id}")
+    public StatusBean delete(@PathParam("user_id") String id) {
+        UserDocument original = retrieveUserDocument(id);
+        
+        Response response = getResourceTarget()
+                .path(id)
+                .queryParam("rev", original.getRevision())
+                .request(MediaType.APPLICATION_JSON_TYPE)
+                .delete();
+        
+        UserBean user = new UserBean();
+        if (CouchDBClient.isSuccessful(response)) {
+            UserDocument document = response.readEntity(UserDocument.class);
+            user.updateBean(document);
+            // CouchDB does not return deleted document properties so taking username from original document
+            user.setUsername(original.getUsername());
+            LOGGER.trace("'{}' user deleted", user);
+        }
+        else {
+            LOGGER.error("Failed to delete '{}' user: [{}] {}", original.getUsername(),
+                    response.getStatus(), response.getStatusInfo().getReasonPhrase());
+            throw new InternalServerErrorException("Database error: failed to delete user.");
+        }
+        
+        return new StatusBean();
+    }
+    
+    /**
+     * Retrieves existing user {@link UserDocument document}.
+     * 
+     * @param id user identifier
+     * @return user details document
      */
     private UserDocument retrieveUserDocument(String id) {
-        Response response = getResourceTarget().path(id).request(MediaType.APPLICATION_JSON_TYPE)
+        Response response = getResourceTarget()
+                .path(id)
+                .request(MediaType.APPLICATION_JSON_TYPE)
                 .get();
         
         UserDocument document = null;
