@@ -8,3 +8,4 @@ Free and open source music scrobbling service.
 - Java 7
 - Maven 3
 - Servlet 3.0 container
+- CouchDB 1.2
