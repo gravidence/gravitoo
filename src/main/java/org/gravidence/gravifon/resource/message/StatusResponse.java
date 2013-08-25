@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.gravidence.gravifon;
+package org.gravidence.gravifon.resource.message;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -69,13 +69,12 @@ public class StatusResponse {
      * @param errorDescription human readable error description
      */
     public StatusResponse(Integer errorCode, String errorDescription) {
-        // TODO uncomment when some error codes appear
-//        if (errorCode == null) {
-//            throw new NullPointerException("errorCode");
-//        }
-//        if (errorDescription == null) {
-//            throw new NullPointerException("errorDescription");
-//        }
+        if (errorCode == null) {
+            throw new NullPointerException("errorCode");
+        }
+        if (errorDescription == null) {
+            throw new NullPointerException("errorDescription");
+        }
 
         this.ok = false;
         this.errorCode = errorCode;

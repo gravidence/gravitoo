@@ -26,8 +26,6 @@ package org.gravidence.gravifon.resource;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
-import javax.ws.rs.InternalServerErrorException;
-import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -41,6 +39,8 @@ import javax.ws.rs.core.Response.Status;
 import org.gravidence.gravifon.db.CouchDBClient;
 import org.gravidence.gravifon.db.message.CreateDocumentResponse;
 import org.gravidence.gravifon.db.domain.UserDocument;
+import org.gravidence.gravifon.exception.GravifonException;
+import org.gravidence.gravifon.exception.error.GravifonError;
 import org.gravidence.gravifon.resource.bean.StatusBean;
 import org.gravidence.gravifon.resource.bean.UserBean;
 import org.slf4j.Logger;
@@ -88,7 +88,7 @@ public class Users {
         else {
             LOGGER.error("Failed to create '{}' user: [{}] {}", user.getUsername(),
                     response.getStatus(), response.getStatusInfo().getReasonPhrase());
-            throw new InternalServerErrorException("Database error: failed to create user.");
+            throw new GravifonException(GravifonError.DATABASE_OPERATION, "Failed to create user.");
         }
         
         // user is already updated with document values
@@ -133,7 +133,7 @@ public class Users {
         else {
             LOGGER.error("Failed to update '{}' user: [{}] {}", user.getUsername(),
                     response.getStatus(), response.getStatusInfo().getReasonPhrase());
-            throw new InternalServerErrorException("Database error: failed to update user.");
+            throw new GravifonException(GravifonError.DATABASE_OPERATION, "Failed to update user.");
         }
         
         return user;
@@ -167,7 +167,7 @@ public class Users {
         else {
             LOGGER.error("Failed to delete '{}' user: [{}] {}", original.getUsername(),
                     response.getStatus(), response.getStatusInfo().getReasonPhrase());
-            throw new InternalServerErrorException("Database error: failed to delete user.");
+            throw new GravifonException(GravifonError.DATABASE_OPERATION, "Failed to delete user.");
         }
         
         return new StatusBean();
@@ -192,12 +192,12 @@ public class Users {
         }
         else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
             LOGGER.trace("No user found for '{}' id", id);
-            throw new NotFoundException("User not found.");
+            throw new GravifonException(GravifonError.USER_NOT_FOUND, "User not found.");
         }
         else {
             LOGGER.error("Failed to retrieve '{}' user: [{}] {}", document,
                     response.getStatus(), response.getStatusInfo().getReasonPhrase());
-            throw new InternalServerErrorException("Database error: failed to create user.");
+            throw new GravifonException(GravifonError.DATABASE_OPERATION, "Failed to retrieve user.");
         }
         
         return document;

@@ -21,19 +21,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.gravidence.gravifon.resource.bean;
+package org.gravidence.gravifon.exception.mapper;
 
 import org.gravidence.gravifon.resource.message.StatusResponse;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.ext.ExceptionMapper;
+import javax.ws.rs.ext.Provider;
+import org.gravidence.gravifon.exception.error.GravifonError;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Successful status bean.<p>
- * Bean returned to client means successful response
- * so default {@link StatusResponse} {@link StatusResponse#StatusResponse() constructor} is used.
+ * Mapper that handles all "unexpected" exceptions.<p>
+ * Logs an exception and produces response with {@link GravifonError#INTERNAL INTERNAL} error.
  * 
- * @see StatusResponse
+ * @see JerseyExceptionMapper
+ * @see GravifonExceptionMapper
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
-public class StatusBean extends StatusResponse {
+@Provider
+public class DefaultExceptionMapper implements ExceptionMapper<Throwable> {
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultExceptionMapper.class);
 
+    @Override
+    public Response toResponse(Throwable exception) {
+        LOGGER.error("Unexpected exception captured", exception);
+        
+        StatusResponse entity = new StatusResponse(
+                GravifonError.INTERNAL.getErrorCode(), "An unexpected internal error.");
+        
+        return Response
+                .status(GravifonError.INTERNAL.getHttpStatusCode())
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(entity)
+                .build();
+    }
+    
 }

@@ -21,36 +21,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.gravidence.gravifon;
+package org.gravidence.gravifon.exception.mapper;
 
+import org.gravidence.gravifon.resource.message.StatusResponse;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
+import org.gravidence.gravifon.exception.GravifonException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Default exception mapper.<p>
- * Logs an exception and produces response with {@link Status#INTERNAL_SERVER_ERROR 500 Internal Server Error} status.
+ * Mapper that handles {@link GravifonException Gravifon internal exceptions}.<p>
+ * Logs an exception and produces response according to exception details.
+ * 
+ * @see GravifonException
+ * @see DefaultExceptionMapper
+ * @see JerseyExceptionMapper
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
 @Provider
-public class DefaultExceptionMapper implements ExceptionMapper<Exception> {
+public class GravifonExceptionMapper implements ExceptionMapper<GravifonException> {
     
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultExceptionMapper.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(GravifonExceptionMapper.class);
 
     @Override
-    // TODO smarter behavior
-    public Response toResponse(Exception exception) {
-        LOGGER.error("Exception captured", exception);
+    public Response toResponse(GravifonException exception) {
+        LOGGER.error("Gravifon exception captured", exception);
         
-        StatusResponse entity = new StatusResponse(null, null);
+        StatusResponse entity = new StatusResponse(exception.getError().getErrorCode(), exception.getMessage());
         
         return Response
-                .status(Status.INTERNAL_SERVER_ERROR)
+                .status(exception.getError().getHttpStatusCode())
                 .type(MediaType.APPLICATION_JSON_TYPE)
                 .entity(entity)
                 .build();
