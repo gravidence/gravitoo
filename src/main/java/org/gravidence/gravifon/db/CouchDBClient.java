@@ -168,7 +168,8 @@ public class CouchDBClient implements InitializingBean {
         instance = ClientBuilder.newClient(clientConfig).target(url);
         
         LOGGER.info("Connecting to CouchDB instance at {}", url);
-        Response response = instance.request(MediaType.APPLICATION_JSON_TYPE)
+        Response response = instance
+                .request(MediaType.APPLICATION_JSON_TYPE)
                 .get();
         
         if (isSuccessful(response)) {
@@ -177,7 +178,7 @@ public class CouchDBClient implements InitializingBean {
                 LOGGER.info("CouchDB version: {}", node.get("version").asText());
             }
             else {
-                LOGGER.warn("No reponse entity returned from CouchDB instance");
+                LOGGER.warn("CouchDB version: unknown");
             }
         }
         else {
@@ -203,8 +204,11 @@ public class CouchDBClient implements InitializingBean {
     
     private void dropDatabase(String name) {
         WebTarget database = instance.path(name);
-        Response response = database.request(MediaType.APPLICATION_JSON_TYPE)
+        
+        Response response = database
+                .request(MediaType.APPLICATION_JSON_TYPE)
                 .delete();
+        
         if (isSuccessful(response)) {
             LOGGER.info("'{}' database dropped", database.getUri().getPath());
         }
@@ -217,8 +221,12 @@ public class CouchDBClient implements InitializingBean {
     
     private void createDatabase(String name) {
         WebTarget database = instance.path(name);
-        Response response = database.request(MediaType.APPLICATION_JSON_TYPE)
+        
+        Response response = database
+                .request(MediaType.APPLICATION_JSON_TYPE)
+                // use empty entity in order to pass strict validation of HTTP specification compliance
                 .put(Entity.json(""));
+        
         if (isSuccessful(response)) {
             LOGGER.info("'{}' database created", database.getUri().getPath());
         }
