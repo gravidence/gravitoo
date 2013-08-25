@@ -35,7 +35,7 @@ import org.gravidence.gravifon.db.domain.UserDocument;
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
-public class UserBean {
+public class UserBean extends StatusBean {
 
     /**
      * @see #getId()

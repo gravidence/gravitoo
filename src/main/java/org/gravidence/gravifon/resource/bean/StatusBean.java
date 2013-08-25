@@ -21,39 +21,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.gravidence.gravifon;
+package org.gravidence.gravifon.resource.bean;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.ext.ExceptionMapper;
-import javax.ws.rs.ext.Provider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.gravidence.gravifon.StatusResponse;
 
 /**
- * Default exception mapper.<p>
- * Logs an exception and produces response with {@link Status#INTERNAL_SERVER_ERROR 500 Internal Server Error} status.
+ * Successful status bean.<p>
+ * Bean returned to client means successful response
+ * so default {@link StatusResponse} {@link StatusResponse#StatusResponse() constructor} is used.
+ * 
+ * @see StatusResponse
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
-@Provider
-public class DefaultExceptionMapper implements ExceptionMapper<Exception> {
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultExceptionMapper.class);
+public class StatusBean extends StatusResponse {
 
-    @Override
-    // TODO smarter behavior
-    public Response toResponse(Exception exception) {
-        LOGGER.error("Exception captured", exception);
-        
-        StatusResponse entity = new StatusResponse(null, null);
-        
-        return Response
-                .status(Status.INTERNAL_SERVER_ERROR)
-                .type(MediaType.APPLICATION_JSON_TYPE)
-                .entity(entity)
-                .build();
-    }
-    
 }
