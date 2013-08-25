@@ -25,15 +25,18 @@ package org.gravidence.gravifon.resource;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.InternalServerErrorException;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.ServiceUnavailableException;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import org.gravidence.gravifon.db.CouchDBClient;
 import org.gravidence.gravifon.db.message.CreateDocumentResponse;
 import org.gravidence.gravifon.db.domain.UserDocument;
@@ -82,7 +85,7 @@ public class Users {
         else {
             LOGGER.error("Failed to create '{}' user: [{}] {}", user.getUsername(),
                     response.getStatus(), response.getStatusInfo().getReasonPhrase());
-            throw new ServiceUnavailableException("Database error: failed to create user.");
+            throw new InternalServerErrorException("Database error: failed to create user.");
         }
         
         // user is already updated with document values
@@ -90,7 +93,7 @@ public class Users {
     }
     
     /**
-     * Retrieves existing user.
+     * Retrieves existing user details.
      * 
      * @param id user identifier
      * @return user details bean
@@ -98,6 +101,43 @@ public class Users {
     @GET
     @Path("{user_id}")
     public UserBean retrieve(@PathParam("user_id") String id) {
+        return new UserBean().updateBean(retrieveUserDocument(id));
+    }
+    
+    /**
+     * Updates existing user details.
+     * 
+     * @param id user identifier
+     * @param user details bean
+     */
+    @PUT
+    @Path("{user_id}")
+    public void update(@PathParam("user_id") String id, UserBean user) {
+        UserDocument original = retrieveUserDocument(id);
+        user.updateDocument(original);
+        
+        Response response = getResourceTarget().path(id).request(MediaType.APPLICATION_JSON_TYPE)
+                .put(Entity.json(original));
+        
+        if (CouchDBClient.isSuccessful(response)) {
+            CreateDocumentResponse document = response.readEntity(CreateDocumentResponse.class);
+            user.updateBean(document);
+            LOGGER.trace("'{}' user updated", user);
+        }
+        else {
+            LOGGER.error("Failed to update '{}' user: [{}] {}", user.getUsername(),
+                    response.getStatus(), response.getStatusInfo().getReasonPhrase());
+            throw new InternalServerErrorException("Database error: failed to update user.");
+        }
+    }
+    
+    /**
+     * Retrieves existing user details.
+     * 
+     * @param id user identifier
+     * @return details document
+     */
+    private UserDocument retrieveUserDocument(String id) {
         Response response = getResourceTarget().path(id).request(MediaType.APPLICATION_JSON_TYPE)
                 .get();
         
@@ -106,13 +146,17 @@ public class Users {
             document = response.readEntity(UserDocument.class);
             LOGGER.trace("'{}' user retrieved", document);
         }
+        else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+            LOGGER.trace("No user found for '{}' id", id);
+            throw new NotFoundException("User not found.");
+        }
         else {
             LOGGER.error("Failed to retrieve '{}' user: [{}] {}", document,
                     response.getStatus(), response.getStatusInfo().getReasonPhrase());
-            throw new ServiceUnavailableException("Database error: failed to create user.");
+            throw new InternalServerErrorException("Database error: failed to create user.");
         }
         
-        return new UserBean().updateBean(document);
+        return document;
     }
     
     /**
