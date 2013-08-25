@@ -32,6 +32,7 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.Response.Status.Family;
 import org.glassfish.jersey.client.ClientConfig;
 import org.slf4j.Logger;
@@ -221,7 +222,7 @@ public class CouchDBClient implements InitializingBean {
         if (isSuccessful(response)) {
             LOGGER.info("'{}' database created", database.getUri().getPath());
         }
-        else if (response.getStatus() == 412) {
+        else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
             LOGGER.info("'{}' database already exists", database.getUri().getPath());
         }
         else {
