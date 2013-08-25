@@ -49,6 +49,11 @@ public class CouchDBClient implements InitializingBean {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(CouchDBClient.class);
     
+    /**
+     * Users database name.
+     */
+    public static final String USERS_DATABASE_NAME = "users";
+    
     // JAX-RS client instance
     private WebTarget instance;
     
