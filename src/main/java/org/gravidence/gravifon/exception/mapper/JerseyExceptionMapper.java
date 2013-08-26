@@ -25,6 +25,7 @@ package org.gravidence.gravifon.exception.mapper;
 
 import javax.ws.rs.NotAllowedException;
 import javax.ws.rs.NotFoundException;
+import javax.ws.rs.NotSupportedException;
 import javax.ws.rs.WebApplicationException;
 import org.gravidence.gravifon.resource.message.StatusResponse;
 import javax.ws.rs.core.MediaType;
@@ -64,6 +65,9 @@ public class JerseyExceptionMapper implements ExceptionMapper<WebApplicationExce
         }
         else if (exception instanceof NotAllowedException) {
             entity = new StatusResponse(exception.getResponse().getStatus(), "Resource is unable to handle request.");
+        }
+        else if (exception instanceof NotSupportedException) {
+            entity = new StatusResponse(exception.getResponse().getStatus(), "Unsupported media type.");
         }
         else {
             entity = new StatusResponse(GravifonError.UNEXPECTED.getErrorCode(), "An unexpected internal error.");
