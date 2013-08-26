@@ -23,6 +23,8 @@
  */
 package org.gravidence.gravifon.db;
 
+import org.gravidence.gravifon.filter.LogCouchDBClientResponseFilter;
+import org.gravidence.gravifon.filter.LogCouchDBClientRequestFilter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -62,8 +64,8 @@ public class CouchDBClient implements InitializingBean {
     private ObjectMapper objectMapper;
     
     // Associated filters
-    private CouchDBClientRequestFilter requestFilter;
-    private CouchDBClientResponseFilter responseFilter;
+    private LogCouchDBClientRequestFilter logRequestFilter;
+    private LogCouchDBClientResponseFilter logResponseFilter;
 
     // DB settings
     private String url;
@@ -137,21 +139,21 @@ public class CouchDBClient implements InitializingBean {
     }
 
     /**
-     * Injects JAX-RS client request filter instance.
+     * Injects JAX-RS client log request filter instance.
      * 
-     * @param requestFilter {@link CouchDBClientRequestFilter} instance which consumes JSON
+     * @param logRequestFilter log request filter instance
      */
-    public void setRequestFilter(CouchDBClientRequestFilter requestFilter) {
-        this.requestFilter = requestFilter;
+    public void setLogRequestFilter(LogCouchDBClientRequestFilter logRequestFilter) {
+        this.logRequestFilter = logRequestFilter;
     }
 
     /**
-     * Injects JAX-RS client response filter instance.
+     * Injects JAX-RS client log response filter instance.
      * 
-     * @param responseFilter {@link CouchDBClientResponseFilter} instance which produces JSON
+     * @param logResponseFilter log response filter instance
      */
-    public void setResponseFilter(CouchDBClientResponseFilter responseFilter) {
-        this.responseFilter = responseFilter;
+    public void setLogResponseFilter(LogCouchDBClientResponseFilter logResponseFilter) {
+        this.logResponseFilter = logResponseFilter;
     }
 
     @Override
@@ -163,8 +165,8 @@ public class CouchDBClient implements InitializingBean {
     private void initDBConnection() throws IOException {
         LOGGER.info("Initializing DB layer");
         ClientConfig clientConfig = new ClientConfig()
-                .register(requestFilter)
-                .register(responseFilter);
+                .register(logRequestFilter)
+                .register(logResponseFilter);
         instance = ClientBuilder.newClient(clientConfig).target(url);
         
         LOGGER.info("Connecting to CouchDB instance at {}", url);
