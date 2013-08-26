@@ -53,7 +53,7 @@ public class FilterUtils {
      * is not equal to <code>application/json</code>.
      * Actual media type name is mentioned in resulting placeholder.
      */
-    private static final String UNSUPPORTED_ENTITY = "<%s entity>";
+    private static final String UNSUPPORTED_ENTITY = "<%s/%s entity>";
 
     /**
      * Preventing class instantiation.
@@ -157,7 +157,7 @@ public class FilterUtils {
             throw new NullPointerException("mediaType");
         }
 
-        return String.format(UNSUPPORTED_ENTITY, mediaType.toString());
+        return String.format(UNSUPPORTED_ENTITY, mediaType.getType(), mediaType.getSubtype());
     }
     
 }

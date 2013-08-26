@@ -62,7 +62,7 @@ public class LogServiceRequestFilter implements ContainerRequestFilter {
             String entity = FilterUtils.NO_ENTITY;
             
             if (requestContext.hasEntity()) {
-                if (MediaType.APPLICATION_JSON_TYPE.equals(requestContext.getMediaType())) {
+                if (MediaType.APPLICATION_JSON_TYPE.isCompatible(requestContext.getMediaType())) {
                     try (InputStream in = requestContext.getEntityStream()) {
                         byte[] buf = IOUtils.toByteArray(in);
 

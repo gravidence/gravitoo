@@ -64,7 +64,7 @@ public class LogCouchDBClientRequestFilter implements ClientRequestFilter {
             String entity = FilterUtils.NO_ENTITY;
             
             if (requestContext.hasEntity()) {
-                if (MediaType.APPLICATION_JSON_TYPE.equals(requestContext.getMediaType())) {
+                if (MediaType.APPLICATION_JSON_TYPE.isCompatible(requestContext.getMediaType())) {
                     entity = FilterUtils.jsonEntityToString(objectMapper, requestContext.getEntity(), LOGGER);
                 } else {
                     entity = FilterUtils.unsupportedEntityToString(requestContext.getMediaType());

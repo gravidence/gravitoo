@@ -58,7 +58,7 @@ public class LogServiceResponseFilter implements ContainerResponseFilter {
             String entity = FilterUtils.NO_ENTITY;
             
             if (responseContext.hasEntity()) {
-                if (MediaType.APPLICATION_JSON_TYPE.equals(responseContext.getMediaType())) {
+                if (MediaType.APPLICATION_JSON_TYPE.isCompatible(responseContext.getMediaType())) {
                     entity = FilterUtils.jsonEntityToString(objectMapper, responseContext.getEntity(), LOGGER);
                 } else {
                     entity = FilterUtils.unsupportedEntityToString(responseContext.getMediaType());

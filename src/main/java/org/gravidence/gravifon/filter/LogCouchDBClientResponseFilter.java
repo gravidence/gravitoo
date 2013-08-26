@@ -68,7 +68,7 @@ public class LogCouchDBClientResponseFilter implements ClientResponseFilter {
             String entity = FilterUtils.NO_ENTITY;
             
             if (responseContext.hasEntity()) {
-                if (MediaType.APPLICATION_JSON_TYPE.equals(responseContext.getMediaType())) {
+                if (MediaType.APPLICATION_JSON_TYPE.isCompatible(responseContext.getMediaType())) {
                     try (InputStream in = responseContext.getEntityStream()) {
                         byte[] buf = IOUtils.toByteArray(in);
 
