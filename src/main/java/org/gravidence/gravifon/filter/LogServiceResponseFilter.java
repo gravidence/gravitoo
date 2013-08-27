@@ -28,7 +28,6 @@ import java.io.IOException;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.ext.Provider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,8 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Service log response filter.<p>
- * Logs HTTP status code, reason phrase and entity if presented.<p>
- * Consumes <code>application/json</code> media type entities only.
+ * Logs HTTP status code, media type, reason phrase and entity if presented.<p>
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
@@ -58,14 +56,10 @@ public class LogServiceResponseFilter implements ContainerResponseFilter {
             String entity = FilterUtils.NO_ENTITY;
             
             if (responseContext.hasEntity()) {
-                if (MediaType.APPLICATION_JSON_TYPE.isCompatible(responseContext.getMediaType())) {
-                    entity = FilterUtils.jsonEntityToString(objectMapper, responseContext.getEntity(), LOGGER);
-                } else {
-                    entity = FilterUtils.unsupportedEntityToString(responseContext.getMediaType());
-                }
+                entity = FilterUtils.entityToString(objectMapper, responseContext.getEntity(), LOGGER);
             }
             
-            LOGGER.debug("Service response:\n[{}] {}\n{}", responseContext.getStatus(),
+            LOGGER.debug("Service response:\n{} {}\n{}", responseContext.getStatus(),
                     responseContext.getStatusInfo().getReasonPhrase(), entity);
         }
     }

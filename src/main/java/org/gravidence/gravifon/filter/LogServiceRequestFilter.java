@@ -23,24 +23,20 @@
  */
 package org.gravidence.gravifon.filter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.PreMatching;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.ext.Provider;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Service log request filter.<p>
- * Logs HTTP method, resource URI and entity if presented.<p>
- * Consumes <code>application/json</code> media type entities only.
+ * Logs HTTP method, media type, resource URI and entity if presented.<p>
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
@@ -49,12 +45,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class LogServiceRequestFilter implements ContainerRequestFilter {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(LogServiceRequestFilter.class);
-    
-    /**
-     * JSON data binding instance.
-     */
-    @Autowired
-    private ObjectMapper objectMapper;
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
@@ -62,17 +52,12 @@ public class LogServiceRequestFilter implements ContainerRequestFilter {
             String entity = FilterUtils.NO_ENTITY;
             
             if (requestContext.hasEntity()) {
-                if (MediaType.APPLICATION_JSON_TYPE.isCompatible(requestContext.getMediaType())) {
-                    try (InputStream in = requestContext.getEntityStream()) {
-                        byte[] buf = IOUtils.toByteArray(in);
+                try (InputStream in = requestContext.getEntityStream()) {
+                    byte[] buf = IOUtils.toByteArray(in);
 
-                        requestContext.setEntityStream(new ByteArrayInputStream(buf));
+                    requestContext.setEntityStream(new ByteArrayInputStream(buf));
 
-                        entity = FilterUtils.jsonEntityToString(objectMapper, buf, LOGGER);
-                    }
-                }
-                else {
-                    entity = FilterUtils.unsupportedEntityToString(requestContext.getMediaType());
+                    entity = FilterUtils.entityToString(buf);
                 }
             }
             

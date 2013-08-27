@@ -27,15 +27,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import javax.ws.rs.client.ClientRequestContext;
 import javax.ws.rs.client.ClientRequestFilter;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.ext.Provider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * CouchDB JAX-RS client log request filter.<p>
- * Logs HTTP method, resource URI and entity if presented.<p>
- * Consumes <code>application/json</code> media type entities only.
+ * Logs HTTP method, media type, resource URI and entity if presented.<p>
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
@@ -64,14 +62,11 @@ public class LogCouchDBClientRequestFilter implements ClientRequestFilter {
             String entity = FilterUtils.NO_ENTITY;
             
             if (requestContext.hasEntity()) {
-                if (MediaType.APPLICATION_JSON_TYPE.isCompatible(requestContext.getMediaType())) {
-                    entity = FilterUtils.jsonEntityToString(objectMapper, requestContext.getEntity(), LOGGER);
-                } else {
-                    entity = FilterUtils.unsupportedEntityToString(requestContext.getMediaType());
-                }
+                entity = FilterUtils.entityToString(objectMapper, requestContext.getEntity(), LOGGER);
             }
             
-            LOGGER.debug("Database request:\n{} {}\n{}", requestContext.getMethod(), requestContext.getUri(), entity);
+            LOGGER.debug("Database request:\n{} {}\n{}", requestContext.getMethod(),
+                    requestContext.getUri(), entity);
         }
     }
     

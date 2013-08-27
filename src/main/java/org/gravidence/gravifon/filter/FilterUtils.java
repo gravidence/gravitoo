@@ -24,11 +24,7 @@
 package org.gravidence.gravifon.filter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
-import javax.ws.rs.core.MediaType;
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 
 /**
@@ -37,23 +33,17 @@ import org.slf4j.Logger;
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
 public class FilterUtils {
+    
+    /**
+     * Corrupted entity placeholder. Used when serialization error occurs.
+     */
+    // TODO "corrupted" is incorrect name choice actually
+    private static final String CORRUPTED_ENTITY = "<corrupted entity>";
 
     /**
      * No entity placeholder.
      */
     public static final String NO_ENTITY = "<no entity>";
-    
-    /**
-     * Corrupted entity placeholder. Used when serialization error occurs.
-     */
-    public static final String CORRUPTED_ENTITY = "<corrupted entity>";
-    
-    /**
-     * Unsupported entity placeholder. Used when media type specified in request/response context
-     * is not equal to <code>application/json</code>.
-     * Actual media type name is mentioned in resulting placeholder.
-     */
-    private static final String UNSUPPORTED_ENTITY = "<%s/%s entity>";
 
     /**
      * Preventing class instantiation.
@@ -63,21 +53,21 @@ public class FilterUtils {
     }
     
     /**
-     * Serializes JSON entity (object) to {@link String}.<p>
+     * Serializes entity to JSON {@link String}.<p>
      * Logs serialization error if such one happens.
      * 
      * @param objectMapper JSON data binding instance
-     * @param jsonEntity JSON entity
+     * @param entity entity
      * @param logger logger instance
      * @return <ul>
      *           <li>serialized entity in successful case</li>
-     *           <li>{@link #NO_ENTITY} in case the supplied <code>jsonEntity</code> argument is <code>null</code></li>
+     *           <li>{@link #NO_ENTITY} in case the supplied <code>entity</code> argument is <code>null</code></li>
      *           <li>{@link #CORRUPTED_ENTITY} in case of serialization error</li>
      *         </ul>
      * @throws NullPointerException in case the supplied <code>objectMapper</code> or <code>logger</code>
      * argument is <code>null</code>
      */
-    public static String jsonEntityToString(ObjectMapper objectMapper, Object jsonEntity, Logger logger) {
+    public static String entityToString(ObjectMapper objectMapper, Object entity, Logger logger) {
         if (objectMapper == null) {
             throw new NullPointerException("objectMapper");
         }
@@ -87,11 +77,11 @@ public class FilterUtils {
 
         String result;
 
-        if (jsonEntity == null) {
+        if (entity == null) {
             result = NO_ENTITY;
         } else {
             try {
-                result = objectMapper.writeValueAsString(jsonEntity);
+                result = objectMapper.writeValueAsString(entity);
             }
             catch (JsonProcessingException ex) {
                 logger.error("Failed to serialize entity", ex);
@@ -104,60 +94,16 @@ public class FilterUtils {
     }
 
     /**
-     * Serializes JSON entity (byte array) to {@link String}.<p>
-     * See {@link #jsonEntityToString(com.fasterxml.jackson.databind.ObjectMapper, java.lang.Object, org.slf4j.Logger)}
-     * method version for details.
-     */
-    public static String jsonEntityToString(ObjectMapper objectMapper, byte[] jsonEntity, Logger logger) {
-        if (objectMapper == null) {
-            throw new NullPointerException("objectMapper");
-        }
-        if (logger == null) {
-            throw new NullPointerException("logger");
-        }
-
-        String result;
-
-        if (jsonEntity == null) {
-            result = NO_ENTITY;
-        } else {
-            try {
-                JsonNode node = objectMapper.readTree(jsonEntity);
-                result = node.toString();
-            }
-            catch (IOException ex) {
-                logger.error("Failed to serialize entity", ex);
-                
-                try {
-                    result = IOUtils.toString(jsonEntity, "UTF-8");
-                }
-                catch (IOException ex1) {
-                    // it actually never occurs as declared by IOUtils.toString method
-                    logger.warn("Failed to convert entity to plain string", ex1);
-                    
-                    result = CORRUPTED_ENTITY;
-                }
-            }
-        }
-
-        return result;
-    }
-
-    /**
-     * Produces unsupported entity placeholder.
+     * Serializes entity to {@link String}.<p>
      * 
-     * @param mediaType actual entity media type
-     * @return unsupported entity placeholder
-     * @throws NullPointerException in case the supplied argument is <code>null</code>
-     * 
-     * @see #UNSUPPORTED_ENTITY
+     * @param entity entity
+     * @return <ul>
+     *           <li>serialized entity in successful case</li>
+     *           <li>{@link #NO_ENTITY} in case the supplied <code>entity</code> argument is <code>null</code></li>
+     *         </ul>
      */
-    public static String unsupportedEntityToString(MediaType mediaType) {
-        if (mediaType == null) {
-            throw new NullPointerException("mediaType");
-        }
-
-        return String.format(UNSUPPORTED_ENTITY, mediaType.getType(), mediaType.getSubtype());
+    public static String entityToString(byte[] entity) {
+        return entity == null ? NO_ENTITY : new String(entity).trim();
     }
     
 }

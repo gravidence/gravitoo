@@ -23,14 +23,12 @@
  */
 package org.gravidence.gravifon.filter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import javax.ws.rs.client.ClientRequestContext;
 import javax.ws.rs.client.ClientResponseContext;
 import javax.ws.rs.client.ClientResponseFilter;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.ext.Provider;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -38,8 +36,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * CouchDB JAX-RS client log response filter.<p>
- * Logs HTTP status code, reason phrase and entity if presented.<p>
- * Consumes <code>application/json</code> media type entities only.
+ * Logs HTTP status code, media type, reason phrase and entity if presented.<p>
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
@@ -47,20 +44,6 @@ import org.slf4j.LoggerFactory;
 public class LogCouchDBClientResponseFilter implements ClientResponseFilter {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(LogCouchDBClientResponseFilter.class);
-    
-    /**
-     * @see #setObjectMapper(com.fasterxml.jackson.databind.ObjectMapper)
-     */
-    private ObjectMapper objectMapper;
-
-    /**
-     * Injects JSON data binding instance.
-     * 
-     * @param objectMapper JSON data binding instance
-     */
-    public void setObjectMapper(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
-    }
 
     @Override
     public void filter(ClientRequestContext requestContext, ClientResponseContext responseContext) throws IOException {
@@ -68,21 +51,16 @@ public class LogCouchDBClientResponseFilter implements ClientResponseFilter {
             String entity = FilterUtils.NO_ENTITY;
             
             if (responseContext.hasEntity()) {
-                if (MediaType.APPLICATION_JSON_TYPE.isCompatible(responseContext.getMediaType())) {
-                    try (InputStream in = responseContext.getEntityStream()) {
-                        byte[] buf = IOUtils.toByteArray(in);
+                try (InputStream in = responseContext.getEntityStream()) {
+                    byte[] buf = IOUtils.toByteArray(in);
 
-                        responseContext.setEntityStream(new ByteArrayInputStream(buf));
+                    responseContext.setEntityStream(new ByteArrayInputStream(buf));
 
-                        entity = FilterUtils.jsonEntityToString(objectMapper, buf, LOGGER);
-                    }
-                }
-                else {
-                    entity = FilterUtils.unsupportedEntityToString(responseContext.getMediaType());
+                    entity = FilterUtils.entityToString(buf);
                 }
             }
 
-            LOGGER.debug("Database response:\n[{}] {}\n{}", responseContext.getStatus(),
+            LOGGER.debug("Database response:\n{} {}\n{}", responseContext.getStatus(),
                     responseContext.getStatusInfo().getReasonPhrase(), entity);
         }
     }

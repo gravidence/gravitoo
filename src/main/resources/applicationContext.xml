@@ -38,9 +38,7 @@ THE SOFTWARE.
         <property name="objectMapper" ref="objectMapper"/>
     </bean>
     
-    <bean id="dbClientResponseFilter" class="org.gravidence.gravifon.filter.LogCouchDBClientResponseFilter">
-        <property name="objectMapper" ref="objectMapper"/>
-    </bean>
+    <bean id="dbClientResponseFilter" class="org.gravidence.gravifon.filter.LogCouchDBClientResponseFilter"/>
     
     <bean id="dbClient" class="org.gravidence.gravifon.db.CouchDBClient">
         <property name="objectMapper" ref="objectMapper"/>
