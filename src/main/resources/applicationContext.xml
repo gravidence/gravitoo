@@ -46,8 +46,6 @@ THE SOFTWARE.
         <property name="logResponseFilter" ref="dbClientResponseFilter"/>
         
         <property name="url" value="${org.gravidence.gravifon.db.url}"/>
-        <property name="setup" value="${org.gravidence.gravifon.db.init.setup:true}"/>
-        <property name="cleanup" value="${org.gravidence.gravifon.db.init.cleanup:false}"/>
     </bean>
 
 </beans>

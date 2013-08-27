@@ -30,11 +30,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.Response.Status.Family;
 import org.glassfish.jersey.client.ClientConfig;
 import org.slf4j.Logger;
@@ -44,7 +42,6 @@ import org.springframework.beans.factory.InitializingBean;
 /**
  * CouchDB JAX-RS client instance.<p>
  * Connection to DB instance is verified during initialization.<p>
- * DB instance could be initialized (see {@link #setSetup(java.lang.Boolean) setup} and {@link #setCleanup(java.lang.Boolean) cleanup} settings).
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
@@ -69,8 +66,6 @@ public class CouchDBClient implements InitializingBean {
 
     // DB settings
     private String url;
-    private Boolean setup;
-    private Boolean cleanup;
 
     /**
      * @see #setUrl(java.lang.String)
@@ -86,40 +81,6 @@ public class CouchDBClient implements InitializingBean {
      */
     public void setUrl(String url) {
         this.url = url;
-    }
-
-    /**
-     * @see #setSetup(java.lang.Boolean)
-     */
-    public Boolean getSetup() {
-        return setup;
-    }
-
-    /**
-     * Sets 'create all databases' indicator.<p>
-     * Once set to <code>true</code>, DB setup is performed at last initialization step.
-     * 
-     * @param setup indicator value
-     */
-    public void setSetup(Boolean setup) {
-        this.setup = setup;
-    }
-
-    /**
-     * @see #setCleanup(java.lang.Boolean)
-     */
-    public Boolean getCleanup() {
-        return cleanup;
-    }
-
-    /**
-     * Sets 'drop all databases' indicator.<p>
-     * Once set to <code>true</code>, DB cleanup is performed before {@link #setSetup(java.lang.Boolean) setup} step.
-     * 
-     * @param cleanup indicator value
-     */
-    public void setCleanup(Boolean cleanup) {
-        this.cleanup = cleanup;
     }
     
     /**
@@ -159,7 +120,6 @@ public class CouchDBClient implements InitializingBean {
     @Override
     public void afterPropertiesSet() throws Exception {
         initDBConnection();
-        initDBContent();
     }
     
     private void initDBConnection() throws IOException {
@@ -186,58 +146,6 @@ public class CouchDBClient implements InitializingBean {
         else {
             LOGGER.error("DB connection failure: [{}] {}", response.getStatus(),
                     response.getStatusInfo().getReasonPhrase());
-            throw new RuntimeException("DB layer initialization failed");
-        }
-    }
-    
-    private void initDBContent() {
-        if (Boolean.TRUE.equals(cleanup)) {
-            LOGGER.info("Initiating DB cleanup");
-            
-            dropDatabase("users");
-        }
-
-        if (Boolean.TRUE.equals(setup)) {
-            LOGGER.info("Initiating DB setup");
-
-            createDatabase("users");
-        }
-    }
-    
-    private void dropDatabase(String name) {
-        WebTarget database = instance.path(name);
-        
-        Response response = database
-                .request(MediaType.APPLICATION_JSON_TYPE)
-                .delete();
-        
-        if (isSuccessful(response)) {
-            LOGGER.info("'{}' database dropped", database.getUri().getPath());
-        }
-        else {
-            LOGGER.error("Failed to drop {} database: [{}] {}", database.getUri().getPath(),
-                    response.getStatus(), response.getStatusInfo().getReasonPhrase());
-            throw new RuntimeException("DB layer initialization failed");
-        }
-    }
-    
-    private void createDatabase(String name) {
-        WebTarget database = instance.path(name);
-        
-        Response response = database
-                .request(MediaType.APPLICATION_JSON_TYPE)
-                // use empty entity in order to pass strict validation of HTTP specification compliance
-                .put(Entity.json(""));
-        
-        if (isSuccessful(response)) {
-            LOGGER.info("'{}' database created", database.getUri().getPath());
-        }
-        else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-            LOGGER.info("'{}' database already exists", database.getUri().getPath());
-        }
-        else {
-            LOGGER.error("Failed to create {} database: [{}] {}", database.getUri().getPath(),
-                    response.getStatus(), response.getStatusInfo().getReasonPhrase());
             throw new RuntimeException("DB layer initialization failed");
         }
     }
