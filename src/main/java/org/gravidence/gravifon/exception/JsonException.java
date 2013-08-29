@@ -35,7 +35,8 @@ public class JsonException extends GravifonException {
     /**
      * Constructs a new JSON data binding exception.<p>
      * <code>Error</code> is initialized with {@link GravifonError#JSON_PROCESSING_OPERATION JSON_PROCESSING_OPERATION} value.<br>
-     * <code>Message</code> is initialized with some generic description value.
+     * <code>Message</code> is initialized with some generic description value.<br>
+     * <code>LogMe</code> is initialized with <code>true</code> value.
      * 
      * @param cause cause
      */

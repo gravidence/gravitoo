@@ -36,10 +36,11 @@ public class UserNotFoundException extends GravifonException {
      * Constructs a new UserNotFound exception.<p>
      * <code>Error</code> is initialized with {@link GravifonError#USER_NOT_FOUND USER_NOT_FOUND} value.<br>
      * <code>Message</code> is initialized with some generic description value.<br>
-     * <code>Cause</code> is initialized with <code>null</code> value.
+     * <code>Cause</code> is initialized with <code>null</code> value.<br>
+     * <code>LogMe</code> is initialized with <code>false</code> value.
      */
     public UserNotFoundException() {
-        super(GravifonError.USER_NOT_FOUND, "User not found.");
+        super(GravifonError.USER_NOT_FOUND, "User not found.", null, false);
     }
     
 }

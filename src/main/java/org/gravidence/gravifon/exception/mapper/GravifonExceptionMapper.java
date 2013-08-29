@@ -49,7 +49,9 @@ public class GravifonExceptionMapper implements ExceptionMapper<GravifonExceptio
 
     @Override
     public Response toResponse(GravifonException exception) {
-        LOGGER.error("Gravifon exception captured", exception);
+        if (exception.isLogMe()) {
+            LOGGER.error("Gravifon exception captured", exception);
+        }
         
         StatusResponse entity = new StatusResponse(exception.getError().getErrorCode(), exception.getMessage());
         

@@ -37,10 +37,16 @@ public class GravifonException extends RuntimeException {
      * @see #getError()
      */
     private GravifonError error;
+    
+    /**
+     * @see #isLogMe()
+     */
+    private boolean logMe;
 
     /**
      * Constructs a new Gravifon service exception.<p>
-     * <code>Message</code> and <code>cause</code> are initialized with <code>null</code> value.
+     * <code>Message</code> and <code>cause</code> are initialized with <code>null</code> value.<br>
+     * <code>LogMe</code> is initialized with <code>true</code> value.
      * 
      * @param error internal error
      * @throws NullPointerException in case the supplied <code>error</code> argument is <code>null</code>
@@ -51,7 +57,8 @@ public class GravifonException extends RuntimeException {
 
     /**
      * Constructs a new Gravifon service exception.<p>
-     * <code>Cause</code> is initialized with <code>null</code> value.
+     * <code>Cause</code> is initialized with <code>null</code> value.<br>
+     * <code>LogMe</code> is initialized with <code>true</code> value.
      * 
      * @param error internal error
      * @param message detail message
@@ -63,7 +70,8 @@ public class GravifonException extends RuntimeException {
 
     /**
      * Constructs a new Gravifon service exception.<p>
-     * <code>Message</code> is initialized with <code>null</code> value.
+     * <code>Message</code> is initialized with <code>null</code> value.<br>
+     * <code>LogMe</code> is initialized with <code>true</code> value.
      * 
      * @param error internal error
      * @param cause cause
@@ -74,7 +82,8 @@ public class GravifonException extends RuntimeException {
     }
 
     /**
-     * Constructs a new Gravifon service exception.
+     * Constructs a new Gravifon service exception.<p>
+     * <code>LogMe</code> is initialized with <code>true</code> value.
      * 
      * @param error internal error
      * @param message detail message
@@ -82,6 +91,19 @@ public class GravifonException extends RuntimeException {
      * @throws NullPointerException in case the supplied <code>error</code> argument is <code>null</code>
      */
     public GravifonException(GravifonError error, String message, Throwable cause) {
+        this(error, message, cause, true);
+    }
+
+    /**
+     * Constructs a new Gravifon service exception.
+     * 
+     * @param error internal error
+     * @param message detail message
+     * @param cause cause
+     * @param logMe exception logging required indicator
+     * @throws NullPointerException in case the supplied <code>error</code> argument is <code>null</code>
+     */
+    public GravifonException(GravifonError error, String message, Throwable cause, boolean logMe) {
         super(message, cause);
 
         if (error == null) {
@@ -89,6 +111,7 @@ public class GravifonException extends RuntimeException {
         }
 
         this.error = error;
+        this.logMe = logMe;
     }
 
     /**
@@ -98,6 +121,15 @@ public class GravifonException extends RuntimeException {
      */
     public GravifonError getError() {
         return error;
+    }
+    
+    /**
+     * Says if exception logging is required.
+     * 
+     * @return <code>true</code> in case exception logging is required
+     */
+    public boolean isLogMe() {
+        return logMe;
     }
     
 }
