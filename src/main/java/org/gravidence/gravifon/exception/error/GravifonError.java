@@ -44,9 +44,17 @@ public enum GravifonError {
      */
     DATABASE_OPERATION(1001, 500),
     /**
+     * JSON processing operation error. Some data binding error took place.
+     */
+    JSON_PROCESSING_OPERATION(1002, 500),
+    /**
      * User not found error. Database reported that requested user document is not found.
      */
-    USER_NOT_FOUND(1002, 404);
+    USER_NOT_FOUND(2000, 404),
+    /**
+     * User already exists error. User document with particular username already exists in database.
+     */
+    USER_EXISTS(2001, 409);
     
     /**
      * @see #getErrorCode()

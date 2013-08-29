@@ -40,7 +40,7 @@ public class GravifonException extends RuntimeException {
 
     /**
      * Constructs a new Gravifon service exception.<p>
-     * Message and cause are initialized with <code>null</code> value.
+     * <code>Message</code> and <code>cause</code> are initialized with <code>null</code> value.
      * 
      * @param error internal error
      * @throws NullPointerException in case the supplied <code>error</code> argument is <code>null</code>
@@ -51,7 +51,7 @@ public class GravifonException extends RuntimeException {
 
     /**
      * Constructs a new Gravifon service exception.<p>
-     * Cause is initialized with <code>null</code> value.
+     * <code>Cause</code> is initialized with <code>null</code> value.
      * 
      * @param error internal error
      * @param message detail message
@@ -63,7 +63,7 @@ public class GravifonException extends RuntimeException {
 
     /**
      * Constructs a new Gravifon service exception.<p>
-     * Message is initialized with <code>null</code> value.
+     * <code>Message</code> is initialized with <code>null</code> value.
      * 
      * @param error internal error
      * @param cause cause

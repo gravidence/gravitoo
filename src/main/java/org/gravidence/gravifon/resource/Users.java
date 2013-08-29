@@ -23,6 +23,9 @@
  */
 package org.gravidence.gravifon.resource;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.InputStream;
+import java.util.List;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -31,15 +34,18 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import org.gravidence.gravifon.db.CouchDBClient;
+import org.gravidence.gravifon.db.ViewQueryResultsExtractor;
 import org.gravidence.gravifon.db.message.CreateDocumentResponse;
 import org.gravidence.gravifon.db.domain.UserDocument;
 import org.gravidence.gravifon.exception.GravifonException;
+import org.gravidence.gravifon.exception.UserNotFoundException;
 import org.gravidence.gravifon.exception.error.GravifonError;
 import org.gravidence.gravifon.resource.bean.StatusBean;
 import org.gravidence.gravifon.resource.bean.UserBean;
@@ -69,13 +75,24 @@ public class Users {
     private CouchDBClient dbClient;
     
     /**
-     * Creates a new user.
+     * JSON data binding instance.
+     */
+    @Autowired
+    private ObjectMapper objectMapper;
+    
+    /**
+     * Creates a new user if such does not exist yet.
      * 
      * @param user new user details bean
      * @return original user details bean updated with created {@link UserDocument document} identifier
      */
     @POST
     public UserBean create(UserBean user) {
+        UserDocument doc = retrieveUserDocumentByUsername(user.getUsername());
+        if (doc != null) {
+            throw new GravifonException(GravifonError.USER_EXISTS, "User already exists.");
+        }
+        
         Response response = getResourceTarget()
                 .request(MediaType.APPLICATION_JSON_TYPE)
                 .post(Entity.json(user.createDocument()));
@@ -104,7 +121,33 @@ public class Users {
     @GET
     @Path("{user_id}")
     public UserBean retrieve(@PathParam("user_id") String id) {
-        return new UserBean().updateBean(retrieveUserDocument(id));
+        UserDocument document = retrieveUserDocumentByID(id);
+        
+        if (document == null) {
+            LOGGER.trace("No user found for '{}' id", id);
+            throw new UserNotFoundException();
+        }
+        
+        return new UserBean().updateBean(document);
+    }
+    
+    /**
+     * Searches for existing user details by username.
+     * 
+     * @param username username
+     * @return user details bean
+     */
+    @GET
+    @Path("search")
+    public UserBean search(@QueryParam("username") String username) {
+        UserDocument document = retrieveUserDocumentByUsername(username);
+        
+        if (document == null) {
+            LOGGER.trace("No user found for '{}' username", username);
+            throw new UserNotFoundException();
+        }
+        
+        return new UserBean().updateBean(document);
     }
     
     /**
@@ -117,7 +160,13 @@ public class Users {
     @PUT
     @Path("{user_id}")
     public UserBean update(@PathParam("user_id") String id, UserBean user) {
-        UserDocument original = retrieveUserDocument(id);
+        UserDocument original = retrieveUserDocumentByID(id);
+        
+        if (original == null) {
+            LOGGER.trace("No user found for '{}' id", id);
+            throw new UserNotFoundException();
+        }
+        
         user.updateDocument(original);
         
         Response response = getResourceTarget()
@@ -148,7 +197,12 @@ public class Users {
     @DELETE
     @Path("{user_id}")
     public StatusBean delete(@PathParam("user_id") String id) {
-        UserDocument original = retrieveUserDocument(id);
+        UserDocument original = retrieveUserDocumentByID(id);
+        
+        if (original == null) {
+            LOGGER.trace("No user found for '{}' id", id);
+            throw new UserNotFoundException();
+        }
         
         Response response = getResourceTarget()
                 .path(id)
@@ -179,28 +233,55 @@ public class Users {
      * @param id user identifier
      * @return user details document
      */
-    private UserDocument retrieveUserDocument(String id) {
+    private UserDocument retrieveUserDocumentByID(String id) {
         Response response = getResourceTarget()
                 .path(id)
                 .request(MediaType.APPLICATION_JSON_TYPE)
                 .get();
         
-        UserDocument document = null;
+        UserDocument document;
         if (CouchDBClient.isSuccessful(response)) {
             document = response.readEntity(UserDocument.class);
             LOGGER.trace("'{}' user retrieved", document);
         }
         else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-            LOGGER.trace("No user found for '{}' id", id);
-            throw new GravifonException(GravifonError.USER_NOT_FOUND, "User not found.");
+            document = null;
         }
         else {
-            LOGGER.error("Failed to retrieve '{}' user: [{}] {}", document,
+            LOGGER.error("Failed to retrieve user for '{}' id: [{}] {}", id,
                     response.getStatus(), response.getStatusInfo().getReasonPhrase());
             throw new GravifonException(GravifonError.DATABASE_OPERATION, "Failed to retrieve user.");
         }
         
         return document;
+    }
+    
+    /**
+     * Retrieves existing user {@link UserDocument document}.
+     * 
+     * @param username username
+     * @return user details document
+     */
+    private UserDocument retrieveUserDocumentByUsername(String username) {
+        Response response = getViewTarget(CouchDBClient.USERS_DATABASE_MAIN_DESIGN_DOC_NAME,
+                CouchDBClient.USERS_DATABASE_MAIN_DESIGN_DOC_ALL_USERNAMES_VIEW_NAME)
+                .queryParam("key", String.format("\"%s\"", username))
+                .queryParam("include_docs", Boolean.TRUE)
+                .request(MediaType.APPLICATION_JSON_TYPE)
+                .get();
+        
+        List<UserDocument> documents = null;
+        if (CouchDBClient.isSuccessful(response)) {
+            InputStream json = response.readEntity(InputStream.class);
+            documents = ViewQueryResultsExtractor.extractDocuments(UserDocument.class, json, objectMapper);
+        }
+        else {
+            LOGGER.error("Failed to retrieve user for '{}' username: [{}] {}", username,
+                    response.getStatus(), response.getStatusInfo().getReasonPhrase());
+            throw new GravifonException(GravifonError.DATABASE_OPERATION, "Failed to retrieve user.");
+        }
+        
+        return documents == null ? null : documents.get(0);
     }
     
     /**
@@ -211,7 +292,23 @@ public class Users {
      */
     // TODO think how to cache the target instance
     private WebTarget getResourceTarget() {
-        return dbClient.getTarget().path(CouchDBClient.USERS_DATABASE_NAME);
+        return dbClient.getTarget()
+                .path(CouchDBClient.USERS_DATABASE_NAME);
     }
     
+    /**
+     * Creates JAX-RS client target associated with design document view of Users database.
+     * 
+     * @param designDocName design document name
+     * @param viewName view name
+     * @return design document view specific target
+     */
+    private WebTarget getViewTarget(String designDocName, String viewName) {
+        return getResourceTarget()
+                .path("_design")
+                .path(designDocName)
+                .path("_view")
+                .path(viewName);
+    }
+
 }
