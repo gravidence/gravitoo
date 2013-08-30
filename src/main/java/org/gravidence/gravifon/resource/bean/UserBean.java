@@ -24,8 +24,11 @@
 package org.gravidence.gravifon.resource.bean;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.lang.StringUtils;
 import org.gravidence.gravifon.db.message.CreateDocumentResponse;
 import org.gravidence.gravifon.db.domain.UserDocument;
+import org.gravidence.gravifon.exception.ValidationException;
+import org.gravidence.gravifon.exception.error.GravifonError;
 
 /**
  * User account bean.<p>
@@ -35,7 +38,7 @@ import org.gravidence.gravifon.db.domain.UserDocument;
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
-public class UserBean extends StatusBean {
+public class UserBean extends ValidateableBean {
 
     /**
      * @see #getId()
@@ -134,6 +137,21 @@ public class UserBean extends StatusBean {
     @Override
     public String toString() {
         return String.format("{id=%s, username=%s}", id, username);
+    }
+
+    @Override
+    public void validate() {
+        if (StringUtils.isBlank(username)) {
+            throw new ValidationException(GravifonError.REQUIRED, "Property 'username' is required.");
+        }
+        
+        if (password == null) {
+            throw new ValidationException(GravifonError.REQUIRED, "Property 'password' is required.");
+        }
+        else if (StringUtils.length(password) < 6) {
+            throw new ValidationException(GravifonError.INVALID,
+                    "Property 'password' value is too short. Minimum length is 6 characters.");
+        }
     }
 
     /**

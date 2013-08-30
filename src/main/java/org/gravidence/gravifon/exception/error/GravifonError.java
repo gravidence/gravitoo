@@ -54,7 +54,19 @@ public enum GravifonError {
     /**
      * User already exists error. User document with particular username already exists in database.
      */
-    USER_EXISTS(2001, 409);
+    USER_EXISTS(2001, 409),
+    /**
+     * Required property error. Property is missing.
+     */
+    REQUIRED(10001, 400),
+    /**
+     * Invalid property error. Property value is invalid.
+     */
+    INVALID(10002, 400),
+    /**
+     * Unknown property value error. Property value is unknown. Applicable to enum restricted properties.
+     */
+    UNKNOWN(10003, 400);
     
     /**
      * @see #getErrorCode()

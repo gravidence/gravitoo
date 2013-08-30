@@ -40,12 +40,14 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import org.apache.commons.lang.StringUtils;
 import org.gravidence.gravifon.db.CouchDBClient;
 import org.gravidence.gravifon.db.ViewQueryResultsExtractor;
 import org.gravidence.gravifon.db.message.CreateDocumentResponse;
 import org.gravidence.gravifon.db.domain.UserDocument;
 import org.gravidence.gravifon.exception.GravifonException;
 import org.gravidence.gravifon.exception.UserNotFoundException;
+import org.gravidence.gravifon.exception.ValidationException;
 import org.gravidence.gravifon.exception.error.GravifonError;
 import org.gravidence.gravifon.resource.bean.StatusBean;
 import org.gravidence.gravifon.resource.bean.UserBean;
@@ -88,8 +90,11 @@ public class Users {
      */
     @POST
     public UserBean create(UserBean user) {
-        UserDocument doc = retrieveUserDocumentByUsername(user.getUsername());
-        if (doc != null) {
+        user.validate();
+        
+        UserDocument original = retrieveUserDocumentByUsername(user.getUsername());
+        
+        if (original != null) {
             throw new GravifonException(GravifonError.USER_EXISTS, "User already exists.");
         }
         
@@ -140,6 +145,10 @@ public class Users {
     @GET
     @Path("search")
     public UserBean search(@QueryParam("username") String username) {
+        if (StringUtils.isEmpty(username)) {
+            throw new ValidationException(GravifonError.REQUIRED, "Query param 'username' is required.");
+        }
+        
         UserDocument document = retrieveUserDocumentByUsername(username);
         
         if (document == null) {
@@ -160,6 +169,8 @@ public class Users {
     @PUT
     @Path("{user_id}")
     public UserBean update(@PathParam("user_id") String id, UserBean user) {
+        user.validate();
+        
         UserDocument original = retrieveUserDocumentByID(id);
         
         if (original == null) {
