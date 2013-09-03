@@ -24,7 +24,7 @@
 package org.gravidence.gravifon.filter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.gravidence.gravifon.db.SharedInstanceHolder;
 import org.slf4j.Logger;
 
 /**
@@ -56,7 +56,6 @@ public class FilterUtils {
      * Serializes entity to JSON {@link String}.<p>
      * Logs serialization error if such one happens.
      * 
-     * @param objectMapper JSON data binding instance
      * @param entity entity
      * @param logger logger instance
      * @return <ul>
@@ -64,13 +63,9 @@ public class FilterUtils {
      *           <li>{@link #NO_ENTITY} in case the supplied <code>entity</code> argument is <code>null</code></li>
      *           <li>{@link #CORRUPTED_ENTITY} in case of serialization error</li>
      *         </ul>
-     * @throws NullPointerException in case the supplied <code>objectMapper</code> or <code>logger</code>
-     * argument is <code>null</code>
+     * @throws NullPointerException in case the supplied <code>logger</code> argument is <code>null</code>
      */
-    public static String entityToString(ObjectMapper objectMapper, Object entity, Logger logger) {
-        if (objectMapper == null) {
-            throw new NullPointerException("objectMapper");
-        }
+    public static String entityToString(Object entity, Logger logger) {
         if (logger == null) {
             throw new NullPointerException("logger");
         }
@@ -81,7 +76,7 @@ public class FilterUtils {
             result = NO_ENTITY;
         } else {
             try {
-                result = objectMapper.writeValueAsString(entity);
+                result = SharedInstanceHolder.OBJECT_MAPPER.writeValueAsString(entity);
             }
             catch (JsonProcessingException ex) {
                 logger.error("Failed to serialize entity", ex);

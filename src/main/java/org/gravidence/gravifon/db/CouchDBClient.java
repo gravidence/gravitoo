@@ -26,7 +26,6 @@ package org.gravidence.gravifon.db;
 import org.gravidence.gravifon.filter.LogCouchDBClientResponseFilter;
 import org.gravidence.gravifon.filter.LogCouchDBClientRequestFilter;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import javax.ws.rs.client.ClientBuilder;
@@ -40,7 +39,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 
 /**
- * CouchDB JAX-RS client instance.<p>
+ * CouchDB JAX-RS client.<p>
  * Connection to DB instance is verified during initialization.<p>
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
@@ -49,16 +48,8 @@ public class CouchDBClient implements InitializingBean {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(CouchDBClient.class);
     
-    // Users database constants
-    public static final String USERS_DATABASE_NAME = "users";
-    public static final String USERS_DATABASE_MAIN_DESIGN_DOC_NAME = "main";
-    public static final String USERS_DATABASE_MAIN_DESIGN_DOC_ALL_USERNAMES_VIEW_NAME = "all_usernames";
-    
     // JAX-RS client instance
     private WebTarget instance;
-    
-    // JSON data binding instance
-    private ObjectMapper objectMapper;
     
     // Associated filters
     private LogCouchDBClientRequestFilter logRequestFilter;
@@ -88,15 +79,6 @@ public class CouchDBClient implements InitializingBean {
      */
     public WebTarget getTarget() {
         return instance;
-    }
-
-    /**
-     * Injects JSON data binding instance.
-     * 
-     * @param objectMapper Jackson ObjectMapper instance
-     */
-    public void setObjectMapper(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
     }
 
     /**
@@ -136,7 +118,7 @@ public class CouchDBClient implements InitializingBean {
         
         if (isSuccessful(response)) {
             if (response.hasEntity()) {
-                JsonNode node = objectMapper.readTree(response.readEntity(InputStream.class));
+                JsonNode node = SharedInstanceHolder.OBJECT_MAPPER.readTree(response.readEntity(InputStream.class));
                 LOGGER.info("CouchDB version: {}", node.get("version").asText());
             }
             else {

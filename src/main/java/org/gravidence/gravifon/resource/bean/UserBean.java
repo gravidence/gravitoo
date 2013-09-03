@@ -170,9 +170,9 @@ public class UserBean extends ValidateableBean {
     }
     
     /**
-     * Updates bean with document revision values.
+     * Updates bean with document values.
      * 
-     * @param document a document revision
+     * @param document user details document
      * @return updated bean
      */
     public UserBean updateBean(UserDocument document) {
@@ -198,7 +198,7 @@ public class UserBean extends ValidateableBean {
     /**
      * Updates document with bean values except identifier.
      * 
-     * @param document a document revision
+     * @param document user details document
      * @return updated document
      */
     public UserDocument updateDocument(UserDocument document) {

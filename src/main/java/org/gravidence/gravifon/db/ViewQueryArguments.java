@@ -21,38 +21,61 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.gravidence.gravifon.filter;
+package org.gravidence.gravifon.db;
 
-import java.io.IOException;
-import javax.ws.rs.client.ClientRequestContext;
-import javax.ws.rs.client.ClientRequestFilter;
-import javax.ws.rs.ext.Provider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * CouchDB JAX-RS client log request filter.<p>
- * Logs HTTP method, media type, resource URI and entity if presented.<p>
+ * Design document view query arguments container.
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
-@Provider
-public class LogCouchDBClientRequestFilter implements ClientRequestFilter {
+public class ViewQueryArguments {
     
-    private static final Logger LOGGER = LoggerFactory.getLogger(LogCouchDBClientRequestFilter.class);
-
-    @Override
-    public void filter(ClientRequestContext requestContext) throws IOException {
-        if (LOGGER.isDebugEnabled()) {
-            String entity = FilterUtils.NO_ENTITY;
-            
-            if (requestContext.hasEntity()) {
-                entity = FilterUtils.entityToString(requestContext.getEntity(), LOGGER);
-            }
-            
-            LOGGER.debug("Database request:\n{} {}\n{}", requestContext.getMethod(),
-                    requestContext.getUri(), entity);
-        }
+    /**
+     * @see #getArguments()
+     */
+    private Map<String, String> arguments;
+    
+    /**
+     * Initializes arguments map instance.
+     */
+    public ViewQueryArguments() {
+        arguments = new HashMap<>();
+    }
+    
+    /**
+     * Returns arguments map instance.
+     * 
+     * @return arguments map instance
+     */
+    public Map<String, String> getArguments() {
+        return arguments;
+    }
+    
+    /**
+     * Adds <code>key</code> query argument.
+     * 
+     * @param value query argument value
+     * @return reference to this object
+     */
+    public ViewQueryArguments addKey(String value) {
+        arguments.put("key", String.format("\"%s\"", value));
+        
+        return this;
+    }
+    
+    /**
+     * Adds <code>include_docs</code> query argument.
+     * 
+     * @param value query argument value
+     * @return reference to this object
+     */
+    public ViewQueryArguments addIncludeDocs(boolean value) {
+        arguments.put("include_docs", Boolean.toString(value));
+        
+        return this;
     }
     
 }

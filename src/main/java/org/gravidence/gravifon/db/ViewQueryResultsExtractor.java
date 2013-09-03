@@ -25,7 +25,6 @@ package org.gravidence.gravifon.db;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -72,13 +71,12 @@ public class ViewQueryResultsExtractor {
      * Extracts all document identifiers from view query results.
      * 
      * @param json view query results
-     * @param objectMapper JSON data binding mapper
      * @return list of document identifiers if any, or <code>null</code> otherwise
      * 
      * @see #ID_PROPERTY
      */
-    public static List<String> extractIds(InputStream json, ObjectMapper objectMapper) {
-        return extractProperies(String.class, ID_PROPERTY, json, objectMapper);
+    public static List<String> extractIds(InputStream json) {
+        return extractProperies(String.class, ID_PROPERTY, json);
     }
     
     /**
@@ -86,13 +84,12 @@ public class ViewQueryResultsExtractor {
      * 
      * @param keyType key object type
      * @param json view query results
-     * @param objectMapper JSON data binding mapper
      * @return list of <code>keyType</code> objects if any, or <code>null</code> otherwise
      * 
      * @see #KEY_PROPERTY
      */
-    public static <T> List<T> extractKeys(Class<T> keyType, InputStream json, ObjectMapper objectMapper) {
-        return extractProperies(keyType, KEY_PROPERTY, json, objectMapper);
+    public static <T> List<T> extractKeys(Class<T> keyType, InputStream json) {
+        return extractProperies(keyType, KEY_PROPERTY, json);
     }
     
     /**
@@ -100,13 +97,12 @@ public class ViewQueryResultsExtractor {
      * 
      * @param valueType value object type
      * @param json view query results
-     * @param objectMapper JSON data binding mapper
      * @return list of <code>valueType</code> objects if any, or <code>null</code> otherwise
      * 
      * @see #VALUE_PROPERTY
      */
-    public static <T> List<T> extractValues(Class<T> valueType, InputStream json, ObjectMapper objectMapper) {
-        return extractProperies(valueType, VALUE_PROPERTY, json, objectMapper);
+    public static <T> List<T> extractValues(Class<T> valueType, InputStream json) {
+        return extractProperies(valueType, VALUE_PROPERTY, json);
     }
 
     /**
@@ -114,13 +110,12 @@ public class ViewQueryResultsExtractor {
      * 
      * @param documentType document object type
      * @param json view query results
-     * @param objectMapper JSON data binding mapper
      * @return list of <code>documentType</code> objects if any, or <code>null</code> otherwise
      * 
      * @see #DOCUMENT_PROPERTY
      */
-    public static <T> List<T> extractDocuments(Class<T> documentType, InputStream json, ObjectMapper objectMapper) {
-        return extractProperies(documentType, DOCUMENT_PROPERTY, json, objectMapper);
+    public static <T> List<T> extractDocuments(Class<T> documentType, InputStream json) {
+        return extractProperies(documentType, DOCUMENT_PROPERTY, json);
     }
 
     /**
@@ -129,21 +124,19 @@ public class ViewQueryResultsExtractor {
      * @param propertyType property object type
      * @param propertyName property name
      * @param json view query results
-     * @param objectMapper JSON data binding mapper
      * @return list of <code>propertyType</code> objects if any, or <code>null</code> otherwise
      */
-    private static <T> List<T> extractProperies(Class<T> propertyType, String propertyName, InputStream json,
-            ObjectMapper objectMapper) {
+    private static <T> List<T> extractProperies(Class<T> propertyType, String propertyName, InputStream json) {
         List<T> values = null;
         
-        JsonNode rows = extractRows(json, objectMapper);
+        JsonNode rows = extractRows(json);
         if (rows.isArray() && rows.size() > 0) {
-            values = new ArrayList(rows.size());
+            values = new ArrayList<>(rows.size());
             
             Iterator<JsonNode> it = rows.iterator();
             while (it.hasNext()) {
                 JsonNode row = it.next();
-                values.add(extractProperty(propertyType, propertyName, row, objectMapper));
+                values.add(extractProperty(propertyType, propertyName, row));
             }
         }
         
@@ -154,12 +147,11 @@ public class ViewQueryResultsExtractor {
      * Extracts all rows from view query results.
      * 
      * @param json view query results
-     * @param objectMapper JSON data binding mapper
      * @return node that represents rows
      */
-    private static JsonNode extractRows(InputStream json, ObjectMapper objectMapper) {
+    private static JsonNode extractRows(InputStream json) {
         try {
-            return objectMapper.readTree(json).get("rows");
+            return SharedInstanceHolder.OBJECT_MAPPER.readTree(json).get("rows");
         }
         catch (IOException ex) {
             throw new JsonException(ex);
@@ -172,13 +164,11 @@ public class ViewQueryResultsExtractor {
      * @param propertyType property object type
      * @param propertyName property name
      * @param row a row
-     * @param objectMapper JSON data binding mapper
      * @return <code>propertyType</code> object
      */
-    private static <T> T extractProperty(Class<T> propertyType, String propertyName, JsonNode row,
-            ObjectMapper objectMapper) {
+    private static <T> T extractProperty(Class<T> propertyType, String propertyName, JsonNode row) {
         try {
-            return objectMapper.treeToValue(row.get(propertyName), propertyType);
+            return SharedInstanceHolder.OBJECT_MAPPER.treeToValue(row.get(propertyName), propertyType);
         }
         catch (JsonProcessingException ex) {
             throw new JsonException(ex);

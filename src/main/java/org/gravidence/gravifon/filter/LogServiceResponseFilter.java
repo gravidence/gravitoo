@@ -23,7 +23,6 @@
  */
 package org.gravidence.gravifon.filter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerResponseContext;
@@ -31,7 +30,6 @@ import javax.ws.rs.container.ContainerResponseFilter;
 import javax.ws.rs.ext.Provider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Service log response filter.<p>
@@ -43,12 +41,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class LogServiceResponseFilter implements ContainerResponseFilter {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(LogServiceResponseFilter.class);
-    
-    /**
-     * JSON data binding instance.
-     */
-    @Autowired
-    private ObjectMapper objectMapper;
 
     @Override
     public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) throws IOException {
@@ -56,7 +48,7 @@ public class LogServiceResponseFilter implements ContainerResponseFilter {
             String entity = FilterUtils.NO_ENTITY;
             
             if (responseContext.hasEntity()) {
-                entity = FilterUtils.entityToString(objectMapper, responseContext.getEntity(), LOGGER);
+                entity = FilterUtils.entityToString(responseContext.getEntity(), LOGGER);
             }
             
             LOGGER.debug("Service response:\n{} {}\n{}", responseContext.getStatus(),

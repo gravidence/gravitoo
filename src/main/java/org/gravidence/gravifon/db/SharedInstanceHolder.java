@@ -21,38 +21,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.gravidence.gravifon.filter;
+package org.gravidence.gravifon.db;
 
-import java.io.IOException;
-import javax.ws.rs.client.ClientRequestContext;
-import javax.ws.rs.client.ClientRequestFilter;
-import javax.ws.rs.ext.Provider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * CouchDB JAX-RS client log request filter.<p>
- * Logs HTTP method, media type, resource URI and entity if presented.<p>
+ * Container for instances shared across the application.
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
-@Provider
-public class LogCouchDBClientRequestFilter implements ClientRequestFilter {
+public class SharedInstanceHolder {
     
-    private static final Logger LOGGER = LoggerFactory.getLogger(LogCouchDBClientRequestFilter.class);
+    /**
+     * JSON data binding instance.
+     */
+    public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    @Override
-    public void filter(ClientRequestContext requestContext) throws IOException {
-        if (LOGGER.isDebugEnabled()) {
-            String entity = FilterUtils.NO_ENTITY;
-            
-            if (requestContext.hasEntity()) {
-                entity = FilterUtils.entityToString(requestContext.getEntity(), LOGGER);
-            }
-            
-            LOGGER.debug("Database request:\n{} {}\n{}", requestContext.getMethod(),
-                    requestContext.getUri(), entity);
-        }
+    /**
+     * Preventing class instantiation.
+     */
+    private SharedInstanceHolder() {
+        // Nothing to do
     }
     
 }

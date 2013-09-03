@@ -32,20 +32,18 @@ THE SOFTWARE.
 
     <context:property-placeholder location="classpath:**/*.properties"/>
     
-    <bean id="objectMapper" class="com.fasterxml.jackson.databind.ObjectMapper"/>
-    
-    <bean id="dbClientRequestFilter" class="org.gravidence.gravifon.filter.LogCouchDBClientRequestFilter">
-        <property name="objectMapper" ref="objectMapper"/>
-    </bean>
-    
+    <bean id="dbClientRequestFilter" class="org.gravidence.gravifon.filter.LogCouchDBClientRequestFilter"/>
     <bean id="dbClientResponseFilter" class="org.gravidence.gravifon.filter.LogCouchDBClientResponseFilter"/>
     
     <bean id="dbClient" class="org.gravidence.gravifon.db.CouchDBClient">
-        <property name="objectMapper" ref="objectMapper"/>
         <property name="logRequestFilter" ref="dbClientRequestFilter"/>
         <property name="logResponseFilter" ref="dbClientResponseFilter"/>
         
         <property name="url" value="${org.gravidence.gravifon.db.url}"/>
+    </bean>
+    
+    <bean id="usersDBClient" class="org.gravidence.gravifon.db.UsersDBClient">
+        <property name="dbClient" ref="dbClient"/>
     </bean>
 
 </beans>
