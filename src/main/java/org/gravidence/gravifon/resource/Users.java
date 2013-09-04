@@ -32,17 +32,22 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import org.apache.commons.lang.StringUtils;
+import javax.ws.rs.core.UriInfo;
 import org.gravidence.gravifon.db.UsersDBClient;
 import org.gravidence.gravifon.db.message.CreateDocumentResponse;
 import org.gravidence.gravifon.db.domain.UserDocument;
 import org.gravidence.gravifon.exception.GravifonException;
 import org.gravidence.gravifon.exception.UserNotFoundException;
-import org.gravidence.gravifon.exception.ValidationException;
 import org.gravidence.gravifon.exception.error.GravifonError;
 import org.gravidence.gravifon.resource.bean.StatusBean;
 import org.gravidence.gravifon.resource.bean.UserBean;
+import org.gravidence.gravifon.validation.UserCreateValidator;
+import org.gravidence.gravifon.validation.UserDeleteValidator;
+import org.gravidence.gravifon.validation.UserRetrieveValidator;
+import org.gravidence.gravifon.validation.UserSearchValidator;
+import org.gravidence.gravifon.validation.UserUpdateValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,6 +71,13 @@ public class Users {
     @Autowired
     private UsersDBClient usersDBClient;
     
+    // Validators
+    private UserCreateValidator userCreateValidator = new UserCreateValidator();
+    private UserRetrieveValidator userRetrieveValidator = new UserRetrieveValidator();
+    private UserSearchValidator userSearchValidator = new UserSearchValidator();
+    private UserUpdateValidator userUpdateValidator = new UserUpdateValidator();
+    private UserDeleteValidator userDeleteValidator = new UserDeleteValidator();
+    
     /**
      * Creates a new user if such does not exist yet.
      * 
@@ -74,7 +86,7 @@ public class Users {
      */
     @POST
     public UserBean create(UserBean user) {
-        user.validate();
+        userCreateValidator.validate(null, user);
         
         UserDocument original = usersDBClient.retrieveUserByUsername(user.getUsername());
         
@@ -96,6 +108,8 @@ public class Users {
     @GET
     @Path("{user_id}")
     public UserBean retrieve(@PathParam("user_id") String id) {
+        userRetrieveValidator.validate(null, null);
+        
         UserDocument document = usersDBClient.retrieveUserByID(id);
         
         if (document == null) {
@@ -114,10 +128,8 @@ public class Users {
      */
     @GET
     @Path("search")
-    public UserBean search(@QueryParam("username") String username) {
-        if (StringUtils.isEmpty(username)) {
-            throw new ValidationException(GravifonError.REQUIRED, "Query param 'username' is required.");
-        }
+    public UserBean search(@Context UriInfo uriInfo, @QueryParam("username") String username) {
+        userSearchValidator.validate(uriInfo.getQueryParameters(), null);
         
         UserDocument document = usersDBClient.retrieveUserByUsername(username);
         
@@ -139,7 +151,7 @@ public class Users {
     @PUT
     @Path("{user_id}")
     public UserBean update(@PathParam("user_id") String id, UserBean user) {
-        user.validate();
+        userUpdateValidator.validate(null, user);
         
         UserDocument original = usersDBClient.retrieveUserByID(id);
         
@@ -162,6 +174,8 @@ public class Users {
     @DELETE
     @Path("{user_id}")
     public StatusBean delete(@PathParam("user_id") String id) {
+        userDeleteValidator.validate(null, null);
+        
         UserDocument original = usersDBClient.retrieveUserByID(id);
         
         if (original == null) {
