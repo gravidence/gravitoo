@@ -24,7 +24,9 @@
 package org.gravidence.gravifon.validation;
 
 import javax.ws.rs.core.MultivaluedMap;
+import org.apache.commons.lang.StringUtils;
 import org.gravidence.gravifon.exception.ValidationException;
+import org.gravidence.gravifon.exception.error.GravifonError;
 
 /**
  * Abstract implementation of {@link Validator}.<p>
@@ -57,5 +59,19 @@ public abstract class AbstractValidator<T> implements Validator<T> {
      * @throws ValidationException in case supplied argument doesn't pass validation rule(s)
      */
     protected abstract void validateEntity(T entity) throws ValidationException;
+    
+    /**
+     * Validates that required query param is actually presented.
+     * 
+     * @param queryParamName name of required query param
+     * @param queryParams request query params
+     * @throws ValidationException in case required query param is not found or empty
+     */
+    protected void validateRequiredQueryParam(String queryParamName, MultivaluedMap<String, String> queryParams) throws ValidationException {
+        if (StringUtils.isEmpty(queryParams.getFirst(queryParamName))) {
+            throw new ValidationException(GravifonError.REQUIRED,
+                    String.format("Query param '%s' is required.", queryParamName));
+        }
+    }
     
 }

@@ -24,9 +24,7 @@
 package org.gravidence.gravifon.validation;
 
 import javax.ws.rs.core.MultivaluedMap;
-import org.apache.commons.lang.StringUtils;
 import org.gravidence.gravifon.exception.ValidationException;
-import org.gravidence.gravifon.exception.error.GravifonError;
 import org.gravidence.gravifon.resource.bean.UserBean;
 
 /**
@@ -38,9 +36,7 @@ public class UserSearchValidator extends AbstractValidator<UserBean> {
 
     @Override
     protected void validateQueryParams(MultivaluedMap<String, String> queryParams) throws ValidationException {
-        if (StringUtils.isEmpty(queryParams.getFirst("username"))) {
-            throw new ValidationException(GravifonError.REQUIRED, "Query param 'username' is required.");
-        }
+        validateRequiredQueryParam("username", queryParams);
     }
 
     @Override
