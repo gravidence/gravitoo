@@ -25,14 +25,14 @@ package org.gravidence.gravifon.validation;
 
 import javax.ws.rs.core.MultivaluedMap;
 import org.gravidence.gravifon.exception.ValidationException;
-import org.gravidence.gravifon.resource.bean.UserBean;
+import org.gravidence.gravifon.resource.bean.ValidateableBean;
 
 /**
  * Validates <code>retrieve</code> method of <code>Users</code> resource.
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
-public class UserRetrieveValidator extends AbstractValidator<UserBean> {
+public class UserRetrieveValidator extends AbstractValidator<ValidateableBean> {
 
     @Override
     protected void validateQueryParams(MultivaluedMap<String, String> queryParams) throws ValidationException {
@@ -40,7 +40,7 @@ public class UserRetrieveValidator extends AbstractValidator<UserBean> {
     }
 
     @Override
-    protected void validateEntity(UserBean entity) throws ValidationException {
+    protected void validateEntity(ValidateableBean entity) throws ValidationException {
         // No entity is expected.
     }
     

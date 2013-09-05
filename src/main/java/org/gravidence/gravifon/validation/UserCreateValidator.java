@@ -25,6 +25,7 @@ package org.gravidence.gravifon.validation;
 
 import javax.ws.rs.core.MultivaluedMap;
 import org.gravidence.gravifon.exception.ValidationException;
+import org.gravidence.gravifon.exception.error.GravifonError;
 import org.gravidence.gravifon.resource.bean.UserBean;
 
 /**
@@ -41,6 +42,10 @@ public class UserCreateValidator extends AbstractValidator<UserBean> {
 
     @Override
     protected void validateEntity(UserBean entity) throws ValidationException {
+        if (entity == null) {
+            throw new ValidationException(GravifonError.REQUIRED, "User details are required.");
+        }
+        
         entity.validate();
     }
     
