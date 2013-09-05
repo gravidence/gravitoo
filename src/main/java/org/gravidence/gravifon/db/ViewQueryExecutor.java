@@ -47,6 +47,35 @@ public class ViewQueryExecutor {
     private static final Logger LOGGER = LoggerFactory.getLogger(ViewQueryExecutor.class);
     
     /**
+     * Executes a view query and extracts view size from results.
+     * 
+     * @param target JAX-RS target to CouchDB database design document view
+     * @return view size
+     * 
+     * @see ViewQueryResultsExtractor#extractSize(java.io.InputStream)
+     */
+    public static long querySize(WebTarget target) {
+        ViewQueryArguments args = new ViewQueryArguments()
+                .addLimit(0);
+        
+        target = addQueryParams(target, args);
+        
+        Response response = target
+                .request(MediaType.APPLICATION_JSON_TYPE)
+                .get();
+        
+        if (CouchDBClient.isSuccessful(response)) {
+            InputStream json = response.readEntity(InputStream.class);
+            return ViewQueryResultsExtractor.extractSize(json);
+        }
+        else {
+            LOGGER.error("Failed to execute '{}' view query: [{}] {}", target.getUri().getPath(),
+                    response.getStatus(), response.getStatusInfo().getReasonPhrase());
+            throw new GravifonException(GravifonError.DATABASE_OPERATION, "Failed to execute view query.");
+        }
+    }
+    
+    /**
      * Executes a view query and extracts all documents from results.
      * 
      * @param target JAX-RS target to CouchDB database design document view
@@ -57,9 +86,7 @@ public class ViewQueryExecutor {
      * @see ViewQueryResultsExtractor#extractDocuments(java.lang.Class, java.io.InputStream)
      */
     public static <T> List<T> queryDocuments(WebTarget target, ViewQueryArguments args, Class<T> documentType) {
-        for (Entry<String, String> entry : args.getArguments().entrySet()) {
-            target = target.queryParam(entry.getKey(), entry.getValue());
-        }
+        target = addQueryParams(target, args);
         
         Response response = target
                 .request(MediaType.APPLICATION_JSON_TYPE)
@@ -78,6 +105,21 @@ public class ViewQueryExecutor {
         }
         
         return documents;
+    }
+    
+    /**
+     * Converts <code>args</code> to query params and attaches the result to copy of <code>target</code>.
+     * 
+     * @param target JAX-RS target to CouchDB database design document view
+     * @param args view query arguments
+     * @return reference to updated target
+     */
+    private static WebTarget addQueryParams(WebTarget target, ViewQueryArguments args) {
+        for (Entry<String, String> entry : args.getArguments().entrySet()) {
+            target = target.queryParam(entry.getKey(), entry.getValue());
+        }
+        
+        return target;
     }
     
 }

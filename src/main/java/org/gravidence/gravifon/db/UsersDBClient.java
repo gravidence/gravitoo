@@ -79,6 +79,19 @@ public class UsersDBClient implements InitializingBean {
     }
     
     /**
+     * Retrieves user amount.<p>
+     * User amount is equal to <code>main/all_usernames</code> view size.
+     * 
+     * @return user amount
+     * 
+     * @see #viewMainAllUsernamesTarget
+     * @see ViewQueryExecutor#querySize(javax.ws.rs.client.WebTarget)
+     */
+    public long retrieveUserAmount() {
+        return ViewQueryExecutor.querySize(viewMainAllUsernamesTarget);
+    }
+    
+    /**
      * Creates a new user {@link UserDocument document}.
      * 
      * @param user new user details document

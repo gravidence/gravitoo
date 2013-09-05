@@ -43,11 +43,13 @@ import org.gravidence.gravifon.exception.UserNotFoundException;
 import org.gravidence.gravifon.exception.error.GravifonError;
 import org.gravidence.gravifon.resource.bean.StatusBean;
 import org.gravidence.gravifon.resource.bean.UserBean;
+import org.gravidence.gravifon.resource.bean.UsersInfoBean;
 import org.gravidence.gravifon.validation.UserCreateValidator;
 import org.gravidence.gravifon.validation.UserDeleteValidator;
 import org.gravidence.gravifon.validation.UserRetrieveValidator;
 import org.gravidence.gravifon.validation.UserSearchValidator;
 import org.gravidence.gravifon.validation.UserUpdateValidator;
+import org.gravidence.gravifon.validation.UsersInfoValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,11 +74,28 @@ public class Users {
     private UsersDBClient usersDBClient;
     
     // Validators
+    private UsersInfoValidator usersInfoValidator = new UsersInfoValidator();
     private UserCreateValidator userCreateValidator = new UserCreateValidator();
     private UserRetrieveValidator userRetrieveValidator = new UserRetrieveValidator();
     private UserSearchValidator userSearchValidator = new UserSearchValidator();
     private UserUpdateValidator userUpdateValidator = new UserUpdateValidator();
     private UserDeleteValidator userDeleteValidator = new UserDeleteValidator();
+    
+    /**
+     * Retrieves <code>/users</code> database info.
+     * 
+     * @return <code>/users</code> database info bean
+     */
+    @GET
+    public UsersInfoBean info() {
+        usersInfoValidator.validate(null, null);
+        
+        UsersInfoBean result = new UsersInfoBean();
+        
+        result.setUserAmount(usersDBClient.retrieveUserAmount());
+        
+        return result;
+    }
     
     /**
      * Creates a new user if such does not exist yet.

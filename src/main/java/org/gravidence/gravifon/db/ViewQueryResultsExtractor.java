@@ -68,6 +68,22 @@ public class ViewQueryResultsExtractor {
     }
     
     /**
+     * Extracts view size from view query results.<p>
+     * View size is total rows amount the view contains. It is returned along with query results.
+     * 
+     * @param json view query results
+     * @return view size
+     */
+    public static long extractSize(InputStream json) {
+        try {
+            return SharedInstanceHolder.OBJECT_MAPPER.readTree(json).get("total_rows").asLong();
+        }
+        catch (IOException ex) {
+            throw new JsonException(ex);
+        }
+    }
+    
+    /**
      * Extracts all document identifiers from view query results.
      * 
      * @param json view query results

@@ -78,4 +78,16 @@ public class ViewQueryArguments {
         return this;
     }
     
+    /**
+     * Adds <code>limit</code> query argument.
+     * 
+     * @param value query argument value
+     * @return reference to this object
+     */
+    public ViewQueryArguments addLimit(long value) {
+        arguments.put("limit", Long.toString(value));
+        
+        return this;
+    }
+    
 }
