@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Service log response filter.<p>
- * Logs HTTP status code, media type, reason phrase and entity if presented.<p>
+ * Logs HTTP status code, reason phrase and entity if presented.
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */

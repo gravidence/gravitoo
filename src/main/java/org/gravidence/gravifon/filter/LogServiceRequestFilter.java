@@ -36,7 +36,9 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Service log request filter.<p>
- * Logs HTTP method, media type, resource URI and entity if presented.<p>
+ * Logs HTTP method, resource URI and entity if presented.<p>
+ * The original entity {@link InputStream} is read and closed.
+ * Then it is replaced with original bytes wrapped by {@link ByteArrayInputStream} for further reuse.
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
@@ -49,7 +51,7 @@ public class LogServiceRequestFilter implements ContainerRequestFilter {
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
         if (LOGGER.isDebugEnabled()) {
-            String entity = FilterUtils.NO_ENTITY;
+            String entity;
             
             if (requestContext.hasEntity()) {
                 try (InputStream in = requestContext.getEntityStream()) {
@@ -57,8 +59,11 @@ public class LogServiceRequestFilter implements ContainerRequestFilter {
 
                     requestContext.setEntityStream(new ByteArrayInputStream(buf));
 
-                    entity = FilterUtils.entityToString(buf);
+                    entity = FilterUtils.entityToString(buf, LOGGER);
                 }
+            }
+            else {
+                entity = FilterUtils.NO_ENTITY;
             }
             
             LOGGER.debug("Service request:\n{} {}\n{}", requestContext.getMethod(),

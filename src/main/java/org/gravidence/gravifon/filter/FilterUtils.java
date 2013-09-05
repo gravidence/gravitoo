@@ -24,6 +24,7 @@
 package org.gravidence.gravifon.filter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.io.UnsupportedEncodingException;
 import org.gravidence.gravifon.db.SharedInstanceHolder;
 import org.slf4j.Logger;
 
@@ -35,10 +36,9 @@ import org.slf4j.Logger;
 public class FilterUtils {
     
     /**
-     * Corrupted entity placeholder. Used when serialization error occurs.
+     * Not serialized entity placeholder. Used when serialization error occurs.
      */
-    // TODO "corrupted" is incorrect name choice actually
-    private static final String CORRUPTED_ENTITY = "<corrupted entity>";
+    private static final String NOT_SERIALIZED_ENTITY = "<not serialized entity>";
 
     /**
      * No entity placeholder.
@@ -61,15 +61,10 @@ public class FilterUtils {
      * @return <ul>
      *           <li>serialized entity in successful case</li>
      *           <li>{@link #NO_ENTITY} in case the supplied <code>entity</code> argument is <code>null</code></li>
-     *           <li>{@link #CORRUPTED_ENTITY} in case of serialization error</li>
+     *           <li>{@link #NOT_SERIALIZED_ENTITY} in case of serialization error</li>
      *         </ul>
-     * @throws NullPointerException in case the supplied <code>logger</code> argument is <code>null</code>
      */
     public static String entityToString(Object entity, Logger logger) {
-        if (logger == null) {
-            throw new NullPointerException("logger");
-        }
-
         String result;
 
         if (entity == null) {
@@ -81,7 +76,7 @@ public class FilterUtils {
             catch (JsonProcessingException ex) {
                 logger.error("Failed to serialize entity", ex);
 
-                result = CORRUPTED_ENTITY;
+                result = NOT_SERIALIZED_ENTITY;
             }
         }
 
@@ -92,13 +87,31 @@ public class FilterUtils {
      * Serializes entity to {@link String}.<p>
      * 
      * @param entity entity
+     * @param logger logger instance
      * @return <ul>
      *           <li>serialized entity in successful case</li>
      *           <li>{@link #NO_ENTITY} in case the supplied <code>entity</code> argument is <code>null</code></li>
+     *           <li>{@link #NOT_SERIALIZED_ENTITY} in case of serialization error</li>
      *         </ul>
      */
-    public static String entityToString(byte[] entity) {
-        return entity == null ? NO_ENTITY : new String(entity).trim();
+    public static String entityToString(byte[] entity, Logger logger) {
+        String result;
+        
+        if (entity == null) {
+            result = NO_ENTITY;
+        }
+        else {
+            try {
+                result = new String(entity, "UTF-8").trim();
+            }
+            catch (UnsupportedEncodingException ex) {
+                logger.error("Failed to serialize entity", ex);
+                
+                result = NOT_SERIALIZED_ENTITY;
+            }
+        }
+        
+        return result;
     }
     
 }

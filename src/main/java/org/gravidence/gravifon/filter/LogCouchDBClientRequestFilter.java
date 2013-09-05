@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * CouchDB JAX-RS client log request filter.<p>
- * Logs HTTP method, media type, resource URI and entity if presented.<p>
+ * Logs HTTP method, resource URI and entity if presented.
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */

@@ -36,7 +36,9 @@ import org.slf4j.LoggerFactory;
 
 /**
  * CouchDB JAX-RS client log response filter.<p>
- * Logs HTTP status code, media type, reason phrase and entity if presented.<p>
+ * Logs HTTP status code, reason phrase and entity if presented.<p>
+ * The original entity {@link InputStream} is read and closed.
+ * Then it is replaced with original bytes wrapped by {@link ByteArrayInputStream} for further reuse.
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
@@ -48,7 +50,7 @@ public class LogCouchDBClientResponseFilter implements ClientResponseFilter {
     @Override
     public void filter(ClientRequestContext requestContext, ClientResponseContext responseContext) throws IOException {
         if (LOGGER.isDebugEnabled()) {
-            String entity = FilterUtils.NO_ENTITY;
+            String entity;
             
             if (responseContext.hasEntity()) {
                 try (InputStream in = responseContext.getEntityStream()) {
@@ -56,8 +58,11 @@ public class LogCouchDBClientResponseFilter implements ClientResponseFilter {
 
                     responseContext.setEntityStream(new ByteArrayInputStream(buf));
 
-                    entity = FilterUtils.entityToString(buf);
+                    entity = FilterUtils.entityToString(buf, LOGGER);
                 }
+            }
+            else {
+                entity = FilterUtils.NO_ENTITY;
             }
 
             LOGGER.debug("Database response:\n{} {}\n{}", responseContext.getStatus(),
