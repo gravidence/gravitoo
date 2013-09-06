@@ -34,6 +34,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import org.gravidence.gravifon.db.UsersDBClient;
 import org.gravidence.gravifon.db.message.CreateDocumentResponse;
@@ -100,11 +102,12 @@ public class Users {
     /**
      * Creates a new user if such does not exist yet.
      * 
+     * @param uriInfo request URI details
      * @param user new user details bean
-     * @return original user details bean updated with created {@link UserDocument document} identifier
+     * @return 201 Created response with created user details bean
      */
     @POST
-    public UserBean create(UserBean user) {
+    public Response create(@Context UriInfo uriInfo, UserBean user) {
         userCreateValidator.validate(null, user);
         
         UserDocument original = usersDBClient.retrieveUserByUsername(user.getUsername());
@@ -115,7 +118,11 @@ public class Users {
         
         CreateDocumentResponse document = usersDBClient.createUser(user.createDocument());
         
-        return user.updateBean(document);
+        
+        return Response
+                .created(UriBuilder.fromUri(uriInfo.getAbsolutePath()).path(document.getId()).build())
+                .entity(user.updateBean(document))
+                .build();
     }
     
     /**
@@ -142,6 +149,7 @@ public class Users {
     /**
      * Searches for existing user details by username.
      * 
+     * @param uriInfo request URI details
      * @param username username
      * @return user details bean
      */
