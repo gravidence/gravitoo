@@ -23,20 +23,17 @@
  */
 package org.gravidence.gravifon.resource.bean;
 
-import org.gravidence.gravifon.exception.ValidationException;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
- * Self-validateable bean.
+ * Bean which is used for communication between client and service.<p>
+ * Forces Jackson to ignore all unknown properties during deserialization.
+ * 
+ * @see JsonIgnoreProperties
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
-public abstract class ValidateableBean extends IOBean {
-    
-    /**
-     * Validates the bean.
-     * 
-     * @throws ValidationException in case constraint violation found
-     */
-    public abstract void validate() throws ValidationException;
-    
+@JsonIgnoreProperties(ignoreUnknown=true)
+public class IOBean extends StatusBean {
+
 }

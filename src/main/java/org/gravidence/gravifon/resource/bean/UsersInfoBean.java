@@ -30,7 +30,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
-public class UsersInfoBean {
+public class UsersInfoBean extends IOBean {
 
     /**
      * @see #getUserAmount()
