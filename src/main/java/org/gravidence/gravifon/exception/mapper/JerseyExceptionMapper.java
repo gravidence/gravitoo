@@ -42,11 +42,8 @@ import org.slf4j.LoggerFactory;
  * Logs an exception and produces response according to exception details.<p>
  * Such exceptions should occur rarely, in special cases like
  * {@link Status#NOT_FOUND 404 Not Found} or {@link Status#METHOD_NOT_ALLOWED 405 Method Not Allowed}.
- * All other predictable cases should be covered by {@link GravifonExceptionMapper}.
  * 
  * @see WebApplicationException
- * @see DefaultExceptionMapper
- * @see GravifonExceptionMapper
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */

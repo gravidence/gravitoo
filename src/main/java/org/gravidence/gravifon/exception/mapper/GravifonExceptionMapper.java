@@ -37,8 +37,6 @@ import org.slf4j.LoggerFactory;
  * Logs an exception and produces response according to exception details.
  * 
  * @see GravifonException
- * @see DefaultExceptionMapper
- * @see JerseyExceptionMapper
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */

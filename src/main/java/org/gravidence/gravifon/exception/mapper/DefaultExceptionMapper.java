@@ -36,9 +36,6 @@ import org.slf4j.LoggerFactory;
  * Mapper that handles all "unexpected" exceptions.<p>
  * Logs an exception and produces response with {@link GravifonError#INTERNAL INTERNAL} error.
  * 
- * @see JerseyExceptionMapper
- * @see GravifonExceptionMapper
- * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
 @Provider
@@ -50,11 +47,13 @@ public class DefaultExceptionMapper implements ExceptionMapper<Throwable> {
     public Response toResponse(Throwable exception) {
         LOGGER.error("Unexpected exception captured", exception);
         
+        GravifonError error = GravifonError.INTERNAL;
+        
         StatusResponse entity = new StatusResponse(
-                GravifonError.INTERNAL.getErrorCode(), "An unexpected internal error.");
+                error.getErrorCode(), "An unexpected internal error.");
         
         return Response
-                .status(GravifonError.INTERNAL.getHttpStatusCode())
+                .status(error.getHttpStatusCode())
                 .type(MediaType.APPLICATION_JSON_TYPE)
                 .entity(entity)
                 .build();
