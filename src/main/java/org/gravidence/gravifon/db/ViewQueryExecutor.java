@@ -64,14 +64,19 @@ public class ViewQueryExecutor {
                 .request(MediaType.APPLICATION_JSON_TYPE)
                 .get();
         
-        if (CouchDBClient.isSuccessful(response)) {
-            InputStream json = response.readEntity(InputStream.class);
-            return ViewQueryResultsExtractor.extractSize(json);
+        try {
+            if (CouchDBClient.isSuccessful(response)) {
+                InputStream json = response.readEntity(InputStream.class);
+                return ViewQueryResultsExtractor.extractSize(json);
+            }
+            else {
+                LOGGER.error("Failed to execute '{}' view query: [{}] {}", target.getUri().getPath(),
+                        response.getStatus(), response.getStatusInfo().getReasonPhrase());
+                throw new GravifonException(GravifonError.DATABASE_OPERATION, "Failed to execute view query.");
+            }
         }
-        else {
-            LOGGER.error("Failed to execute '{}' view query: [{}] {}", target.getUri().getPath(),
-                    response.getStatus(), response.getStatusInfo().getReasonPhrase());
-            throw new GravifonException(GravifonError.DATABASE_OPERATION, "Failed to execute view query.");
+        finally {
+            response.close();
         }
     }
     
@@ -94,14 +99,19 @@ public class ViewQueryExecutor {
         
         List<T> documents = null;
         
-        if (CouchDBClient.isSuccessful(response)) {
-            InputStream json = response.readEntity(InputStream.class);
-            documents = ViewQueryResultsExtractor.extractDocuments(documentType, json);
+        try {
+            if (CouchDBClient.isSuccessful(response)) {
+                InputStream json = response.readEntity(InputStream.class);
+                documents = ViewQueryResultsExtractor.extractDocuments(documentType, json);
+            }
+            else {
+                LOGGER.error("Failed to execute '{}' view query: [{}] {}", target.getUri().getPath(),
+                        response.getStatus(), response.getStatusInfo().getReasonPhrase());
+                throw new GravifonException(GravifonError.DATABASE_OPERATION, "Failed to execute view query.");
+            }
         }
-        else {
-            LOGGER.error("Failed to execute '{}' view query: [{}] {}", target.getUri().getPath(),
-                    response.getStatus(), response.getStatusInfo().getReasonPhrase());
-            throw new GravifonException(GravifonError.DATABASE_OPERATION, "Failed to execute view query.");
+        finally {
+            response.close();
         }
         
         return documents;

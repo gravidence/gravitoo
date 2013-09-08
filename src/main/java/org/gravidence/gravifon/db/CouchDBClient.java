@@ -116,19 +116,24 @@ public class CouchDBClient implements InitializingBean {
                 .request(MediaType.APPLICATION_JSON_TYPE)
                 .get();
         
-        if (isSuccessful(response)) {
-            if (response.hasEntity()) {
-                JsonNode node = SharedInstanceHolder.OBJECT_MAPPER.readTree(response.readEntity(InputStream.class));
-                LOGGER.info("CouchDB version: {}", node.get("version").asText());
+        try {
+            if (isSuccessful(response)) {
+                if (response.hasEntity()) {
+                    JsonNode node = SharedInstanceHolder.OBJECT_MAPPER.readTree(response.readEntity(InputStream.class));
+                    LOGGER.info("CouchDB version: {}", node.get("version").asText());
+                }
+                else {
+                    LOGGER.warn("CouchDB version: unknown");
+                }
             }
             else {
-                LOGGER.warn("CouchDB version: unknown");
+                LOGGER.error("DB connection failure: [{}] {}", response.getStatus(),
+                        response.getStatusInfo().getReasonPhrase());
+                throw new RuntimeException("DB layer initialization failed");
             }
         }
-        else {
-            LOGGER.error("DB connection failure: [{}] {}", response.getStatus(),
-                    response.getStatusInfo().getReasonPhrase());
-            throw new RuntimeException("DB layer initialization failed");
+        finally {
+            response.close();
         }
     }
     

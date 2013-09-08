@@ -110,6 +110,9 @@ public class UsersDBClient implements InitializingBean {
         else {
             LOGGER.error("Failed to create '{}' user: [{}] {}", user.getUsername(),
                     response.getStatus(), response.getStatusInfo().getReasonPhrase());
+            
+            response.close();
+            
             throw new GravifonException(GravifonError.DATABASE_OPERATION, "Failed to create user.");
         }
         
@@ -139,6 +142,9 @@ public class UsersDBClient implements InitializingBean {
         else {
             LOGGER.error("Failed to retrieve user for '{}' id: [{}] {}", id,
                     response.getStatus(), response.getStatusInfo().getReasonPhrase());
+            
+            response.close();
+            
             throw new GravifonException(GravifonError.DATABASE_OPERATION, "Failed to retrieve user.");
         }
         
@@ -183,6 +189,9 @@ public class UsersDBClient implements InitializingBean {
         else {
             LOGGER.error("Failed to update '{}' user: [{}] {}", user,
                     response.getStatus(), response.getStatusInfo().getReasonPhrase());
+            
+            response.close();
+            
             throw new GravifonException(GravifonError.DATABASE_OPERATION, "Failed to update user.");
         }
         
@@ -208,6 +217,9 @@ public class UsersDBClient implements InitializingBean {
         else {
             LOGGER.error("Failed to delete '{}' user: [{}] {}", user,
                     response.getStatus(), response.getStatusInfo().getReasonPhrase());
+            
+            response.close();
+            
             throw new GravifonException(GravifonError.DATABASE_OPERATION, "Failed to delete user.");
         }
     }
