@@ -32,6 +32,13 @@ THE SOFTWARE.
 
     <context:property-placeholder location="classpath:**/*.properties"/>
     
+    <bean id="applicationInfo" class="org.gravidence.gravifon.resource.bean.ApplicationInfoBean">
+        <property name="appName" value="${org.gravidence.gravifon.application.name}"/>
+        <property name="appDescription" value="${org.gravidence.gravifon.application.description}"/>
+        <property name="appVersion" value="${org.gravidence.gravifon.application.version}"/>
+        <property name="apiVersion" value="${org.gravidence.gravifon.api.version}"/>
+    </bean>
+    
     <bean id="dbClientRequestFilter" class="org.gravidence.gravifon.filter.LogCouchDBClientRequestFilter"/>
     <bean id="dbClientResponseFilter" class="org.gravidence.gravifon.filter.LogCouchDBClientResponseFilter"/>
     
