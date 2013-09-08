@@ -57,8 +57,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * User resource.<p>
- * Provides basic CRUD management API. Consumes/produces <code>application/json</code> media type only.
+ * Users resource.<p>
+ * Provides <code>user</code> entity management API.
+ * 
+ * @see UsersDBClient
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
