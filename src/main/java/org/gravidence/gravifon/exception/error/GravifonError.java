@@ -48,25 +48,29 @@ public enum GravifonError {
      */
     JSON_PROCESSING_OPERATION(1002, 500),
     /**
+     * Not authorized error. No or invalid authorization details passed.
+     */
+    NOT_AUTHORIZED(2000, 401),
+    /**
      * User not found error. Database reported that requested user document is not found.
      */
-    USER_NOT_FOUND(2000, 404),
+    USER_NOT_FOUND(3000, 404),
     /**
      * User already exists error. User document with particular username already exists in database.
      */
-    USER_EXISTS(2001, 409),
+    USER_EXISTS(3001, 409),
     /**
      * Required property error. Property is missing.
      */
-    REQUIRED(10001, 400),
+    REQUIRED(10000, 400),
     /**
      * Invalid property error. Property value is invalid.
      */
-    INVALID(10002, 400),
+    INVALID(10001, 400),
     /**
      * Unknown property value error. Property value is unknown. Applicable to enum restricted properties.
      */
-    UNKNOWN(10003, 400);
+    UNKNOWN(10002, 400);
     
     /**
      * @see #getErrorCode()
