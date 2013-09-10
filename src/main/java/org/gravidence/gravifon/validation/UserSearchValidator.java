@@ -24,6 +24,7 @@
 package org.gravidence.gravifon.validation;
 
 import javax.ws.rs.core.MultivaluedMap;
+import org.gravidence.gravifon.exception.GravifonException;
 import org.gravidence.gravifon.exception.ValidationException;
 import org.gravidence.gravifon.resource.bean.ValidateableBean;
 
@@ -35,8 +36,14 @@ import org.gravidence.gravifon.resource.bean.ValidateableBean;
 public class UserSearchValidator extends AbstractValidator<ValidateableBean> {
 
     @Override
+    protected void validateHeaders(MultivaluedMap<String, String> headers)
+            throws GravifonException, ValidationException {
+        // No headers expected
+    }
+
+    @Override
     protected void validateQueryParams(MultivaluedMap<String, String> queryParams) throws ValidationException {
-        validateRequiredQueryParam("username", queryParams);
+        checkRequiredQueryParam("username", queryParams);
     }
 
     @Override

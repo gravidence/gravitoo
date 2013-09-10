@@ -24,6 +24,7 @@
 package org.gravidence.gravifon.validation;
 
 import javax.ws.rs.core.MultivaluedMap;
+import org.gravidence.gravifon.exception.GravifonException;
 import org.gravidence.gravifon.exception.ValidationException;
 
 /**
@@ -36,10 +37,13 @@ public interface Validator<T> {
     /**
      * Validates HTTP request artefacts.
      * 
+     * @param headers request headers
      * @param queryParams request query params
      * @param entity request body
+     * @throws GravifonException in case there's no authorization details in request
      * @throws ValidationException in case supplied arguments don't pass validation rule(s)
      */
-    void validate(MultivaluedMap<String, String> queryParams, T entity) throws ValidationException;
+    void validate(MultivaluedMap<String, String> headers, MultivaluedMap<String, String> queryParams,
+            T entity) throws GravifonException, ValidationException;
     
 }

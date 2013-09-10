@@ -63,7 +63,7 @@ public class Application {
      */
     @GET
     public ApplicationInfoBean info() {
-        applicationInfoValidator.validate(null, null);
+        applicationInfoValidator.validate(null, null, null);
         
         return applicationInfo;
     }

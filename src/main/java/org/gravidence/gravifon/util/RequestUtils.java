@@ -21,34 +21,46 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.gravidence.gravifon.validation;
+package org.gravidence.gravifon.util;
 
 import javax.ws.rs.core.MultivaluedMap;
-import org.gravidence.gravifon.exception.GravifonException;
-import org.gravidence.gravifon.exception.ValidationException;
-import org.gravidence.gravifon.resource.bean.ValidateableBean;
+import org.apache.commons.lang.StringUtils;
+import org.glassfish.jersey.internal.util.Base64;
 
 /**
- * Validates <code>info</code> method of <code>Application</code> resource.
+ * Request utility methods.
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
-public class ApplicationInfoValidator extends AbstractValidator<ValidateableBean> {
+public class RequestUtils {
 
-    @Override
-    protected void validateHeaders(MultivaluedMap<String, String> headers)
-            throws GravifonException, ValidationException {
-        // No headers expected
+    /**
+     * Preventing class instantiation.
+     */
+    private RequestUtils() {
+        // Nothing to do
     }
+    
+    /**
+     * Extracts Basic HTTP Authorization credentials from request headers.
+     * 
+     * @param headers request headers
+     * @return credentials if presented, <code>null</code> otherwise
+     */
+    public static String[] extractCredentials(MultivaluedMap<String, String> headers) {
+        String credentialsRaw = headers.getFirst("Authorization");
+        String credentialsBase64 = StringUtils.trim(StringUtils.substringAfter(credentialsRaw, "Basic "));
 
-    @Override
-    protected void validateQueryParams(MultivaluedMap<String, String> queryParams) throws ValidationException {
-        // No query params are expected.
-    }
-
-    @Override
-    protected void validateEntity(ValidateableBean entity) throws ValidationException {
-        // No entity is expected.
+        String[] credentials;
+        if (credentialsBase64 == null) {
+            credentials = null;
+        }
+        else {
+            String credentialsCleartext = Base64.decodeAsString(credentialsBase64);
+            credentials = StringUtils.split(credentialsCleartext, ":", 2);
+        }
+        
+        return credentials;
     }
     
 }

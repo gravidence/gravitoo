@@ -24,9 +24,13 @@
 package org.gravidence.gravifon.validation;
 
 import javax.ws.rs.core.MultivaluedMap;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.glassfish.jersey.internal.util.Base64;
+import org.gravidence.gravifon.exception.GravifonException;
 import org.gravidence.gravifon.exception.ValidationException;
 import org.gravidence.gravifon.exception.error.GravifonError;
+import org.gravidence.gravifon.util.RequestUtils;
 
 /**
  * Abstract implementation of {@link Validator}.<p>
@@ -39,10 +43,22 @@ import org.gravidence.gravifon.exception.error.GravifonError;
 public abstract class AbstractValidator<T> implements Validator<T> {
 
     @Override
-    public final void validate(MultivaluedMap<String, String> queryParams, T entity) throws ValidationException {
+    public final void validate(MultivaluedMap<String, String> headers, MultivaluedMap<String, String> queryParams,
+            T entity) throws GravifonException, ValidationException {
+        validateHeaders(headers);
         validateQueryParams(queryParams);
         validateEntity(entity);
     }
+    
+    /**
+     * Validates HTTP request headers.
+     * 
+     * @param headers request headers
+     * @throws GravifonException in case request is not authorized or not allowed to go further
+     * @throws ValidationException in case supplied argument doesn't pass validation rule(s)
+     */
+    protected abstract void validateHeaders(MultivaluedMap<String, String> headers)
+            throws GravifonException, ValidationException;
     
     /**
      * Validates HTTP request query params.
@@ -67,10 +83,29 @@ public abstract class AbstractValidator<T> implements Validator<T> {
      * @param queryParams request query params
      * @throws ValidationException in case required query param is not found or empty
      */
-    protected void validateRequiredQueryParam(String queryParamName, MultivaluedMap<String, String> queryParams) throws ValidationException {
+    protected void checkRequiredQueryParam(String queryParamName, MultivaluedMap<String, String> queryParams)
+            throws ValidationException {
         if (StringUtils.isEmpty(queryParams.getFirst(queryParamName))) {
             throw new ValidationException(GravifonError.REQUIRED,
                     String.format("Query param '%s' is required.", queryParamName));
+        }
+    }
+    
+    /**
+     * Validates that required <code>Authorization</code> header is actually presented and technically valid.
+     * 
+     * @param headers request headers
+     * @throws GravifonException in case required <code>Authorization</code> header is not found or invalid
+     * 
+     * @see AuthUtils#extractCredentials(javax.ws.rs.core.MultivaluedMap)
+     */
+    protected void checkRequiredAuthorizationHeader(MultivaluedMap<String, String> headers) throws GravifonException {
+        String[] credentials = RequestUtils.extractCredentials(headers);
+
+        if (ArrayUtils.getLength(credentials) != 2 ||
+                StringUtils.isBlank(credentials[0]) || StringUtils.isBlank(credentials[1])) {
+            throw new GravifonException(GravifonError.NOT_AUTHORIZED,
+                    "Authorization details are not presented or invalid.", null, false);
         }
     }
     

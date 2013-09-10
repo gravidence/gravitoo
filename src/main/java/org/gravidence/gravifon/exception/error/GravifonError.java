@@ -52,6 +52,10 @@ public enum GravifonError {
      */
     NOT_AUTHORIZED(2000, 401),
     /**
+     * Not allowed error. Access to requested resource is denied.
+     */
+    NOT_ALLOWED(2001, 403),
+    /**
      * User not found error. Database reported that requested user document is not found.
      */
     USER_NOT_FOUND(3000, 404),
