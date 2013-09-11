@@ -26,7 +26,6 @@ package org.gravidence.gravifon.validation;
 import javax.ws.rs.core.MultivaluedMap;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
-import org.glassfish.jersey.internal.util.Base64;
 import org.gravidence.gravifon.exception.GravifonException;
 import org.gravidence.gravifon.exception.ValidationException;
 import org.gravidence.gravifon.exception.error.GravifonError;
@@ -54,7 +53,7 @@ public abstract class AbstractValidator<T> implements Validator<T> {
      * Validates HTTP request headers.
      * 
      * @param headers request headers
-     * @throws GravifonException in case request is not authorized or not allowed to go further
+     * @throws GravifonException in case there's no authorization details in request
      * @throws ValidationException in case supplied argument doesn't pass validation rule(s)
      */
     protected abstract void validateHeaders(MultivaluedMap<String, String> headers)

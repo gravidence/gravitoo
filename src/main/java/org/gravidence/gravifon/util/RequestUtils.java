@@ -56,8 +56,8 @@ public class RequestUtils {
             credentials = null;
         }
         else {
-            String credentialsCleartext = Base64.decodeAsString(credentialsBase64);
-            credentials = StringUtils.split(credentialsCleartext, ":", 2);
+            String credentialsPlaintext = Base64.decodeAsString(credentialsBase64);
+            credentials = StringUtils.split(credentialsPlaintext, ":", 2);
         }
         
         return credentials;
