@@ -23,12 +23,14 @@
  */
 package org.gravidence.gravifon.resource.bean;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang.StringUtils;
 import org.gravidence.gravifon.db.message.CreateDocumentResponse;
 import org.gravidence.gravifon.db.domain.UserDocument;
 import org.gravidence.gravifon.exception.ValidationException;
 import org.gravidence.gravifon.exception.error.GravifonError;
+import org.gravidence.gravifon.util.PasswordUtils;
 
 /**
  * User account bean.<p>
@@ -62,6 +64,7 @@ public class UserBean extends ValidateableBean {
      * @see #getPassword()
      */
     @JsonProperty
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String password;
 
     /**
@@ -116,10 +119,9 @@ public class UserBean extends ValidateableBean {
     }
 
     /**
-     * Returns user account clear text password.
+     * Returns user account plaintext password.
      * 
-     * @return user account clear text password
-     * @deprecated Yes, this will be replaced with password hash.
+     * @return user account plaintext password
      */
     public String getPassword() {
         return password;
@@ -128,7 +130,6 @@ public class UserBean extends ValidateableBean {
     /**
      * @param password
      * @see #getPassword()
-     * @deprecated no clear text password
      */
     public void setPassword(String password) {
         this.password = password;
@@ -180,7 +181,6 @@ public class UserBean extends ValidateableBean {
             id = document.getId();
             username = document.getUsername();
             fullname = document.getFullname();
-            password = document.getPassword();
         }
         
         return this;
@@ -205,7 +205,7 @@ public class UserBean extends ValidateableBean {
         if (document != null) {
             document.setUsername(username);
             document.setFullname(fullname);
-            document.setPassword(password);
+            document.setPasswordHash(PasswordUtils.getSaltedHash(password));
         }
         
         return document;

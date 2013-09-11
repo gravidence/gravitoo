@@ -26,85 +26,56 @@ package org.gravidence.gravifon.db.domain;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * User account document.<p>
- * Represents User database model.
+ * Salted hash bean.
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
-public class UserDocument extends CouchDBDocument {
+public class SaltedHash {
 
     /**
-     * @see #getUsername()
+     * @see #getHash()
      */
     @JsonProperty
-    private String username;
+    private String hash;
     
     /**
-     * @see #getFullname()
+     * @see #getSalt()
      */
     @JsonProperty
-    private String fullname;
-    
-    /**
-     * @see #getPasswordHash()
-     */
-    @JsonProperty("password_hash")
-    private SaltedHash passwordHash;
+    private String salt;
 
     /**
-     * Returns user account nickname.
+     * Returns salted hash.
      * 
-     * @return user account nickname
+     * @return salted hash
      */
-    public String getUsername() {
-        return username;
+    public String getHash() {
+        return hash;
     }
 
     /**
-     * @param username
-     * @see #getUsername()
+     * @param hash
+     * @see #getHash()
      */
-    public void setUsername(String username) {
-        this.username = username;
+    public void setHash(String hash) {
+        this.hash = hash;
     }
 
     /**
-     * Returns user account first and last name.
+     * Returns salt.
      * 
-     * @return user account first and last name
+     * @return salt
      */
-    public String getFullname() {
-        return fullname;
+    public String getSalt() {
+        return salt;
     }
 
     /**
-     * @param fullname
-     * @see #getFullname()
+     * @param salt
+     * @see #getSalt()
      */
-    public void setFullname(String fullname) {
-        this.fullname = fullname;
-    }
-
-    /**
-     * Returns user account password hash.
-     * 
-     * @return user account password hash
-     */
-    public SaltedHash getPasswordHash() {
-        return passwordHash;
-    }
-
-    /**
-     * @param passwordHash
-     * @see #getPasswordHash()
-     */
-    public void setPasswordHash(SaltedHash passwordHash) {
-        this.passwordHash = passwordHash;
-    }
-
-    @Override
-    public String toString() {
-        return String.format("{id=%s, username=%s}", getId(), username);
+    public void setSalt(String salt) {
+        this.salt = salt;
     }
     
 }

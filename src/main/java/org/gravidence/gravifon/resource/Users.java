@@ -50,6 +50,7 @@ import org.gravidence.gravifon.exception.error.GravifonError;
 import org.gravidence.gravifon.resource.bean.StatusBean;
 import org.gravidence.gravifon.resource.bean.UserBean;
 import org.gravidence.gravifon.resource.bean.UsersInfoBean;
+import org.gravidence.gravifon.util.PasswordUtils;
 import org.gravidence.gravifon.util.RequestUtils;
 import org.gravidence.gravifon.validation.UserCreateValidator;
 import org.gravidence.gravifon.validation.UserDeleteValidator;
@@ -117,7 +118,8 @@ public class Users {
     public Response create(@Context UriInfo uriInfo, UserBean user) {
         userCreateValidator.validate(null, null, user);
         
-        UserDocument original = usersDBClient.retrieveUserByUsername(user.getUsername());
+        UserDocument original = usersDBClient.retrieveUserByUsername(
+                StringUtils.lowerCase(user.getUsername(), Locale.ENGLISH));
         
         if (original != null) {
             throw new GravifonException(GravifonError.USER_EXISTS, "User already exists.");
@@ -233,12 +235,12 @@ public class Users {
             throws GravifonException {
         String[] credentials = RequestUtils.extractCredentials(headers);
 
-        UserDocument user = usersDBClient.retrieveUserByUsername(credentials[0]);
+        UserDocument user = usersDBClient.retrieveUserByUsername(StringUtils.lowerCase(credentials[0], Locale.ENGLISH));
 
         if (user == null) {
             throw new GravifonException(GravifonError.NOT_AUTHORIZED, "User not found.", null, false);
         }
-        else if (StringUtils.equals(user.getPassword(), credentials[1])) {
+        else if (PasswordUtils.verify(credentials[1], user.getPasswordHash())) {
             if (StringUtils.equals(user.getId(), id)) {
                 LOGGER.trace("'{}' user successfully authorized.", user);
             }

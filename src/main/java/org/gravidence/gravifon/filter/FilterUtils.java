@@ -72,6 +72,9 @@ public class FilterUtils {
         } else {
             try {
                 result = SharedInstanceHolder.OBJECT_MAPPER.writeValueAsString(entity);
+                
+                // TODO improve
+                result = result.replaceAll("\"password\":\".*\"", "\"password\":\"***\"");
             }
             catch (JsonProcessingException ex) {
                 logger.error("Failed to serialize entity", ex);
@@ -103,10 +106,13 @@ public class FilterUtils {
         else {
             try {
                 result = new String(entity, "UTF-8").trim();
+                
+                // TODO improve
+                result = result.replaceAll("\"password\":\".*\"", "\"password\":\"***\"");
             }
             catch (UnsupportedEncodingException ex) {
                 logger.error("Failed to serialize entity", ex);
-                
+
                 result = NOT_SERIALIZED_ENTITY;
             }
         }
