@@ -23,6 +23,7 @@
  */
 package org.gravidence.gravifon.resource;
 
+import java.util.Locale;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -106,7 +107,7 @@ public class Users {
     }
     
     /**
-     * Creates a new user if such does not exist yet. 
+     * Creates a new user if such does not exist yet.
      * 
      * @param uriInfo request URI details
      * @param user new user details bean
@@ -162,7 +163,7 @@ public class Users {
     public UserBean search(@Context UriInfo uriInfo, @QueryParam("username") String username) {
         userSearchValidator.validate(null, uriInfo.getQueryParameters(), null);
         
-        UserDocument document = usersDBClient.retrieveUserByUsername(username);
+        UserDocument document = usersDBClient.retrieveUserByUsername(StringUtils.lowerCase(username, Locale.ENGLISH));
         
         if (document == null) {
             LOGGER.trace("No user found for '{}' username", username);
@@ -240,7 +241,6 @@ public class Users {
         else if (StringUtils.equals(user.getPassword(), credentials[1])) {
             if (StringUtils.equals(user.getId(), id)) {
                 LOGGER.trace("'{}' user successfully authorized.", user);
-                return user;
             }
             else {
                 LOGGER.trace("'{}' user is not allowed to access requested resource.", user);
@@ -253,6 +253,8 @@ public class Users {
             throw new GravifonException(GravifonError.NOT_AUTHORIZED,
                     "Username or password are invalid.", null, false);
         }
+        
+        return user;
     }
 
 }
