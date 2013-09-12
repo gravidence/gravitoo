@@ -56,6 +56,27 @@ public class PasswordUtils {
      * Length of cryptographic salt for PBKDF2.
      */
     private static final int SALT_LENGTH = 32;
+    
+    private static SecureRandom sr;
+    private static SecretKeyFactory skf;
+    
+    static {
+        try {
+            sr = SecureRandom.getInstance("SHA1PRNG");
+        }
+        catch (NoSuchAlgorithmException ex) {
+            throw new GravifonException(GravifonError.INTERNAL,
+                    "Failed to initialize secure random instance.", ex);
+        }
+        
+        try {
+            skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
+        }
+        catch (NoSuchAlgorithmException ex) {
+            throw new GravifonException(GravifonError.INTERNAL,
+                    "Failed to initialize secret key factory instance.", ex);
+        }
+    }
 
     /**
      * Preventing class instantiation.
@@ -71,14 +92,7 @@ public class PasswordUtils {
      * @return salted PBKDF2 hash
      */
     public static SaltedHash getSaltedHash(String password) {
-        byte[] salt;
-        try {
-            salt = SecureRandom.getInstance("SHA1PRNG").generateSeed(SALT_LENGTH);
-        }
-        catch (NoSuchAlgorithmException ex) {
-            throw new GravifonException(GravifonError.INTERNAL, "Failed to generate secure random seed.", ex);
-        }
-        
+        byte[] salt = sr.generateSeed(SALT_LENGTH);
         String hash = hash(password, salt);
         
         SaltedHash result = new SaltedHash();
@@ -116,13 +130,13 @@ public class PasswordUtils {
             throw new IllegalArgumentException("salt");
         }
         
+        PBEKeySpec pbeks = new PBEKeySpec(password.toCharArray(), salt, ITERATIONS_NUMBER, HASH_LENGTH);
+        
         byte[] hash;
         try {
-            PBEKeySpec pbeks = new PBEKeySpec(password.toCharArray(), salt, ITERATIONS_NUMBER, HASH_LENGTH);
-            SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
             hash = skf.generateSecret(pbeks).getEncoded();
         }
-        catch (NoSuchAlgorithmException | InvalidKeySpecException ex) {
+        catch (InvalidKeySpecException ex) {
             throw new GravifonException(GravifonError.INTERNAL, "Failed to generate hash.", ex);
         }
         
