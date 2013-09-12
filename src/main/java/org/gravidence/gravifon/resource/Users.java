@@ -23,7 +23,6 @@
  */
 package org.gravidence.gravifon.resource;
 
-import java.util.Locale;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -118,8 +117,7 @@ public class Users {
     public Response create(@Context UriInfo uriInfo, UserBean user) {
         userCreateValidator.validate(null, null, user);
         
-        UserDocument original = usersDBClient.retrieveUserByUsername(
-                StringUtils.lowerCase(user.getUsername(), Locale.ENGLISH));
+        UserDocument original = usersDBClient.retrieveUserByUsername(user.getUsername());
         
         if (original != null) {
             throw new GravifonException(GravifonError.USER_EXISTS, "User already exists.");
@@ -165,7 +163,7 @@ public class Users {
     public UserBean search(@Context UriInfo uriInfo, @QueryParam("username") String username) {
         userSearchValidator.validate(null, uriInfo.getQueryParameters(), null);
         
-        UserDocument document = usersDBClient.retrieveUserByUsername(StringUtils.lowerCase(username, Locale.ENGLISH));
+        UserDocument document = usersDBClient.retrieveUserByUsername(username);
         
         if (document == null) {
             LOGGER.trace("No user found for '{}' username", username);
@@ -235,7 +233,7 @@ public class Users {
             throws GravifonException {
         String[] credentials = RequestUtils.extractCredentials(headers);
 
-        UserDocument user = usersDBClient.retrieveUserByUsername(StringUtils.lowerCase(credentials[0], Locale.ENGLISH));
+        UserDocument user = usersDBClient.retrieveUserByUsername(credentials[0]);
 
         if (user == null) {
             throw new GravifonException(GravifonError.NOT_AUTHORIZED, "User not found.", null, false);

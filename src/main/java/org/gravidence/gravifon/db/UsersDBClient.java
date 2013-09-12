@@ -24,10 +24,12 @@
 package org.gravidence.gravifon.db;
 
 import java.util.List;
+import java.util.Locale;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import org.apache.commons.lang.StringUtils;
 import org.gravidence.gravifon.db.domain.UserDocument;
 import org.gravidence.gravifon.db.message.CreateDocumentResponse;
 import org.gravidence.gravifon.exception.GravifonException;
@@ -152,14 +154,16 @@ public class UsersDBClient implements InitializingBean {
     }
     
     /**
-     * Retrieves existing user {@link UserDocument document}.
+     * Retrieves existing user {@link UserDocument document}.<p>
+     * Makes sure that <code>username</code> written in lower case
+     * since <code>main/all_usernames</code> view is case insensitive.
      * 
      * @param username username
      * @return user details document if found, <code>null</code> otherwise
      */
     public UserDocument retrieveUserByUsername(String username) {
         ViewQueryArguments args = new ViewQueryArguments()
-                .addKey(username)
+                .addKey(StringUtils.lowerCase(username, Locale.ENGLISH))
                 .addIncludeDocs(true);
         
         List<UserDocument> documents = ViewQueryExecutor.queryDocuments(viewMainAllUsernamesTarget, args,
