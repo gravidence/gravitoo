@@ -25,6 +25,7 @@ package org.gravidence.gravifon.filter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.UnsupportedEncodingException;
+import java.util.regex.Pattern;
 import org.gravidence.gravifon.db.SharedInstanceHolder;
 import org.slf4j.Logger;
 
@@ -44,6 +45,8 @@ public class FilterUtils {
      * No entity placeholder.
      */
     public static final String NO_ENTITY = "<no entity>";
+    
+    private static final Pattern PASSWORD_PATTERN = Pattern.compile("\"password\":\".*\"");
 
     /**
      * Preventing class instantiation.
@@ -54,7 +57,7 @@ public class FilterUtils {
     
     /**
      * Serializes entity to JSON {@link String}.<p>
-     * Logs serialization error if such one happens.
+     * Sensitive information is replaced by <code>***</code>. Logs serialization error if such one happens.
      * 
      * @param entity entity
      * @param logger logger instance
@@ -73,8 +76,8 @@ public class FilterUtils {
             try {
                 result = SharedInstanceHolder.OBJECT_MAPPER.writeValueAsString(entity);
                 
-                // TODO improve
-                result = result.replaceAll("\"password\":\".*\"", "\"password\":\"***\"");
+                // hide sensitive information
+                result = PASSWORD_PATTERN.matcher(result).replaceAll("\"password\":\"***\"");
             }
             catch (JsonProcessingException ex) {
                 logger.error("Failed to serialize entity", ex);
@@ -88,6 +91,7 @@ public class FilterUtils {
 
     /**
      * Serializes entity to {@link String}.<p>
+     * Sensitive information is replaced by <code>***</code>.
      * 
      * @param entity entity
      * @param logger logger instance
@@ -106,9 +110,9 @@ public class FilterUtils {
         else {
             try {
                 result = new String(entity, "UTF-8").trim();
-                
-                // TODO improve
-                result = result.replaceAll("\"password\":\".*\"", "\"password\":\"***\"");
+
+                // hide sensitive information
+                result = PASSWORD_PATTERN.matcher(result).replaceAll("\"password\":\"***\"");
             }
             catch (UnsupportedEncodingException ex) {
                 logger.error("Failed to serialize entity", ex);
