@@ -145,13 +145,26 @@ public class UserBean extends ValidateableBean {
         if (StringUtils.isBlank(username)) {
             throw new ValidationException(GravifonError.REQUIRED, "Property 'username' is required.");
         }
-        
-        if (password == null) {
+    }
+    
+    /**
+     * Validates user password.<p>
+     * {@link GravifonError#REQUIRED REQUIRED} error is thrown only if <code>password</code> value is <code>null</code>
+     * and <code>required</code> value is <code>true</code>.
+     * 
+     * @param required password required indicator
+     */
+    public void validatePassword(boolean required) {
+        if (required && password == null) {
             throw new ValidationException(GravifonError.REQUIRED, "Property 'password' is required.");
         }
-        else if (StringUtils.length(password) < 6) {
-            throw new ValidationException(GravifonError.INVALID,
-                    "Property 'password' value is too short. Minimum length is 6 characters.");
+        
+        if (password != null) {
+            int passwordLength = StringUtils.length(password);
+            if (passwordLength < 6 || passwordLength > 40) {
+                throw new ValidationException(GravifonError.INVALID,
+                        "Property 'password' value length does not match restrictions.");
+            }
         }
     }
 
@@ -192,20 +205,27 @@ public class UserBean extends ValidateableBean {
      * @return created document
      */
     public UserDocument createDocument() {
-        return updateDocument(new UserDocument());
+        UserDocument document = updateDocument(new UserDocument());
+        
+        // Initialize created UserDocument with username as it is not updateable after registration
+        document.setUsername(username);
+        
+        return document;
     }
     
     /**
-     * Updates document with bean values except identifier.
+     * Updates document with bean values except identifier and username.
      * 
      * @param document user details document
      * @return updated document
      */
     public UserDocument updateDocument(UserDocument document) {
         if (document != null) {
-            document.setUsername(username);
             document.setFullname(fullname);
-            document.setPasswordHash(PasswordUtils.getSaltedHash(password));
+            // Missing password value means it is not changed
+            if (password != null) {
+                document.setPasswordHash(PasswordUtils.getSaltedHash(password));
+            }
         }
         
         return document;

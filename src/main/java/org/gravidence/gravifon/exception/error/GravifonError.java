@@ -48,7 +48,7 @@ public enum GravifonError {
      */
     JSON_PROCESSING_OPERATION(1002, 500),
     /**
-     * Not authorized error. No or invalid authorization details passed.
+     * Not authorized error. Authorization details are missed or invalid.
      */
     NOT_AUTHORIZED(2000, 401),
     /**
@@ -64,7 +64,7 @@ public enum GravifonError {
      */
     USER_EXISTS(3001, 409),
     /**
-     * Required property error. Property is missing.
+     * Required property error. Property is missed.
      */
     REQUIRED(10000, 400),
     /**

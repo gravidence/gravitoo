@@ -194,9 +194,10 @@ public class Users {
         
         UserDocument original = authorizeUser(httpHeaders.getRequestHeaders(), id);
         
-        CreateDocumentResponse document = usersDBClient.updateUser(user.updateDocument(original));
+        usersDBClient.updateUser(user.updateDocument(original));
         
-        return user.updateBean(document);
+        // Update bean with original document details as identifier is not changed after update
+        return user.updateBean(original);
     }
     
     /**

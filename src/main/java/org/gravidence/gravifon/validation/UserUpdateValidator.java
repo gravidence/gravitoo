@@ -54,6 +54,7 @@ public class UserUpdateValidator extends AbstractValidator<UserBean> {
         }
         
         entity.validate();
+        entity.validatePassword(false);
     }
     
 }
