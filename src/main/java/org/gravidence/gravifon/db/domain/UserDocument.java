@@ -50,6 +50,18 @@ public class UserDocument extends CouchDBDocument {
      */
     @JsonProperty("password_hash")
     private SaltedHash passwordHash;
+    
+    /**
+     * @see #getEmail()
+     */
+    @JsonProperty
+    private String email;
+    
+    /**
+     * @see #getRegistrationDatetime()
+     */
+    @JsonProperty("registration_datetime")
+    private int[] registrationDatetime;
 
     /**
      * Returns user account nickname.
@@ -69,9 +81,9 @@ public class UserDocument extends CouchDBDocument {
     }
 
     /**
-     * Returns user account first and last name.
+     * Returns user account full name.
      * 
-     * @return user account first and last name
+     * @return user account full name
      */
     public String getFullname() {
         return fullname;
@@ -100,6 +112,41 @@ public class UserDocument extends CouchDBDocument {
      */
     public void setPasswordHash(SaltedHash passwordHash) {
         this.passwordHash = passwordHash;
+    }
+
+    /**
+     * Returns user account email.
+     * 
+     * @return user account email
+     */
+    public String getEmail() {
+        return email;
+    }
+
+    /**
+     * @param email
+     * @see #getEmail()
+     */
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    /**
+     * Returns user account registration datetime (UTC).<p>
+     * Array content is as follows: <code>[yyyy,MM,dd,HH,mm,ss,SSS]</code>.
+     * 
+     * @return user account registration datetime (UTC)
+     */
+    public int[] getRegistrationDatetime() {
+        return registrationDatetime;
+    }
+
+    /**
+     * @param registrationDatetime
+     * @see #getRegistrationDatetime()
+     */
+    public void setRegistrationDatetime(int[] registrationDatetime) {
+        this.registrationDatetime = registrationDatetime;
     }
 
     @Override

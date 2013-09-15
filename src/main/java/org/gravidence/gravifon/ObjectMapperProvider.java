@@ -21,35 +21,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.gravidence.gravifon.db;
+package org.gravidence.gravifon;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.joda.JodaModule;
+import javax.ws.rs.ext.ContextResolver;
+import javax.ws.rs.ext.Provider;
+import org.gravidence.gravifon.db.SharedInstanceHolder;
 
 /**
- * Container for instances shared across the application.
+ * Custom Jackson {@link ObjectMapper} provider.<p>
+ * Uses {@link SharedInstanceHolder#OBJECT_MAPPER} instance.
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
-public class SharedInstanceHolder {
-    
-    /**
-     * JSON data binding instance.
-     */
-    public static final ObjectMapper OBJECT_MAPPER;
-    
-    static {
-        OBJECT_MAPPER = new ObjectMapper();
-        OBJECT_MAPPER.registerModule(new JodaModule());
-        OBJECT_MAPPER.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-    }
+@Provider
+public class ObjectMapperProvider implements ContextResolver<ObjectMapper> {
 
-    /**
-     * Preventing class instantiation.
-     */
-    private SharedInstanceHolder() {
-        // Nothing to do
+    @Override
+    public ObjectMapper getContext(Class<?> type) {
+        return SharedInstanceHolder.OBJECT_MAPPER;
     }
     
 }
