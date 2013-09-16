@@ -23,7 +23,10 @@
  */
 package org.gravidence.gravifon.resource.bean;
 
+import java.util.regex.Pattern;
+import org.apache.commons.lang.StringUtils;
 import org.gravidence.gravifon.exception.ValidationException;
+import org.gravidence.gravifon.exception.error.GravifonError;
 
 /**
  * Self-validateable bean.
@@ -38,5 +41,51 @@ public abstract class ValidateableBean extends IOBean {
      * @throws ValidationException in case constraint violation found
      */
     public abstract void validate() throws ValidationException;
+    
+    /**
+     * Checks that required field is actually presented (e.g. its value is not <code>null</code> or <code>""</code>).
+     * 
+     * @param fieldValue field value
+     * @param fieldName field name to use in error message
+     * @throws ValidationException in case field is missed
+     */
+    public static void checkRequired(String fieldValue, String fieldName) {
+        if (StringUtils.isEmpty(fieldValue)) {
+            throw new ValidationException(GravifonError.REQUIRED,
+                    String.format("Property '%s' is required.", fieldName));
+        }
+    }
+    
+    /**
+     * Checks that field length satisfies specified range (inclusive).
+     * 
+     * @param fieldValue field value
+     * @param fieldName field name to use in error message
+     * @param min minimum number of characters expected
+     * @param max maximum number of characters expected
+     * @throws ValidationException in case field length is invalid
+     */
+    public static void checkLength(String fieldValue, String fieldName, int min, int max) {
+        int fieldLength = StringUtils.length(fieldValue);
+        if (fieldLength < min || fieldLength > max) {
+            throw new ValidationException(GravifonError.INVALID,
+                    String.format("Property '%s' value length is out of expected range.", fieldName));
+        }
+    }
+    
+    /**
+     * Checks that field matches specified pattern.
+     * 
+     * @param fieldValue field value
+     * @param fieldName field name to use in error message
+     * @param pattern regular expression pattern
+     * @throws ValidationException in case field is invalid
+     */
+    public static void checkPattern(String fieldValue, String fieldName, Pattern pattern) {
+        if (!pattern.matcher(fieldValue).matches()) {
+            throw new ValidationException(GravifonError.INVALID,
+                    String.format("Property '%s' value does not match expected format.", fieldName));
+        }
+    }
     
 }

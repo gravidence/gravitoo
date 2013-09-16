@@ -25,7 +25,7 @@ package org.gravidence.gravifon.resource.bean;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.apache.commons.lang.StringUtils;
+import java.util.regex.Pattern;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.gravidence.gravifon.db.message.CreateDocumentResponse;
 import org.gravidence.gravifon.db.domain.UserDocument;
@@ -45,7 +45,27 @@ import org.joda.time.DateTimeZone;
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
 public class UserBean extends ValidateableBean {
+    
+    /**
+     * Latin-1 characters set excluding some specific ones (i.e. ":", "?", "\", etc.).
+     */
+    private static final String LATIN_LIGHT = "A-Za-z0-9!#$%'()*+,\\-.;=@\\[\\]\\^_`{}";
+    
+    /**
+     * Latin-1 characters set.
+     */
+    private static final String LATIN_FULL = LATIN_LIGHT + " \\\"\\&/:<>?\\\\\\|";
 
+    /**
+     * {@link #getUsername() Username} attribute valid format pattern.
+     */
+    private static final Pattern USERNAME_PATTERN = Pattern.compile(String.format("[%s]+", LATIN_LIGHT));
+    
+    /**
+     * {@link #getPassword() Password} attribute valid format pattern.
+     */
+    private static final Pattern PASSWORD_PATTERN = Pattern.compile(String.format("[%s]+", LATIN_FULL));
+    
     /**
      * @see #getId()
      */
@@ -184,14 +204,12 @@ public class UserBean extends ValidateableBean {
 
     @Override
     public void validate() {
-        if (StringUtils.isBlank(username)) {
-            throw new ValidationException(GravifonError.REQUIRED, "Property 'username' is required.");
-        }
+        checkRequired(username, "username");
+        checkLength(username, "username", 1, 40);
+        checkPattern(username, "username", USERNAME_PATTERN);
         
-        if (StringUtils.isBlank(email)) {
-            throw new ValidationException(GravifonError.REQUIRED, "Property 'email' is required.");
-        }
-        else if (!EmailValidator.getInstance().isValid(email)) {
+        checkRequired(email, "email");
+        if (!EmailValidator.getInstance().isValid(email)) {
             throw new ValidationException(GravifonError.INVALID, "Property 'email' is invalid.");
         }
     }
@@ -203,17 +221,14 @@ public class UserBean extends ValidateableBean {
      * 
      * @param required password required indicator
      */
-    public void validatePassword(boolean required) {
-        if (required && password == null) {
-            throw new ValidationException(GravifonError.REQUIRED, "Property 'password' is required.");
+    public void checkPassword(boolean required) {
+        if (required) {
+            checkRequired(password, "password");
         }
         
         if (password != null) {
-            int passwordLength = StringUtils.length(password);
-            if (passwordLength < 6 || passwordLength > 40) {
-                throw new ValidationException(GravifonError.INVALID,
-                        "Property 'password' value length does not match restrictions.");
-            }
+            checkLength(password, "password", 6, 40);
+            checkPattern(password, "password", PASSWORD_PATTERN);
         }
     }
 
