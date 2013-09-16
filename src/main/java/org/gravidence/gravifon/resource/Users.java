@@ -125,9 +125,12 @@ public class Users {
         
         CreateDocumentResponse document = usersDBClient.createUser(user.createDocument());
         
+        // Call database again in order to retrieve all system generated attributes
+        original = usersDBClient.retrieveUserByID(document.getId());
+        
         return Response
                 .created(UriBuilder.fromUri(uriInfo.getAbsolutePath()).path(document.getId()).build())
-                .entity(user.updateBean(document))
+                .entity(user.updateBean(original))
                 .build();
     }
     
