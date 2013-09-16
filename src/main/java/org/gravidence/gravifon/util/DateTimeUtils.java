@@ -24,8 +24,8 @@
 package org.gravidence.gravifon.util;
 
 import org.apache.commons.lang.ArrayUtils;
+import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.joda.time.LocalDateTime;
 
 /**
  * Joda datetime utility methods.
@@ -42,12 +42,14 @@ public class DateTimeUtils {
     }
     
     /**
-     * Converts local datetime object to array of local datetime fields.
+     * Converts datetime object to array of UTC datetime fields.<p>
+     * Given datetime object is casted to UTC.<p>
+     * Resulting array content is as follows: <code>[yyyy,MM,dd,HH,mm,ss,SSS]</code>.
      * 
-     * @param value local datetime object
-     * @return array of local datetime fields
+     * @param value datetime object
+     * @return array of UTC datetime fields
      */
-    public static int[] toArray(LocalDateTime value) {
+    public static int[] toArray(DateTime value) {
         int[] result;
         
         if (value == null) {
@@ -55,33 +57,36 @@ public class DateTimeUtils {
         }
         else {
             result = new int[7];
+            
+            DateTime valueUTC = value.toDateTime(DateTimeZone.UTC);
 
-            result[0] = value.getYear();
-            result[1] = value.getMonthOfYear();
-            result[2] = value.getDayOfMonth();
-            result[3] = value.getHourOfDay();
-            result[4] = value.getMinuteOfHour();
-            result[5] = value.getSecondOfMinute();
-            result[6] = value.getMillisOfSecond();
+            result[0] = valueUTC.getYear();
+            result[1] = valueUTC.getMonthOfYear();
+            result[2] = valueUTC.getDayOfMonth();
+            result[3] = valueUTC.getHourOfDay();
+            result[4] = valueUTC.getMinuteOfHour();
+            result[5] = valueUTC.getSecondOfMinute();
+            result[6] = valueUTC.getMillisOfSecond();
         }
         
         return result;
     }
     
     /**
-     * Converts array of local datetime fields to local datetime object.
+     * Converts array of UTC datetime fields to datetime object.<p>
+     * Array content is as follows: <code>[yyyy,MM,dd,HH,mm,ss,SSS]</code>.
      * 
-     * @param value array of local datetime fields
-     * @return local datetime object
+     * @param value array of UTC datetime fields
+     * @return datetime object
      */
-    public static LocalDateTime fromArray(int[] value) {
-        LocalDateTime result;
+    public static DateTime fromArray(int[] value) {
+        DateTime result;
         
         if (ArrayUtils.isEmpty(value)) {
             result = null;
         }
         else {
-            result = new LocalDateTime(DateTimeZone.UTC)
+            result = new DateTime(DateTimeZone.UTC)
                     .withYear(value[0])
                     .withMonthOfYear(value[1])
                     .withDayOfMonth(value[2])
