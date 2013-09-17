@@ -23,7 +23,7 @@
  */
 package org.gravidence.gravifon.exception.mapper;
 
-import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import org.gravidence.gravifon.resource.message.StatusResponse;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -34,21 +34,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Mapper that handles {@link InvalidFormatException invalid format exceptions}.<p>
+ * Mapper that handles {@link JsonMappingException json mapping exceptions}.<p>
  * Logs an exception and produces response with {@link GravifonError#INVALID INVALID} error.
  * 
- * @see InvalidFormatException
+ * @see JsonMappingException
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
 @Provider
-public class InvalidFormatExceptionMapper implements ExceptionMapper<InvalidFormatException> {
+public class JsonMappingExceptionMapper implements ExceptionMapper<JsonMappingException> {
     
-    private static final Logger LOGGER = LoggerFactory.getLogger(InvalidFormatExceptionMapper.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JsonMappingExceptionMapper.class);
 
     @Override
-    public Response toResponse(InvalidFormatException exception) {
-        LOGGER.error("Invalid format exception captured", exception);
+    public Response toResponse(JsonMappingException exception) {
+        LOGGER.error("Json mapping exception captured", exception);
         
         String propertyName = exception.getPath().get(exception.getPath().size() - 1).getFieldName();
         
