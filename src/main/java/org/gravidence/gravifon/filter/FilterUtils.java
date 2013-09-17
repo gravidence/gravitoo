@@ -46,7 +46,8 @@ public class FilterUtils {
      */
     public static final String NO_ENTITY = "<no entity>";
     
-    private static final Pattern PASSWORD_PATTERN = Pattern.compile("\"password\":\".*\"");
+    private static final Pattern PASSWORD_PATTERN = Pattern.compile(
+            "\"password\"\\s*:\\s*\".*\"");
 
     /**
      * Preventing class instantiation.
