@@ -208,7 +208,12 @@ public class UserBean extends ValidateableBean {
         checkLength(username, "username", 1, 40);
         checkPattern(username, "username", USERNAME_PATTERN);
         
+        if (fullname != null) {
+            checkLength(fullname, "fullname", 1, 120);
+        }
+        
         checkRequired(email, "email");
+        checkLength(email, "email", 6, 100);
         if (!EmailValidator.getInstance().isValid(email)) {
             throw new ValidationException(GravifonError.INVALID, "Property 'email' is invalid.");
         }
