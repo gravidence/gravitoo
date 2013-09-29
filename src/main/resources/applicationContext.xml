@@ -52,5 +52,9 @@ THE SOFTWARE.
     <bean id="usersDBClient" class="org.gravidence.gravifon.db.UsersDBClient">
         <property name="dbClient" ref="dbClient"/>
     </bean>
+    
+    <bean id="scrobblesDBClient" class="org.gravidence.gravifon.db.ScrobblesDBClient">
+        <property name="dbClient" ref="dbClient"/>
+    </bean>
 
 </beans>

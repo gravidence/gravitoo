@@ -35,11 +35,9 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
-import org.apache.commons.lang.StringUtils;
 import org.gravidence.gravifon.db.UsersDBClient;
 import org.gravidence.gravifon.db.message.CreateDocumentResponse;
 import org.gravidence.gravifon.db.domain.UserDocument;
@@ -49,8 +47,6 @@ import org.gravidence.gravifon.exception.error.GravifonError;
 import org.gravidence.gravifon.resource.bean.StatusBean;
 import org.gravidence.gravifon.resource.bean.UserBean;
 import org.gravidence.gravifon.resource.bean.UsersInfoBean;
-import org.gravidence.gravifon.util.PasswordUtils;
-import org.gravidence.gravifon.util.RequestUtils;
 import org.gravidence.gravifon.validation.UserCreateValidator;
 import org.gravidence.gravifon.validation.UserDeleteValidator;
 import org.gravidence.gravifon.validation.UserRetrieveValidator;
@@ -148,7 +144,7 @@ public class Users {
     public UserBean retrieve(@Context HttpHeaders httpHeaders, @PathParam("user_id") String id) {
         userRetrieveValidator.validate(httpHeaders.getRequestHeaders(), null, null);
         
-        UserDocument document = authorizeUser(httpHeaders.getRequestHeaders(), id);
+        UserDocument document = ResourceUtils.authorizeUser(httpHeaders.getRequestHeaders(), id, usersDBClient, LOGGER);
         
         return new UserBean().updateBean(document);
     }
@@ -195,7 +191,7 @@ public class Users {
     public UserBean update(@Context HttpHeaders httpHeaders, @PathParam("user_id") String id, UserBean user) {
         userUpdateValidator.validate(httpHeaders.getRequestHeaders(), null, user);
         
-        UserDocument original = authorizeUser(httpHeaders.getRequestHeaders(), id);
+        UserDocument original = ResourceUtils.authorizeUser(httpHeaders.getRequestHeaders(), id, usersDBClient, LOGGER);
         
         usersDBClient.updateUser(user.updateDocument(original));
         
@@ -217,48 +213,11 @@ public class Users {
     public StatusBean delete(@Context HttpHeaders httpHeaders, @PathParam("user_id") String id) {
         userDeleteValidator.validate(httpHeaders.getRequestHeaders(), null, null);
         
-        UserDocument original = authorizeUser(httpHeaders.getRequestHeaders(), id);
+        UserDocument original = ResourceUtils.authorizeUser(httpHeaders.getRequestHeaders(), id, usersDBClient, LOGGER);
         
         usersDBClient.deleteUser(original);
         
         return new StatusBean();
-    }
-    
-    /**
-     * Verifies that Basic HTTP Authorization details are presented, correct and match requested resource.
-     * 
-     * @param headers request headers
-     * @param id requested user identifier
-     * @return requested user details document
-     * @throws GravifonException in case user not found, credentials are invalid
-     * or access to requested resource is denied
-     */
-    private UserDocument authorizeUser(MultivaluedMap<String, String> headers, String id)
-            throws GravifonException {
-        String[] credentials = RequestUtils.extractCredentials(headers);
-
-        UserDocument user = usersDBClient.retrieveUserByUsername(credentials[0]);
-
-        if (user == null) {
-            throw new GravifonException(GravifonError.NOT_AUTHORIZED, "User not found.", null, false);
-        }
-        else if (PasswordUtils.verify(credentials[1], user.getPasswordHash())) {
-            if (StringUtils.equals(user.getId(), id)) {
-                LOGGER.trace("'{}' user successfully authorized.", user);
-            }
-            else {
-                LOGGER.trace("'{}' user is not allowed to access requested resource.", user);
-                throw new GravifonException(GravifonError.NOT_ALLOWED,
-                        "Access to requested resource is denied.", null, false);
-            }
-        }
-        else {
-            LOGGER.trace("'{}' user failed to authorize.", user);
-            throw new GravifonException(GravifonError.NOT_AUTHORIZED,
-                    "Username or password are invalid.", null, false);
-        }
-        
-        return user;
     }
 
 }
