@@ -29,13 +29,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 
 /**
- * CouchDB JAX-RS client to <code>/scrobbles</code> database.
+ * CouchDB JAX-RS client to <code>/albums</code> database.
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
-public class ScrobblesDBClient implements InitializingBean {
+public class AlbumsDBClient implements InitializingBean {
     
-    private static final Logger LOGGER = LoggerFactory.getLogger(ScrobblesDBClient.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AlbumsDBClient.class);
     
     /**
      * @see #setDbClient(org.gravidence.gravifon.db.CouchDBClient)
@@ -43,14 +43,14 @@ public class ScrobblesDBClient implements InitializingBean {
     private CouchDBClient dbClient;
     
     /**
-     * JAX-RS client target associated with <code>/scrobbles</code> database.
+     * JAX-RS client target associated with <code>/albums</code> database.
      */
     private WebTarget dbTarget;
     
     /**
-     * JAX-RS client target associated with <code>main/all_scrobbles</code> view.
+     * JAX-RS client target associated with <code>main/all_primary_album_variations</code> view.
      */
-    private WebTarget viewMainAllScrobblesTarget;
+    private WebTarget viewMainAllPrimaryAlbumVariationsTarget;
 
     /**
      * Sets {@link CouchDBClient} instance.
@@ -64,22 +64,23 @@ public class ScrobblesDBClient implements InitializingBean {
     @Override
     public void afterPropertiesSet() throws Exception {
         dbTarget = dbClient.getTarget()
-                .path("scrobbles");
+                .path("albums");
         
-        viewMainAllScrobblesTarget = ViewUtils.getViewTarget(dbTarget, "main", "all_scrobbles");
+        viewMainAllPrimaryAlbumVariationsTarget = ViewUtils.getViewTarget(
+                dbTarget, "main", "all_primary_album_variations");
     }
     
     /**
-     * Retrieves scrobble amount.<p>
-     * Scrobble amount is equal to <code>main/all_scrobbles</code> view size.
+     * Retrieves amount of primary album variations.<p>
+     * Amount of primary album variations is equal to <code>main/all_primary_album_variations</code> view size.
      * 
-     * @return scrobble amount
+     * @return amount of primary album variations
      * 
-     * @see #viewMainAllScrobblesTarget
+     * @see #viewMainAllPrimaryAlbumVariationsTarget
      * @see ViewQueryExecutor#querySize(javax.ws.rs.client.WebTarget)
      */
-    public long retrieveScrobbleAmount() {
-        return ViewQueryExecutor.querySize(viewMainAllScrobblesTarget);
+    public long retrievePrimaryAlbumVariationAmount() {
+        return ViewQueryExecutor.querySize(viewMainAllPrimaryAlbumVariationsTarget);
     }
     
 }

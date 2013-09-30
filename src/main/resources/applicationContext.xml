@@ -56,5 +56,17 @@ THE SOFTWARE.
     <bean id="scrobblesDBClient" class="org.gravidence.gravifon.db.ScrobblesDBClient">
         <property name="dbClient" ref="dbClient"/>
     </bean>
+    
+    <bean id="tracksDBClient" class="org.gravidence.gravifon.db.TracksDBClient">
+        <property name="dbClient" ref="dbClient"/>
+    </bean>
+    
+    <bean id="artistsDBClient" class="org.gravidence.gravifon.db.ArtistsDBClient">
+        <property name="dbClient" ref="dbClient"/>
+    </bean>
+    
+    <bean id="albumsDBClient" class="org.gravidence.gravifon.db.AlbumsDBClient">
+        <property name="dbClient" ref="dbClient"/>
+    </bean>
 
 </beans>

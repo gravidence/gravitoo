@@ -29,13 +29,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 
 /**
- * CouchDB JAX-RS client to <code>/scrobbles</code> database.
+ * CouchDB JAX-RS client to <code>/artists</code> database.
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
-public class ScrobblesDBClient implements InitializingBean {
+public class ArtistsDBClient implements InitializingBean {
     
-    private static final Logger LOGGER = LoggerFactory.getLogger(ScrobblesDBClient.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ArtistsDBClient.class);
     
     /**
      * @see #setDbClient(org.gravidence.gravifon.db.CouchDBClient)
@@ -43,14 +43,14 @@ public class ScrobblesDBClient implements InitializingBean {
     private CouchDBClient dbClient;
     
     /**
-     * JAX-RS client target associated with <code>/scrobbles</code> database.
+     * JAX-RS client target associated with <code>/artists</code> database.
      */
     private WebTarget dbTarget;
     
     /**
-     * JAX-RS client target associated with <code>main/all_scrobbles</code> view.
+     * JAX-RS client target associated with <code>main/all_primary_artist_variations</code> view.
      */
-    private WebTarget viewMainAllScrobblesTarget;
+    private WebTarget viewMainAllPrimaryArtistVariationsTarget;
 
     /**
      * Sets {@link CouchDBClient} instance.
@@ -64,22 +64,23 @@ public class ScrobblesDBClient implements InitializingBean {
     @Override
     public void afterPropertiesSet() throws Exception {
         dbTarget = dbClient.getTarget()
-                .path("scrobbles");
+                .path("artists");
         
-        viewMainAllScrobblesTarget = ViewUtils.getViewTarget(dbTarget, "main", "all_scrobbles");
+        viewMainAllPrimaryArtistVariationsTarget = ViewUtils.getViewTarget(
+                dbTarget, "main", "all_primary_artist_variations");
     }
     
     /**
-     * Retrieves scrobble amount.<p>
-     * Scrobble amount is equal to <code>main/all_scrobbles</code> view size.
+     * Retrieves amount of primary artist variations.<p>
+     * Primary artist variation amount is equal to <code>main/all_primary_artist_variations</code> view size.
      * 
-     * @return scrobble amount
+     * @return amount of primary artist variations
      * 
-     * @see #viewMainAllScrobblesTarget
+     * @see #viewMainAllPrimaryArtistVariationsTarget
      * @see ViewQueryExecutor#querySize(javax.ws.rs.client.WebTarget)
      */
-    public long retrieveScrobbleAmount() {
-        return ViewQueryExecutor.querySize(viewMainAllScrobblesTarget);
+    public long retrievePrimaryArtistVariationAmount() {
+        return ViewQueryExecutor.querySize(viewMainAllPrimaryArtistVariationsTarget);
     }
     
 }
