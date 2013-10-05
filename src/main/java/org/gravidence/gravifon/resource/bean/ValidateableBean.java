@@ -23,7 +23,9 @@
  */
 package org.gravidence.gravifon.resource.bean;
 
+import java.util.Collection;
 import java.util.regex.Pattern;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.gravidence.gravifon.exception.ValidationException;
 import org.gravidence.gravifon.exception.error.GravifonError;
@@ -41,6 +43,20 @@ public abstract class ValidateableBean extends IOBean {
      * @throws ValidationException in case constraint violation found
      */
     public abstract void validate() throws ValidationException;
+    
+    /**
+     * Checks that required field is actually presented (e.g. its value is not <code>null</code>).
+     * 
+     * @param fieldValue field value
+     * @param fieldName field name to use in error message
+     * @throws ValidationException in case field is missed
+     */
+    public static void checkRequired(Object fieldValue, String fieldName) {
+        if (fieldValue == null) {
+            throw new ValidationException(GravifonError.REQUIRED,
+                    String.format("Property '%s' is required.", fieldName));
+        }
+    }
     
     /**
      * Checks that required field is actually presented (e.g. its value is not <code>null</code> or <code>""</code>).
@@ -85,6 +101,20 @@ public abstract class ValidateableBean extends IOBean {
         if (!pattern.matcher(fieldValue).matches()) {
             throw new ValidationException(GravifonError.INVALID,
                     String.format("Property '%s' value does not match expected format.", fieldName));
+        }
+    }
+    
+    /**
+     * Validates each {@link ValidateableBean} entity in collection
+     * by calling its {@link ValidateableBean#validate() validate()} method.
+     * 
+     * @param entities ValidateableBean entity collection
+     */
+    public static void validateCollection(Collection<? extends ValidateableBean> entities) {
+        if (CollectionUtils.isNotEmpty(entities)) {
+            for (ValidateableBean artist : entities) {
+                artist.validate();
+            }
         }
     }
     
