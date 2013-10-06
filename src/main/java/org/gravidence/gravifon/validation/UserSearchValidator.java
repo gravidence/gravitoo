@@ -38,7 +38,7 @@ public class UserSearchValidator extends AbstractValidator<ValidateableBean> {
     @Override
     protected void validateHeaders(MultivaluedMap<String, String> headers)
             throws GravifonException, ValidationException {
-        // No headers expected
+        // No headers expected.
     }
 
     @Override

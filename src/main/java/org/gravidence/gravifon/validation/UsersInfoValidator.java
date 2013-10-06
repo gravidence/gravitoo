@@ -23,32 +23,11 @@
  */
 package org.gravidence.gravifon.validation;
 
-import javax.ws.rs.core.MultivaluedMap;
-import org.gravidence.gravifon.exception.GravifonException;
-import org.gravidence.gravifon.exception.ValidationException;
-import org.gravidence.gravifon.resource.bean.ValidateableBean;
-
 /**
  * Validates <code>info</code> method of <code>Users</code> resource.
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
-public class UsersInfoValidator extends AbstractValidator<ValidateableBean> {
-
-    @Override
-    protected void validateHeaders(MultivaluedMap<String, String> headers)
-            throws GravifonException, ValidationException {
-        // No headers expected
-    }
-
-    @Override
-    protected void validateQueryParams(MultivaluedMap<String, String> queryParams) throws ValidationException {
-        // No query params are expected.
-    }
-
-    @Override
-    protected void validateEntity(ValidateableBean entity) throws ValidationException {
-        // No entity is expected.
-    }
+public class UsersInfoValidator extends EmptyValidator {
     
 }
