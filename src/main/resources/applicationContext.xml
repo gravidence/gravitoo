@@ -68,5 +68,9 @@ THE SOFTWARE.
     <bean id="albumsDBClient" class="org.gravidence.gravifon.db.AlbumsDBClient">
         <property name="dbClient" ref="dbClient"/>
     </bean>
+    
+    <bean id="labelsDBClient" class="org.gravidence.gravifon.db.LabelsDBClient">
+        <property name="dbClient" ref="dbClient"/>
+    </bean>
 
 </beans>
