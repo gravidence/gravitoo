@@ -40,7 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
-@Path("/")
+@Path("/v1")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class Application {

@@ -43,7 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
-@Path("albums")
+@Path("/v1/albums")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class Albums {
