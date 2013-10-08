@@ -21,18 +21,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.gravidence.gravifon.resource.bean;
+package org.gravidence.gravifon.db.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.gravidence.gravifon.db.domain.Upvote;
 
 /**
- * Upvote bean.<p>
+ * Entity upvote information.<p>
  * Represents upvote made by user.
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
-public class UpvoteBean extends ValidateableBean {
+public class Upvote {
     
     /**
      * @see #getUserId()
@@ -55,25 +54,6 @@ public class UpvoteBean extends ValidateableBean {
      */
     public void setUserId(String userId) {
         this.userId = userId;
-    }
-
-    @Override
-    public void validate() {
-        checkRequired(userId, "user_id");
-    }
-    
-    /**
-     * Updates bean with entity variation upvote.
-     * 
-     * @param upvote entity variation upvote
-     * @return updated bean
-     */
-    public UpvoteBean updateBean(Upvote upvote) {
-        if (upvote != null) {
-            userId = upvote.getUserId();
-        }
-        
-        return this;
     }
     
 }

@@ -21,59 +21,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.gravidence.gravifon.resource.bean;
+package org.gravidence.gravifon.db.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.gravidence.gravifon.db.domain.Upvote;
 
 /**
- * Upvote bean.<p>
- * Represents upvote made by user.
+ * Variable document.<p>
+ * Represents a document which have variation relationship with other documents of same type.
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
-public class UpvoteBean extends ValidateableBean {
+public class VariableDocument extends CouchDBDocument {
     
     /**
-     * @see #getUserId()
+     * @see #getVariationInfo()
      */
-    @JsonProperty("user_id")
-    private String userId;
+    @JsonProperty("variation_info")
+    private VariationInfo variationInfo;
 
     /**
-     * Returns identifier of user that made the vote.
+     * Returns entity variation info.
      * 
-     * @return identifier of user that made the vote
+     * @return entity variation info
      */
-    public String getUserId() {
-        return userId;
+    public VariationInfo getVariationInfo() {
+        return variationInfo;
     }
 
     /**
-     * @param userId
-     * @see #getUserId()
+     * @param variationInfo
+     * @see #getVariationInfo()
      */
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    @Override
-    public void validate() {
-        checkRequired(userId, "user_id");
-    }
-    
-    /**
-     * Updates bean with entity variation upvote.
-     * 
-     * @param upvote entity variation upvote
-     * @return updated bean
-     */
-    public UpvoteBean updateBean(Upvote upvote) {
-        if (upvote != null) {
-            userId = upvote.getUserId();
-        }
-        
-        return this;
+    public void setVariationInfo(VariationInfo variationInfo) {
+        this.variationInfo = variationInfo;
     }
     
 }

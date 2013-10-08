@@ -21,27 +21,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.gravidence.gravifon.resource.bean;
+package org.gravidence.gravifon.db.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.ArrayList;
 import java.util.List;
-import org.apache.commons.collections.CollectionUtils;
-import org.gravidence.gravifon.db.domain.Upvote;
-import org.gravidence.gravifon.db.domain.VariationInfo;
 
 /**
- * Variation information bean.
+ * Entity variation information.
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
-public class VariationInfoBean<T> implements Validateable {
+public class VariationInfo {
     
     /**
      * @see #getUpvotes()
      */
     @JsonProperty
-    private List<UpvoteBean> upvotes;
+    private List<Upvote> upvotes;
     
     /**
      * @see #getPrimaryVariationId()
@@ -50,17 +46,17 @@ public class VariationInfoBean<T> implements Validateable {
     private String primaryVariationId;
     
     /**
-     * @see #getVariations()
+     * @see #getVariationIds()
      */
-    @JsonProperty
-    private List<T> variations;
+    @JsonProperty("variation_ids")
+    private List<String> variationIds;
 
     /**
      * Returns list of entity variation upvotes.
      * 
      * @return list of entity variation upvotes
      */
-    public List<UpvoteBean> getUpvotes() {
+    public List<Upvote> getUpvotes() {
         return upvotes;
     }
 
@@ -68,7 +64,7 @@ public class VariationInfoBean<T> implements Validateable {
      * @param upvotes
      * @see #getUpvotes()
      */
-    public void setUpvotes(List<UpvoteBean> upvotes) {
+    public void setUpvotes(List<Upvote> upvotes) {
         this.upvotes = upvotes;
     }
 
@@ -90,48 +86,20 @@ public class VariationInfoBean<T> implements Validateable {
     }
 
     /**
-     * Returns list of entity variations.<p>
-     * Returned in case the entity variation is primary.
+     * Returns list of entity variation identifiers.
      * 
-     * @return list of entity variations
+     * @return list of entity variation identifiers
      */
-    public List<T> getVariations() {
-        return variations;
+    public List<String> getVariationIds() {
+        return variationIds;
     }
 
     /**
-     * @param variations
-     * @see #getVariations()
+     * @param variationIds
+     * @see #getVariationIds()
      */
-    public void setVariations(List<T> variations) {
-        this.variations = variations;
-    }
-
-    @Override
-    public void validate() {
-        // Nothing to validate.
-    }
-    
-    /**
-     * Updates bean with entity variation details except list of entity variations.
-     * 
-     * @param variationInfo entity variation details
-     * @return updated bean
-     */
-    public VariationInfoBean<T> updateBean(VariationInfo variationInfo) {
-        if (variationInfo != null) {
-            if (CollectionUtils.isNotEmpty(variationInfo.getUpvotes())) {
-                upvotes = new ArrayList<>(variationInfo.getUpvotes().size() + 1);
-                
-                for (Upvote upvote : variationInfo.getUpvotes()) {
-                    upvotes.add(new UpvoteBean().updateBean(upvote));
-                }
-            }
-            
-            primaryVariationId = variationInfo.getPrimaryVariationId();
-        }
-        
-        return this;
+    public void setVariationIds(List<String> variationIds) {
+        this.variationIds = variationIds;
     }
     
 }

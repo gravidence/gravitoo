@@ -35,14 +35,7 @@ import org.gravidence.gravifon.exception.error.GravifonError;
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
-public abstract class ValidateableBean extends IOBean {
-    
-    /**
-     * Validates the bean.
-     * 
-     * @throws ValidationException in case constraint violation found
-     */
-    public abstract void validate() throws ValidationException;
+public abstract class ValidateableBean extends IOBean implements Validateable {
     
     /**
      * Checks that required field is actually presented (e.g. its value is not <code>null</code>).

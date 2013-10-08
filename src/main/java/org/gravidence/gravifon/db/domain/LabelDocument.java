@@ -21,59 +21,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.gravidence.gravifon.resource.bean;
+package org.gravidence.gravifon.db.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.gravidence.gravifon.db.domain.Upvote;
 
 /**
- * Upvote bean.<p>
- * Represents upvote made by user.
+ * Label document.<p>
+ * Represents Label database model.
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
-public class UpvoteBean extends ValidateableBean {
+public class LabelDocument extends VariableDocument {
     
     /**
-     * @see #getUserId()
+     * @see #getName()
      */
-    @JsonProperty("user_id")
-    private String userId;
+    @JsonProperty
+    private String name;
 
     /**
-     * Returns identifier of user that made the vote.
+     * Returns label name.
      * 
-     * @return identifier of user that made the vote
+     * @return label name
      */
-    public String getUserId() {
-        return userId;
+    public String getName() {
+        return name;
     }
 
     /**
-     * @param userId
-     * @see #getUserId()
+     * @param name
+     * @see #getName()
      */
-    public void setUserId(String userId) {
-        this.userId = userId;
+    public void setName(String name) {
+        this.name = name;
     }
 
     @Override
-    public void validate() {
-        checkRequired(userId, "user_id");
-    }
-    
-    /**
-     * Updates bean with entity variation upvote.
-     * 
-     * @param upvote entity variation upvote
-     * @return updated bean
-     */
-    public UpvoteBean updateBean(Upvote upvote) {
-        if (upvote != null) {
-            userId = upvote.getUserId();
-        }
-        
-        return this;
+    public String toString() {
+        return String.format("{id=%s, name=%s}", getId(), name);
     }
     
 }

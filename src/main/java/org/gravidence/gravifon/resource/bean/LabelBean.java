@@ -23,8 +23,17 @@
  */
 package org.gravidence.gravifon.resource.bean;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.gravidence.gravifon.db.domain.LabelDocument;
+import org.gravidence.gravifon.db.domain.Upvote;
+import org.gravidence.gravifon.db.domain.VariationInfo;
+import org.gravidence.gravifon.db.message.CreateDocumentResponse;
+import org.gravidence.gravifon.util.BasicUtils;
 
 /**
  * Label bean.<p>
@@ -53,6 +62,7 @@ public class LabelBean extends ValidateableBean {
      * @see #getCatalogId()
      */
     @JsonProperty("catalog_id")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String catalogId;
     
     /**
@@ -146,6 +156,121 @@ public class LabelBean extends ValidateableBean {
         if (variationInfo != null) {
             variationInfo.validate();
         }
+    }
+
+    /**
+     * Updates bean with created document identifier.
+     * DB returns document identifier and revision only, so there's no need to update bean values.
+     * 
+     * @param document a created document
+     * @return updated bean
+     */
+    public LabelBean updateBean(CreateDocumentResponse document) {
+        if (document != null) {
+            id = document.getId();
+        }
+        
+        return this;
+    }
+    
+    /**
+     * Updates bean with document values.
+     * 
+     * @param document label details document
+     * @return updated bean
+     */
+    public LabelBean updateBean(LabelDocument document) {
+        if (document != null) {
+            id = document.getId();
+            name = document.getName();
+            
+            if (document.getVariationInfo() != null) {
+                // Update with upvotes and primary identifier
+                variationInfo = new VariationInfoBean<LabelBean>().updateBean(document.getVariationInfo());
+                
+                // Update with variation identifiers
+                if (CollectionUtils.isNotEmpty(document.getVariationInfo().getVariationIds())) {
+                    List<LabelBean> variations =
+                            new ArrayList<>(document.getVariationInfo().getVariationIds().size() + 1);
+
+                    for (String variationId : document.getVariationInfo().getVariationIds()) {
+                        LabelBean variation = new LabelBean();
+                        variation.setId(variationId);
+                        
+                        variations.add(variation);
+                    }
+                    
+                    variationInfo.setVariations(variations);
+                }
+            }
+        }
+        
+        return this;
+    }
+    
+    /**
+     * Creates document with bean values.
+     * 
+     * @return created document
+     */
+    public LabelDocument createDocument() {
+        LabelDocument document = new LabelDocument();
+        document.setId(BasicUtils.generateUniqueIdentifier());
+        
+        if (variationInfo == null) {
+            variationInfo = new VariationInfoBean<>();
+            variationInfo.setPrimaryVariationId(document.getId());
+        }
+        
+        updateDocument(document);
+        
+        return document;
+    }
+    
+    /**
+     * Updates document with bean values.
+     * 
+     * @param document label details document
+     * @return updated document
+     */
+    public LabelDocument updateDocument(LabelDocument document) {
+        if (document != null) {
+            document.setName(name);
+            
+            if (variationInfo != null) {
+                VariationInfo vi = new VariationInfo();
+                
+                if (CollectionUtils.isNotEmpty(variationInfo.getUpvotes())) {
+                    List<Upvote> upvotes = new ArrayList<>(variationInfo.getUpvotes().size() + 1);
+                    
+                    for (UpvoteBean upvoteBean : variationInfo.getUpvotes()) {
+                        Upvote upvote = new Upvote();
+                        
+                        upvote.setUserId(upvoteBean.getUserId());
+                        
+                        upvotes.add(upvote);
+                    }
+                    
+                    vi.setUpvotes(upvotes);
+                }
+                
+                vi.setPrimaryVariationId(variationInfo.getPrimaryVariationId());
+                
+                if (CollectionUtils.isNotEmpty(variationInfo.getVariations())) {
+                    List<String> variationIds = new ArrayList<>(variationInfo.getVariations().size() + 1);
+                    
+                    for (LabelBean labelBean : variationInfo.getVariations()) {
+                        variationIds.add(labelBean.getId());
+                    }
+                    
+                    vi.setVariationIds(variationIds);
+                }
+                
+                document.setVariationInfo(vi);
+            }
+        }
+        
+        return document;
     }
     
 }

@@ -23,57 +23,20 @@
  */
 package org.gravidence.gravifon.resource.bean;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import org.gravidence.gravifon.db.domain.Upvote;
+import org.gravidence.gravifon.exception.ValidationException;
 
 /**
- * Upvote bean.<p>
- * Represents upvote made by user.
+ * Self-validateable entity.
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
-public class UpvoteBean extends ValidateableBean {
+public interface Validateable {
     
     /**
-     * @see #getUserId()
-     */
-    @JsonProperty("user_id")
-    private String userId;
-
-    /**
-     * Returns identifier of user that made the vote.
+     * Validates itself.
      * 
-     * @return identifier of user that made the vote
+     * @throws ValidationException in case constraint violation found
      */
-    public String getUserId() {
-        return userId;
-    }
-
-    /**
-     * @param userId
-     * @see #getUserId()
-     */
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    @Override
-    public void validate() {
-        checkRequired(userId, "user_id");
-    }
-    
-    /**
-     * Updates bean with entity variation upvote.
-     * 
-     * @param upvote entity variation upvote
-     * @return updated bean
-     */
-    public UpvoteBean updateBean(Upvote upvote) {
-        if (upvote != null) {
-            userId = upvote.getUserId();
-        }
-        
-        return this;
-    }
+    void validate() throws ValidationException;
     
 }
