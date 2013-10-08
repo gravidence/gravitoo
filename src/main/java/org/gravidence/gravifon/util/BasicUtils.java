@@ -21,60 +21,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.gravidence.gravifon.db.domain;
+package org.gravidence.gravifon.util;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.UUID;
 
 /**
- * Basic document could be stored in CouchDB.<p>
- * Specifies the document identifier and revision.
+ * Basic utility methods.
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
-// TODO review ignoreUnknown=true choice
-@JsonIgnoreProperties(ignoreUnknown=true)
-public class CouchDBDocument {
-    
-    /**
-     * @see #getId()
-     */
-    @JsonProperty("_id")
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    private String id;
-    
-    /**
-     * @see #getRevision()
-     */
-    @JsonProperty("_rev")
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    private String revision;
+public class BasicUtils {
 
     /**
-     * Returns CouchDB document identifier.
-     * 
-     * @return document identifier
+     * Preventing class instantiation.
      */
-    public String getId() {
-        return id;
-    }
-    
-    /**
-     * @param id
-     * @see #getId()
-     */
-    public void setId(String id) {
-        this.id = id;
+    private BasicUtils() {
+        // Nothing to do
     }
 
     /**
-     * Returns CouchDB document revision.
+     * Generates unique identifier.
      * 
-     * @return document revision
+     * @return unique identifier
      */
-    public String getRevision() {
-        return revision;
+    public static String generateUniqueIdentifier() {
+        return UUID.randomUUID().toString();
     }
     
 }

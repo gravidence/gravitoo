@@ -31,6 +31,7 @@ import org.gravidence.gravifon.db.message.CreateDocumentResponse;
 import org.gravidence.gravifon.db.domain.UserDocument;
 import org.gravidence.gravifon.exception.ValidationException;
 import org.gravidence.gravifon.exception.error.GravifonError;
+import org.gravidence.gravifon.util.BasicUtils;
 import org.gravidence.gravifon.util.DateTimeUtils;
 import org.gravidence.gravifon.util.PasswordUtils;
 import org.joda.time.DateTime;
@@ -276,7 +277,10 @@ public class UserBean extends ValidateableBean {
      * @return created document
      */
     public UserDocument createDocument() {
-        UserDocument document = updateDocument(new UserDocument());
+        UserDocument document = new UserDocument();
+        document.setId(BasicUtils.generateUniqueIdentifier());
+        
+        updateDocument(document);
         
         // Initialize created UserDocument with username as it is not updateable after registration
         document.setUsername(username);
