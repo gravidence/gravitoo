@@ -26,6 +26,7 @@ package org.gravidence.gravifon.util;
 import org.apache.commons.lang.ArrayUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.joda.time.LocalDate;
 
 /**
  * Joda datetime utility methods.
@@ -42,6 +43,50 @@ public class DateTimeUtils {
     }
     
     /**
+     * Converts local date object to array of date fields.<p>
+     * Resulting array content is as follows: <code>[yyyy,MM,dd]</code>.
+     * 
+     * @param value date object
+     * @return array of date fields
+     */
+    public static int[] localDateToArray(LocalDate value) {
+        int[] result;
+        
+        if (value == null) {
+            result = null;
+        }
+        else {
+            result = new int[3];
+            
+            result[0] = value.getYear();
+            result[1] = value.getMonthOfYear();
+            result[2] = value.getDayOfMonth();
+        }
+        
+        return result;
+    }
+    
+    /**
+     * Converts array of date fields to local date object.<p>
+     * Array content is as follows: <code>[yyyy,MM,dd]</code>.
+     * 
+     * @param value array of date fields
+     * @return date object
+     */
+    public static LocalDate arrayToLocalDate(int[] value) {
+        LocalDate result;
+        
+        if (ArrayUtils.isEmpty(value)) {
+            result = null;
+        }
+        else {
+            result = new LocalDate(value[0], value[1], value[2]);
+        }
+        
+        return result;
+    }
+    
+    /**
      * Converts datetime object to array of UTC datetime fields.<p>
      * Given datetime object is casted to UTC.<p>
      * Resulting array content is as follows: <code>[yyyy,MM,dd,HH,mm,ss,SSS]</code>.
@@ -49,7 +94,7 @@ public class DateTimeUtils {
      * @param value datetime object
      * @return array of UTC datetime fields
      */
-    public static int[] toArray(DateTime value) {
+    public static int[] dateTimeToArray(DateTime value) {
         int[] result;
         
         if (value == null) {
@@ -79,7 +124,7 @@ public class DateTimeUtils {
      * @param value array of UTC datetime fields
      * @return datetime object
      */
-    public static DateTime fromArray(int[] value) {
+    public static DateTime arrayToDateTime(int[] value) {
         DateTime result;
         
         if (ArrayUtils.isEmpty(value)) {
