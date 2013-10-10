@@ -77,7 +77,7 @@ public class UsersDBClient implements InitializingBean {
         dbTarget = dbClient.getTarget()
                 .path("users");
         
-        viewMainAllUsernamesTarget = getViewTarget("main", "all_usernames");
+        viewMainAllUsernamesTarget = ViewUtils.getViewTarget(dbTarget, "main", "all_usernames");
     }
     
     /**
@@ -156,7 +156,7 @@ public class UsersDBClient implements InitializingBean {
     /**
      * Retrieves existing user {@link UserDocument document}.<p>
      * Makes sure that <code>username</code> written in lower case
-     * since <code>main/all_usernames</code> view is case insensitive.
+     * since <code>main/all_usernames</code> view is case sensitive.
      * 
      * @param username username
      * @return user details document if found, <code>null</code> otherwise
@@ -226,21 +226,6 @@ public class UsersDBClient implements InitializingBean {
             
             throw new GravifonException(GravifonError.DATABASE_OPERATION, "Failed to delete user.");
         }
-    }
-    
-    /**
-     * Creates JAX-RS client target associated with specified design document view of <code>/users</code> database.
-     * 
-     * @param designDocName design document name
-     * @param viewName view name
-     * @return design document view specific target
-     */
-    private WebTarget getViewTarget(String designDocName, String viewName) {
-        return dbTarget
-                .path("_design")
-                .path(designDocName)
-                .path("_view")
-                .path(viewName);
     }
     
 }
