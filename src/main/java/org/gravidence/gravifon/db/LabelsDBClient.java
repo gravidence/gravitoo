@@ -23,7 +23,18 @@
  */
 package org.gravidence.gravifon.db;
 
+import java.util.List;
+import java.util.Locale;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import org.apache.commons.lang.StringUtils;
+import org.gravidence.gravifon.db.domain.LabelDocument;
+import org.gravidence.gravifon.db.message.CreateDocumentResponse;
+import org.gravidence.gravifon.exception.GravifonException;
+import org.gravidence.gravifon.exception.error.GravifonError;
+import org.gravidence.gravifon.resource.bean.LabelBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -51,6 +62,11 @@ public class LabelsDBClient implements InitializingBean {
      * JAX-RS client target associated with <code>main/all_primary_label_variations</code> view.
      */
     private WebTarget viewMainAllPrimaryLabelVariationsTarget;
+    
+    /**
+     * JAX-RS client target associated with <code>main/all_label_names</code> view.
+     */
+    private WebTarget viewMainAllLabelNamesTarget;
 
     /**
      * Sets {@link CouchDBClient} instance.
@@ -68,6 +84,8 @@ public class LabelsDBClient implements InitializingBean {
         
         viewMainAllPrimaryLabelVariationsTarget = ViewUtils.getViewTarget(
                 dbTarget, "main", "all_primary_label_variations");
+        viewMainAllLabelNamesTarget = ViewUtils.getViewTarget(
+                dbTarget, "main", "all_label_names");
     }
     
     /**
@@ -81,6 +99,140 @@ public class LabelsDBClient implements InitializingBean {
      */
     public long retrievePrimaryLabelVariationAmount() {
         return ViewQueryExecutor.querySize(viewMainAllPrimaryLabelVariationsTarget);
+    }
+    
+    /**
+     * Creates a new label {@link LabelDocument document}.
+     * 
+     * @param label new label details document
+     * @return created label document identifier and revision
+     */
+    public CreateDocumentResponse createLabel(LabelDocument label) {
+        Response response = dbTarget
+                .request(MediaType.APPLICATION_JSON_TYPE)
+                .post(Entity.json(label));
+        
+        CreateDocumentResponse document;
+        if (CouchDBClient.isSuccessful(response)) {
+            document = response.readEntity(CreateDocumentResponse.class);
+            LOGGER.trace("'{}' label created", new LabelBean().updateBean(label).updateBean(document));
+        }
+        else {
+            LOGGER.error("Failed to create '{}' label: [{}] {}", label.getName(),
+                    response.getStatus(), response.getStatusInfo().getReasonPhrase());
+            
+            response.close();
+            
+            throw new GravifonException(GravifonError.DATABASE_OPERATION, "Failed to create label.");
+        }
+        
+        return document;
+    }
+    
+    /**
+     * Retrieves existing label {@link LabelDocument document}.
+     * 
+     * @param id label identifier
+     * @return label details document if found, <code>null</code> otherwise
+     */
+    public LabelDocument retrieveLabelByID(String id) {
+        Response response = dbTarget
+                .path(id)
+                .request(MediaType.APPLICATION_JSON_TYPE)
+                .get();
+        
+        LabelDocument document;
+        if (CouchDBClient.isSuccessful(response)) {
+            document = response.readEntity(LabelDocument.class);
+            LOGGER.trace("'{}' label retrieved", document);
+        }
+        else if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
+            document = null;
+        }
+        else {
+            LOGGER.error("Failed to retrieve label for '{}' id: [{}] {}", id,
+                    response.getStatus(), response.getStatusInfo().getReasonPhrase());
+            
+            response.close();
+            
+            throw new GravifonException(GravifonError.DATABASE_OPERATION, "Failed to retrieve label.");
+        }
+        
+        return document;
+    }
+    
+    /**
+     * Retrieves existing label {@link LabelDocument documents}.<p>
+     * Makes sure that <code>name</code> written in lower case
+     * since <code>main/all_label_names</code> view is case sensitive.
+     * 
+     * @param name label name
+     * @return list of label details documents if found, <code>null</code> otherwise
+     */
+    public List<LabelDocument> retrieveLabelsByName(String name) {
+        ViewQueryArguments args = new ViewQueryArguments()
+                .addKey(StringUtils.lowerCase(name, Locale.ENGLISH))
+                .addIncludeDocs(true);
+        
+        List<LabelDocument> documents = ViewQueryExecutor.queryDocuments(viewMainAllLabelNamesTarget, args,
+                LabelDocument.class);
+        
+        return documents;
+    }
+    
+    /**
+     * Updates existing label details.
+     * 
+     * @param label label details document
+     * @return updated label document identifier and revision
+     */
+    public CreateDocumentResponse updateLabel(LabelDocument label) {
+        Response response = dbTarget
+                .path(label.getId())
+                .request(MediaType.APPLICATION_JSON_TYPE)
+                .put(Entity.json(label));
+        
+        CreateDocumentResponse document;
+        if (CouchDBClient.isSuccessful(response)) {
+            document = response.readEntity(CreateDocumentResponse.class);
+            LOGGER.trace("'{}' label updated", new LabelBean().updateBean(label).updateBean(document));
+        }
+        else {
+            LOGGER.error("Failed to update '{}' label: [{}] {}", label,
+                    response.getStatus(), response.getStatusInfo().getReasonPhrase());
+            
+            response.close();
+            
+            throw new GravifonException(GravifonError.DATABASE_OPERATION, "Failed to update label.");
+        }
+        
+        return document;
+    }
+    
+    /**
+     * Deletes existing label.
+     * 
+     * @param label existing label details document
+     */
+    public void deleteLabel(LabelDocument label) {
+        Response response = dbTarget
+                .path(label.getId())
+                .queryParam("rev", label.getRevision())
+                .request(MediaType.APPLICATION_JSON_TYPE)
+                .delete();
+        
+        if (CouchDBClient.isSuccessful(response)) {
+//            LabelDocument document = response.readEntity(LabelDocument.class);
+            LOGGER.trace("'{}' label deleted", label);
+        }
+        else {
+            LOGGER.error("Failed to delete '{}' label: [{}] {}", label,
+                    response.getStatus(), response.getStatusInfo().getReasonPhrase());
+            
+            response.close();
+            
+            throw new GravifonException(GravifonError.DATABASE_OPERATION, "Failed to delete label.");
+        }
     }
     
 }
