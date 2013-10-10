@@ -24,10 +24,19 @@
 package org.gravidence.gravifon.resource.bean;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.gravidence.gravifon.db.domain.AlbumDocument;
+import org.gravidence.gravifon.db.domain.Label;
+import org.gravidence.gravifon.db.domain.Upvote;
+import org.gravidence.gravifon.db.domain.VariationInfo;
+import org.gravidence.gravifon.db.message.CreateDocumentResponse;
 import org.gravidence.gravifon.exception.GravifonException;
 import org.gravidence.gravifon.exception.error.GravifonError;
+import org.gravidence.gravifon.util.BasicUtils;
+import org.gravidence.gravifon.util.DateTimeUtils;
 import org.joda.time.LocalDate;
 
 /**
@@ -196,7 +205,7 @@ public class AlbumBean extends ValidateableBean {
      * Returns album type.<p>
      * Allowed values are: "Album", "Compilation".
      * 
-     * @return artist identifier
+     * @return album type
      */
     public String getType() {
         return type;
@@ -250,6 +259,277 @@ public class AlbumBean extends ValidateableBean {
         if (variationInfo != null) {
             variationInfo.validate();
         }
+    }
+
+    /**
+     * Updates bean with created document identifier.
+     * DB returns document identifier and revision only, so there's no need to update bean values.
+     * 
+     * @param document a created document
+     * @return updated bean
+     */
+    public AlbumBean updateBean(CreateDocumentResponse document) {
+        if (document != null) {
+            id = document.getId();
+        }
+        
+        return this;
+    }
+    
+    /**
+     * Updates bean with document values.
+     * 
+     * @param document label details document
+     * @return updated bean
+     */
+    public AlbumBean updateBean(AlbumDocument document) {
+        if (document != null) {
+            id = document.getId();
+            title = document.getTitle();
+            type = document.getType();
+            releaseDate = DateTimeUtils.arrayToLocalDate(document.getReleaseDate());
+            artists = extractArtists(document.getArtistIds());
+            tracks = extractTracks(document.getTrackIds());
+            labels = extractLabels(document.getLabels());
+            
+            if (document.getVariationInfo() == null) {
+                variationInfo = null;
+            }
+            else {
+                if (variationInfo == null) {
+                    variationInfo = new VariationInfoBean<>();
+                }
+                // Update with upvotes and primary identifier
+                variationInfo.updateBean(document.getVariationInfo());
+                // Update with variation identifiers
+                variationInfo.setVariations(extractVariations(document.getVariationInfo().getVariationIds()));
+            }
+        }
+        
+        return this;
+    }
+    
+    /**
+     * Creates document with bean values.
+     * 
+     * @return created document
+     */
+    public AlbumDocument createDocument() {
+        AlbumDocument document = new AlbumDocument();
+        document.setId(BasicUtils.generateUniqueIdentifier());
+        
+        if (variationInfo == null) {
+            variationInfo = new VariationInfoBean<>();
+            variationInfo.setPrimaryVariationId(document.getId());
+        }
+        
+        updateDocument(document);
+        
+        return document;
+    }
+    
+    /**
+     * Updates document with bean values.
+     * 
+     * @param document album details document
+     * @return updated document
+     */
+    public AlbumDocument updateDocument(AlbumDocument document) {
+        if (document != null) {
+            document.setTitle(title);
+            document.setType(type);
+            document.setReleaseDate(DateTimeUtils.localDateToArray(releaseDate));
+            document.setArtistIds(extractArtistIds());
+            document.setTrackIds(extractTrackIds());
+            document.setLabels(extractLabels());
+            
+            if (variationInfo == null) {
+                document.setVariationInfo(null);
+            }
+            else {
+                VariationInfo vi = new VariationInfo();
+                vi.setUpvotes(extractUpvotes());
+                vi.setPrimaryVariationId(variationInfo.getPrimaryVariationId());
+                vi.setVariationIds(extractVariationIds());
+                
+                document.setVariationInfo(vi);
+            }
+        }
+        
+        return document;
+    }
+    
+    private List<ArtistBean> extractArtists(List<String> ids) {
+        List<ArtistBean> result;
+        
+        if (CollectionUtils.isNotEmpty(ids)) {
+            result = new ArrayList<>(ids.size() + 1);
+
+            for (String id : ids) {
+                ArtistBean resultItem = new ArtistBean();
+                resultItem.setId(id);
+
+                result.add(resultItem);
+            }
+        }
+        else {
+            result = null;
+        }
+        
+        return result;
+    }
+    
+    private List<TrackBean> extractTracks(List<String> ids) {
+        List<TrackBean> result;
+        
+        if (CollectionUtils.isNotEmpty(ids)) {
+            result = new ArrayList<>(ids.size() + 1);
+
+            for (String id : ids) {
+                TrackBean resultItem = new TrackBean();
+                resultItem.setId(id);
+
+                result.add(resultItem);
+            }
+        }
+        else {
+            result = null;
+        }
+        
+        return result;
+    }
+    
+    private List<LabelBean> extractLabels(List<Label> labels) {
+        List<LabelBean> result;
+        
+        if (CollectionUtils.isNotEmpty(labels)) {
+            result = new ArrayList<>(labels.size() + 1);
+
+            for (Label label : labels) {
+                LabelBean resultItem = new LabelBean();
+                resultItem.setId(label.getId());
+                resultItem.setCatalogId(label.getCatalogId());
+
+                result.add(resultItem);
+            }
+        }
+        else {
+            result = null;
+        }
+        
+        return result;
+    }
+    
+    private List<AlbumBean> extractVariations(List<String> ids) {
+        List<AlbumBean> result;
+        
+        if (CollectionUtils.isNotEmpty(ids)) {
+            result = new ArrayList<>(ids.size() + 1);
+
+            for (String id : ids) {
+                AlbumBean resultItem = new AlbumBean();
+                resultItem.setId(id);
+
+                result.add(resultItem);
+            }
+        }
+        else {
+            result = null;
+        }
+        
+        return result;
+    }
+    
+    private List<String> extractArtistIds() {
+        List<String> result;
+        
+        if (CollectionUtils.isNotEmpty(artists)) {
+            result = new ArrayList<>(artists.size() + 1);
+
+            for (ArtistBean artist : artists) {
+                result.add(artist.getId());
+            }
+        }
+        else {
+            result = null;
+        }
+        
+        return result;
+    }
+    
+    private List<String> extractTrackIds() {
+        List<String> result;
+        
+        if (CollectionUtils.isNotEmpty(tracks)) {
+            result = new ArrayList<>(tracks.size() + 1);
+
+            for (TrackBean track : tracks) {
+                result.add(track.getId());
+            }
+        }
+        else {
+            result = null;
+        }
+        
+        return result;
+    }
+    
+    private List<Label> extractLabels() {
+        List<Label> result;
+        
+        if (CollectionUtils.isNotEmpty(labels)) {
+            result = new ArrayList<>(labels.size() + 1);
+
+            for (LabelBean label : labels) {
+                Label resultItem = new Label();
+                resultItem.setId(label.getId());
+                resultItem.setCatalogId(label.getCatalogId());
+
+                result.add(resultItem);
+            }
+        }
+        else {
+            result = null;
+        }
+        
+        return result;
+    }
+    
+    private List<Upvote> extractUpvotes() {
+        List<Upvote> result;
+        
+        if (variationInfo != null && CollectionUtils.isNotEmpty(variationInfo.getUpvotes())) {
+            result = new ArrayList<>(variationInfo.getUpvotes().size() + 1);
+
+            for (UpvoteBean upvote : variationInfo.getUpvotes()) {
+                Upvote resultItem = new Upvote();
+                resultItem.setUserId(upvote.getUserId());
+
+                result.add(resultItem);
+            }
+        }
+        else {
+            result = null;
+        }
+        
+        return result;
+    }
+    
+    private List<String> extractVariationIds() {
+        List<String> result;
+        
+        if (variationInfo != null && CollectionUtils.isNotEmpty(variationInfo.getVariations())) {
+            result = new ArrayList<>(variationInfo.getVariations().size() + 1);
+
+            for (AlbumBean album : variationInfo.getVariations()) {
+                result.add(album.getId());
+            }
+        }
+        else {
+            result = null;
+        }
+        
+        return result;
     }
     
 }
