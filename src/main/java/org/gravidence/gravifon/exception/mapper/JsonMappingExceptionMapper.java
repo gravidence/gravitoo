@@ -29,6 +29,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
+import org.apache.commons.collections.CollectionUtils;
 import org.gravidence.gravifon.exception.error.GravifonError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,12 +51,18 @@ public class JsonMappingExceptionMapper implements ExceptionMapper<JsonMappingEx
     public Response toResponse(JsonMappingException exception) {
         LOGGER.error("Json mapping exception captured", exception);
         
-        String propertyName = exception.getPath().get(exception.getPath().size() - 1).getFieldName();
+        String errorMessage;
+        if (CollectionUtils.isEmpty(exception.getPath())) {
+            errorMessage = "Invalid JSON object structure.";
+        }
+        else {
+            String propertyName = exception.getPath().get(exception.getPath().size() - 1).getFieldName();
+            errorMessage = String.format("Property '%s' value is invalid.", propertyName);
+        }
         
         GravifonError error = GravifonError.INVALID;
         
-        StatusResponse entity = new StatusResponse(
-                error.getErrorCode(), String.format("Property '%s' value is invalid.", propertyName));
+        StatusResponse entity = new StatusResponse(error.getErrorCode(), errorMessage);
         
         return Response
                 .status(error.getHttpStatusCode())
