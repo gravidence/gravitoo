@@ -23,14 +23,24 @@
  */
 package org.gravidence.gravifon.resource;
 
+import java.util.List;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.UriInfo;
 import org.gravidence.gravifon.db.ScrobblesDBClient;
 import org.gravidence.gravifon.db.UsersDBClient;
+import org.gravidence.gravifon.exception.error.GravifonError;
+import org.gravidence.gravifon.resource.bean.ScrobbleBean;
 import org.gravidence.gravifon.resource.bean.ScrobblesInfoBean;
+import org.gravidence.gravifon.resource.message.StatusResponse;
+import org.gravidence.gravifon.validation.ScrobbleSubmitValidator;
 import org.gravidence.gravifon.validation.ScrobblesInfoValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,6 +75,7 @@ public class Scrobbles {
     
     // Validators
     private ScrobblesInfoValidator scrobblesInfoValidator = new ScrobblesInfoValidator();
+    private ScrobbleSubmitValidator scrobbleSubmitValidator = new ScrobbleSubmitValidator();
     
     /**
      * Retrieves <code>/scrobbles</code> database info.
@@ -80,6 +91,24 @@ public class Scrobbles {
         result.setScrobbleAmount(scrobblesDBClient.retrieveScrobbleAmount());
         
         return result;
+    }
+    
+    /**
+     * Creates a new scrobble.
+     * 
+     * @param uriInfo request URI details
+     * @param scrobbles list of new scrobble details beans
+     * @return 201 Created response with list of created scrobble details bean
+     */
+    @POST
+    public Response submit(@Context UriInfo uriInfo, List<ScrobbleBean> scrobbles) {
+        scrobbleSubmitValidator.validate(null, null, scrobbles);
+        
+        return Response
+                .status(Status.SERVICE_UNAVAILABLE)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(new StatusResponse(GravifonError.UNEXPECTED.getErrorCode(), "Not implemented."))
+                .build();
     }
 
 }
