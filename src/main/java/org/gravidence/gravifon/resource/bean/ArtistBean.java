@@ -25,6 +25,10 @@ package org.gravidence.gravifon.resource.bean;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
+import org.gravidence.gravifon.db.domain.ArtistDocument;
+import org.gravidence.gravifon.db.domain.VariationInfo;
+import org.gravidence.gravifon.db.message.CreateDocumentResponse;
+import org.gravidence.gravifon.util.BasicUtils;
 
 /**
  * Artist bean.<p>
@@ -210,6 +214,100 @@ public class ArtistBean extends ValidateableBean {
         if (variationInfo != null) {
             variationInfo.validate();
         }
+    }
+
+    /**
+     * Updates bean with created document identifier.
+     * DB returns document identifier and revision only, so there's no need to update bean values.
+     * 
+     * @param document a created document
+     * @return updated bean
+     */
+    public ArtistBean updateBean(CreateDocumentResponse document) {
+        if (document != null) {
+            id = document.getId();
+        }
+        
+        return this;
+    }
+    
+    /**
+     * Updates bean with document values.
+     * 
+     * @param document artist details document
+     * @return updated bean
+     */
+    public ArtistBean updateBean(ArtistDocument document) {
+        if (document != null) {
+            id = document.getId();
+            name = document.getName();
+            subname = document.getSubname();
+            subartists = BeanUtils.idsToArtistBeans(document.getSubartistIds());
+            aliases = BeanUtils.idsToArtistBeans(document.getAliasIds());
+            
+            if (document.getVariationInfo() == null) {
+                variationInfo = null;
+            }
+            else {
+                if (variationInfo == null) {
+                    variationInfo = new VariationInfoBean<>();
+                }
+                // Update with upvotes and primary identifier
+                variationInfo.updateBean(document.getVariationInfo());
+                // Update with variation identifiers
+                variationInfo.setVariations(BeanUtils.idsToArtistBeans(document.getVariationInfo().getVariationIds()));
+            }
+        }
+        
+        return this;
+    }
+    
+    /**
+     * Creates document with bean values.
+     * 
+     * @return created document
+     */
+    public ArtistDocument createDocument() {
+        ArtistDocument document = new ArtistDocument();
+        document.setId(BasicUtils.generateUniqueIdentifier());
+        
+        if (variationInfo == null) {
+            variationInfo = new VariationInfoBean<>();
+            variationInfo.setPrimaryVariationId(document.getId());
+        }
+        
+        updateDocument(document);
+        
+        return document;
+    }
+    
+    /**
+     * Updates document with bean values.
+     * 
+     * @param document album details document
+     * @return updated document
+     */
+    public ArtistDocument updateDocument(ArtistDocument document) {
+        if (document != null) {
+            document.setName(name);
+            document.setSubname(subname);
+            document.setSubartistIds(BeanUtils.artistBeansToIds(subartists));
+            document.setAliasIds(BeanUtils.artistBeansToIds(aliases));
+            
+            if (variationInfo == null) {
+                document.setVariationInfo(null);
+            }
+            else {
+                VariationInfo vi = new VariationInfo();
+                vi.setUpvotes(BeanUtils.upvoteBeansToUpvotes(variationInfo.getUpvotes()));
+                vi.setPrimaryVariationId(variationInfo.getPrimaryVariationId());
+                vi.setVariationIds(BeanUtils.artistBeansToIds(variationInfo.getVariations()));
+                
+                document.setVariationInfo(vi);
+            }
+        }
+        
+        return document;
     }
     
 }
