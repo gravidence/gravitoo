@@ -25,7 +25,6 @@ package org.gravidence.gravifon.db.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
-import org.joda.time.LocalDate;
 
 /**
  * Album document.<p>

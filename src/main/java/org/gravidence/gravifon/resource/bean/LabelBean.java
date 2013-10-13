@@ -25,12 +25,8 @@ package org.gravidence.gravifon.resource.bean;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.ArrayList;
-import java.util.List;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.gravidence.gravifon.db.domain.LabelDocument;
-import org.gravidence.gravifon.db.domain.Upvote;
 import org.gravidence.gravifon.db.domain.VariationInfo;
 import org.gravidence.gravifon.db.message.CreateDocumentResponse;
 import org.gravidence.gravifon.util.BasicUtils;
@@ -184,24 +180,17 @@ public class LabelBean extends ValidateableBean {
             id = document.getId();
             name = document.getName();
             
-            if (document.getVariationInfo() != null) {
-                // Update with upvotes and primary identifier
-                variationInfo = new VariationInfoBean<LabelBean>().updateBean(document.getVariationInfo());
-                
-                // Update with variation identifiers
-                if (CollectionUtils.isNotEmpty(document.getVariationInfo().getVariationIds())) {
-                    List<LabelBean> variations =
-                            new ArrayList<>(document.getVariationInfo().getVariationIds().size() + 1);
-
-                    for (String variationId : document.getVariationInfo().getVariationIds()) {
-                        LabelBean variation = new LabelBean();
-                        variation.setId(variationId);
-                        
-                        variations.add(variation);
-                    }
-                    
-                    variationInfo.setVariations(variations);
+            if (document.getVariationInfo() == null) {
+                variationInfo = null;
+            }
+            else {
+                if (variationInfo == null) {
+                    variationInfo = new VariationInfoBean<>();
                 }
+                // Update with upvotes and primary identifier
+                variationInfo.updateBean(document.getVariationInfo());
+                // Update with variation identifiers
+                variationInfo.setVariations(BeanUtils.idsToLabelBeans(document.getVariationInfo().getVariationIds()));
             }
         }
         
@@ -237,34 +226,14 @@ public class LabelBean extends ValidateableBean {
         if (document != null) {
             document.setName(name);
             
-            if (variationInfo != null) {
+            if (variationInfo == null) {
+                document.setVariationInfo(null);
+            }
+            else {
                 VariationInfo vi = new VariationInfo();
-                
-                if (CollectionUtils.isNotEmpty(variationInfo.getUpvotes())) {
-                    List<Upvote> upvotes = new ArrayList<>(variationInfo.getUpvotes().size() + 1);
-                    
-                    for (UpvoteBean upvoteBean : variationInfo.getUpvotes()) {
-                        Upvote upvote = new Upvote();
-                        
-                        upvote.setUserId(upvoteBean.getUserId());
-                        
-                        upvotes.add(upvote);
-                    }
-                    
-                    vi.setUpvotes(upvotes);
-                }
-                
+                vi.setUpvotes(BeanUtils.upvoteBeansToUpvotes(variationInfo.getUpvotes()));
                 vi.setPrimaryVariationId(variationInfo.getPrimaryVariationId());
-                
-                if (CollectionUtils.isNotEmpty(variationInfo.getVariations())) {
-                    List<String> variationIds = new ArrayList<>(variationInfo.getVariations().size() + 1);
-                    
-                    for (LabelBean labelBean : variationInfo.getVariations()) {
-                        variationIds.add(labelBean.getId());
-                    }
-                    
-                    vi.setVariationIds(variationIds);
-                }
+                vi.setVariationIds(BeanUtils.labelBeansToIds(variationInfo.getVariations()));
                 
                 document.setVariationInfo(vi);
             }
