@@ -21,19 +21,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.gravidence.gravifon.resource.bean;
+package org.gravidence.gravifon.db.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.gravidence.gravifon.db.domain.Duration;
-import org.gravidence.gravifon.exception.GravifonException;
-import org.gravidence.gravifon.exception.error.GravifonError;
 
 /**
- * Duration bean.
+ * Duration information.
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
-public class DurationBean extends ValidateableBean {
+public class Duration {
     
     /**
      * @see #getAmount()
@@ -80,35 +77,6 @@ public class DurationBean extends ValidateableBean {
      */
     public void setUnit(String unit) {
         this.unit = unit;
-    }
-
-    @Override
-    public void validate() {
-        checkRequired(amount, "amount");
-        if (amount < 1) {
-            throw new GravifonException(GravifonError.INVALID,
-                    "Invalid 'amount' property value. It must be positive number.");
-        }
-        
-        checkRequired(unit, "unit");
-        if (!("s".equals(unit) || "ms".equals(unit))) {
-            throw new GravifonException(GravifonError.UNKNOWN, "Unsupported 'unit' property value.");
-        }
-    }
-    
-    /**
-     * Updates bean with duration information.
-     * 
-     * @param duration duration information
-     * @return duration bean
-     */
-    public DurationBean updateBean(Duration duration) {
-        if (duration != null) {
-            amount = duration.getAmount();
-            unit = duration.getUnit();
-        }
-        
-        return this;
     }
     
 }

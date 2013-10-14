@@ -26,6 +26,7 @@ package org.gravidence.gravifon.resource.bean;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.collections.CollectionUtils;
+import org.gravidence.gravifon.db.domain.Duration;
 import org.gravidence.gravifon.db.domain.Label;
 import org.gravidence.gravifon.db.domain.Upvote;
 
@@ -41,6 +42,26 @@ public class BeanUtils {
      */
     private BeanUtils() {
         // Nothing to do
+    }
+    
+    /**
+     * Creates album bean populated with given identifier.
+     * 
+     * @param id album identifier
+     * @return album bean populated with given identifier
+     */
+    public static AlbumBean idToAlbumBean(String id) {
+        AlbumBean result;
+        
+        if (id == null) {
+            result = null;
+        }
+        else {
+            result = new AlbumBean();
+            result.setId(id);
+        }
+        
+        return result;
     }
     
     /**
@@ -261,6 +282,27 @@ public class BeanUtils {
         }
         else {
             result = null;
+        }
+        
+        return result;
+    }
+    
+    /**
+     * Creates duration details according to given duration bean.
+     * 
+     * @param duration duration bean
+     * @return duration details according to given duration bean
+     */
+    public static Duration durationBeanToDuration(DurationBean duration) {
+        Duration result;
+        
+        if (duration == null) {
+            result = null;
+        }
+        else {
+            result = new Duration();
+            result.setAmount(duration.getAmount());
+            result.setUnit(duration.getUnit());
         }
         
         return result;

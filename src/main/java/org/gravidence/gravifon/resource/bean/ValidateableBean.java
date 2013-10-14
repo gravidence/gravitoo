@@ -24,6 +24,7 @@
 package org.gravidence.gravifon.resource.bean;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.regex.Pattern;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -76,6 +77,23 @@ public abstract class ValidateableBean extends IOBean implements Validateable {
      */
     public static void checkLength(String fieldValue, String fieldName, int min, int max) {
         int fieldLength = StringUtils.length(fieldValue);
+        if (fieldLength < min || fieldLength > max) {
+            throw new ValidationException(GravifonError.INVALID,
+                    String.format("Property '%s' value length is out of expected range.", fieldName));
+        }
+    }
+    
+    /**
+     * Checks that field length satisfies specified range (inclusive).
+     * 
+     * @param fieldValue field value
+     * @param fieldName field name to use in error message
+     * @param min minimum number of elements expected
+     * @param max maximum number of elements expected
+     * @throws ValidationException in case field length is invalid
+     */
+    public static void checkLength(List fieldValue, String fieldName, int min, int max) {
+        int fieldLength = CollectionUtils.size(fieldValue);
         if (fieldLength < min || fieldLength > max) {
             throw new ValidationException(GravifonError.INVALID,
                     String.format("Property '%s' value length is out of expected range.", fieldName));

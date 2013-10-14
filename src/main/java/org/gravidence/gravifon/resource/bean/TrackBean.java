@@ -25,6 +25,10 @@ package org.gravidence.gravifon.resource.bean;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
+import org.gravidence.gravifon.db.domain.TrackDocument;
+import org.gravidence.gravifon.db.domain.VariationInfo;
+import org.gravidence.gravifon.db.message.CreateDocumentResponse;
+import org.gravidence.gravifon.util.BasicUtils;
 
 /**
  * Track bean.<p>
@@ -208,6 +212,8 @@ public class TrackBean extends ValidateableBean {
         checkRequired(title, "title");
         checkLength(title, "title", 1, 400);
         
+        checkRequired(artists, "artists");
+        checkLength(artists, "artists", 1, 40);
         validateCollection(artists);
         
         checkRequired(length, "length");
@@ -220,6 +226,102 @@ public class TrackBean extends ValidateableBean {
         if (variationInfo != null) {
             variationInfo.validate();
         }
+    }
+
+    /**
+     * Updates bean with created document identifier.
+     * DB returns document identifier and revision only, so there's no need to update bean values.
+     * 
+     * @param document a created document
+     * @return updated bean
+     */
+    public TrackBean updateBean(CreateDocumentResponse document) {
+        if (document != null) {
+            id = document.getId();
+        }
+        
+        return this;
+    }
+    
+    /**
+     * Updates bean with document values.
+     * 
+     * @param document track details document
+     * @return updated bean
+     */
+    public TrackBean updateBean(TrackDocument document) {
+        if (document != null) {
+            id = document.getId();
+            title = document.getTitle();
+            length = new DurationBean().updateBean(document.getLength());
+            album = BeanUtils.idToAlbumBean(document.getAlbumId());
+            position = document.getPosition();
+            artists = BeanUtils.idsToArtistBeans(document.getArtistIds());
+            
+            if (document.getVariationInfo() == null) {
+                variationInfo = null;
+            }
+            else {
+                if (variationInfo == null) {
+                    variationInfo = new VariationInfoBean<>();
+                }
+                // Update with upvotes and primary identifier
+                variationInfo.updateBean(document.getVariationInfo());
+                // Update with variation identifiers
+                variationInfo.setVariations(BeanUtils.idsToTrackBeans(document.getVariationInfo().getVariationIds()));
+            }
+        }
+        
+        return this;
+    }
+    
+    /**
+     * Creates document with bean values.
+     * 
+     * @return created document
+     */
+    public TrackDocument createDocument() {
+        TrackDocument document = new TrackDocument();
+        document.setId(BasicUtils.generateUniqueIdentifier());
+        
+        if (variationInfo == null) {
+            variationInfo = new VariationInfoBean<>();
+            variationInfo.setPrimaryVariationId(document.getId());
+        }
+        
+        updateDocument(document);
+        
+        return document;
+    }
+    
+    /**
+     * Updates document with bean values.
+     * 
+     * @param document track details document
+     * @return updated document
+     */
+    public TrackDocument updateDocument(TrackDocument document) {
+        if (document != null) {
+            document.setTitle(title);
+            document.setLength(BeanUtils.durationBeanToDuration(length));
+            document.setAlbumId(album == null ? null : album.getId());
+            document.setPosition(position);
+            document.setArtistIds(BeanUtils.artistBeansToIds(artists));
+            
+            if (variationInfo == null) {
+                document.setVariationInfo(null);
+            }
+            else {
+                VariationInfo vi = new VariationInfo();
+                vi.setUpvotes(BeanUtils.upvoteBeansToUpvotes(variationInfo.getUpvotes()));
+                vi.setPrimaryVariationId(variationInfo.getPrimaryVariationId());
+                vi.setVariationIds(BeanUtils.trackBeansToIds(variationInfo.getVariations()));
+                
+                document.setVariationInfo(vi);
+            }
+        }
+        
+        return document;
     }
     
 }
