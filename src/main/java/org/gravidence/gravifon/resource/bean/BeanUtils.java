@@ -45,6 +45,26 @@ public class BeanUtils {
     }
     
     /**
+     * Creates track bean populated with given identifier.
+     * 
+     * @param id track identifier
+     * @return track bean populated with given identifier
+     */
+    public static TrackBean idToTrackBean(String id) {
+        TrackBean result;
+        
+        if (id == null) {
+            result = null;
+        }
+        else {
+            result = new TrackBean();
+            result.setId(id);
+        }
+        
+        return result;
+    }
+    
+    /**
      * Creates album bean populated with given identifier.
      * 
      * @param id album identifier

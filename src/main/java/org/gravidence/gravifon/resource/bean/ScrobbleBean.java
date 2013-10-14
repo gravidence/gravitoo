@@ -24,6 +24,10 @@
 package org.gravidence.gravifon.resource.bean;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.gravidence.gravifon.db.domain.ScrobbleDocument;
+import org.gravidence.gravifon.db.message.CreateDocumentResponse;
+import org.gravidence.gravifon.util.BasicUtils;
+import org.gravidence.gravifon.util.DateTimeUtils;
 import org.joda.time.DateTime;
 
 /**
@@ -170,6 +174,70 @@ public class ScrobbleBean extends ValidateableBean {
         track.validate();
         
         // TODO add datetime/duration consistency check
+    }
+
+    /**
+     * Updates bean with created document identifier.
+     * DB returns document identifier and revision only, so there's no need to update bean values.
+     * 
+     * @param document a created document
+     * @return updated bean
+     */
+    public ScrobbleBean updateBean(CreateDocumentResponse document) {
+        if (document != null) {
+            id = document.getId();
+        }
+        
+        return this;
+    }
+    
+    /**
+     * Updates bean with document values.
+     * 
+     * @param document scrobble details document
+     * @return updated bean
+     */
+    public ScrobbleBean updateBean(ScrobbleDocument document) {
+        if (document != null) {
+            id = document.getId();
+            scrobbleStartDatetime = DateTimeUtils.arrayToDateTime(document.getScrobbleStartDatetime());
+            scrobbleEndDatetime = DateTimeUtils.arrayToDateTime(document.getScrobbleEndDatetime());
+            scrobbleDuration = new DurationBean().updateBean(document.getScrobbleDuration());
+            track = BeanUtils.idToTrackBean(document.getTrackId());
+        }
+        
+        return this;
+    }
+    
+    /**
+     * Creates document with bean values.
+     * 
+     * @return created document
+     */
+    public ScrobbleDocument createDocument() {
+        ScrobbleDocument document = new ScrobbleDocument();
+        document.setId(BasicUtils.generateUniqueIdentifier());
+        
+        updateDocument(document);
+        
+        return document;
+    }
+    
+    /**
+     * Updates document with bean values.
+     * 
+     * @param document scrobble details document
+     * @return updated document
+     */
+    public ScrobbleDocument updateDocument(ScrobbleDocument document) {
+        if (document != null) {
+            document.setScrobbleStartDatetime(DateTimeUtils.dateTimeToArray(scrobbleStartDatetime));
+            document.setScrobbleEndDatetime(DateTimeUtils.dateTimeToArray(scrobbleEndDatetime));
+            document.setScrobbleDuration(BeanUtils.durationBeanToDuration(scrobbleDuration));
+            document.setTrackId(track == null ? null : track.getId());
+        }
+        
+        return document;
     }
     
 }
