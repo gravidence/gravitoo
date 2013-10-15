@@ -23,7 +23,11 @@
  */
 package org.gravidence.gravifon.db;
 
+import java.util.List;
+import java.util.Locale;
 import javax.ws.rs.client.WebTarget;
+import org.apache.commons.lang.StringUtils;
+import org.gravidence.gravifon.db.domain.TrackDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -33,41 +37,29 @@ import org.springframework.beans.factory.InitializingBean;
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
-public class TracksDBClient implements InitializingBean {
+public class TracksDBClient extends BasicDBClient<TrackDocument> implements InitializingBean {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(TracksDBClient.class);
-    
-    /**
-     * @see #setDbClient(org.gravidence.gravifon.db.CouchDBClient)
-     */
-    private CouchDBClient dbClient;
-    
-    /**
-     * JAX-RS client target associated with <code>/tracks</code> database.
-     */
-    private WebTarget dbTarget;
     
     /**
      * JAX-RS client target associated with <code>main/all_primary_track_variations</code> view.
      */
     private WebTarget viewMainAllPrimaryTrackVariationsTarget;
-
+    
     /**
-     * Sets {@link CouchDBClient} instance.
-     * 
-     * @param dbClient CouchDB client instance
+     * JAX-RS client target associated with <code>main/all_track_variations</code> view.
      */
-    public void setDbClient(CouchDBClient dbClient) {
-        this.dbClient = dbClient;
-    }
+    private WebTarget viewMainAllTrackVariationsTarget;
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        dbTarget = dbClient.getTarget()
-                .path("tracks");
+        setDbTarget(getDbClient().getTarget()
+                .path("tracks"));
         
         viewMainAllPrimaryTrackVariationsTarget = ViewUtils.getViewTarget(
-                dbTarget, "main", "all_primary_track_variations");
+                getDbTarget(), "main", "all_primary_track_variations");
+        viewMainAllTrackVariationsTarget = ViewUtils.getViewTarget(
+                getDbTarget(), "main", "all_track_variations");
     }
     
     /**
@@ -81,6 +73,35 @@ public class TracksDBClient implements InitializingBean {
      */
     public long retrievePrimaryTrackVariationAmount() {
         return ViewQueryExecutor.querySize(viewMainAllPrimaryTrackVariationsTarget);
+    }
+    
+    /**
+     * Retrieves existing track {@link TrackDocument document}.
+     * 
+     * @param id track identifier
+     * @return track details document if found, <code>null</code> otherwise
+     */
+    public TrackDocument retrieveTrackByID(String id) {
+        return retrieve(id, TrackDocument.class);
+    }
+    
+    /**
+     * Retrieves existing track {@link TrackDocument documents}.<p>
+     * Makes sure that <code>name</code> written in lower case
+     * since <code>main/all_track_variations</code> view is case sensitive.
+     * 
+     * @param name track name
+     * @return list of track details documents if found, <code>null</code> otherwise
+     */
+    public List<TrackDocument> retrieveTracksByName(String name) {
+        ViewQueryArguments args = new ViewQueryArguments()
+                .addKey(StringUtils.lowerCase(name, Locale.ENGLISH))
+                .addIncludeDocs(true);
+        
+        List<TrackDocument> documents = ViewQueryExecutor.queryDocuments(viewMainAllTrackVariationsTarget, args,
+                TrackDocument.class);
+        
+        return documents;
     }
     
 }

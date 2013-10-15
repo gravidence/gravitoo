@@ -24,6 +24,7 @@
 package org.gravidence.gravifon.db;
 
 import javax.ws.rs.client.WebTarget;
+import org.gravidence.gravifon.db.domain.ScrobbleDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -33,40 +34,22 @@ import org.springframework.beans.factory.InitializingBean;
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
-public class ScrobblesDBClient implements InitializingBean {
+public class ScrobblesDBClient extends BasicDBClient<ScrobbleDocument> implements InitializingBean {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(ScrobblesDBClient.class);
-    
-    /**
-     * @see #setDbClient(org.gravidence.gravifon.db.CouchDBClient)
-     */
-    private CouchDBClient dbClient;
-    
-    /**
-     * JAX-RS client target associated with <code>/scrobbles</code> database.
-     */
-    private WebTarget dbTarget;
     
     /**
      * JAX-RS client target associated with <code>main/all_scrobbles</code> view.
      */
     private WebTarget viewMainAllScrobblesTarget;
 
-    /**
-     * Sets {@link CouchDBClient} instance.
-     * 
-     * @param dbClient CouchDB client instance
-     */
-    public void setDbClient(CouchDBClient dbClient) {
-        this.dbClient = dbClient;
-    }
-
     @Override
     public void afterPropertiesSet() throws Exception {
-        dbTarget = dbClient.getTarget()
-                .path("scrobbles");
+        setDbTarget(getDbClient().getTarget()
+                .path("scrobbles"));
         
-        viewMainAllScrobblesTarget = ViewUtils.getViewTarget(dbTarget, "main", "all_scrobbles");
+        viewMainAllScrobblesTarget = ViewUtils.getViewTarget(
+                getDbTarget(), "main", "all_scrobbles");
     }
     
     /**
@@ -80,6 +63,16 @@ public class ScrobblesDBClient implements InitializingBean {
      */
     public long retrieveScrobbleAmount() {
         return ViewQueryExecutor.querySize(viewMainAllScrobblesTarget);
+    }
+    
+    /**
+     * Retrieves existing scrobble {@link ScrobbleDocument document}.
+     * 
+     * @param id scrobble identifier
+     * @return scrobble details document if found, <code>null</code> otherwise
+     */
+    public ScrobbleDocument retrieveScrobbleByID(String id) {
+        return retrieve(id, ScrobbleDocument.class);
     }
     
 }

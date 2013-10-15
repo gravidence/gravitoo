@@ -39,7 +39,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import org.gravidence.gravifon.db.UsersDBClient;
-import org.gravidence.gravifon.db.message.CreateDocumentResponse;
 import org.gravidence.gravifon.db.domain.UserDocument;
 import org.gravidence.gravifon.exception.GravifonException;
 import org.gravidence.gravifon.exception.UserNotFoundException;
@@ -119,7 +118,7 @@ public class Users {
             throw new GravifonException(GravifonError.USER_EXISTS, "User already exists.");
         }
         
-        CreateDocumentResponse document = usersDBClient.createUser(user.createDocument());
+        UserDocument document = usersDBClient.create(user.createDocument());
         
         // Call database again in order to retrieve all system generated attributes
         original = usersDBClient.retrieveUserByID(document.getId());
@@ -193,7 +192,7 @@ public class Users {
         
         UserDocument original = ResourceUtils.authorizeUser(httpHeaders.getRequestHeaders(), id, usersDBClient, LOGGER);
         
-        usersDBClient.updateUser(user.updateDocument(original));
+        usersDBClient.update(user.updateDocument(original));
         
         // Update bean with original document details as identifier is not changed after update
         return user.updateBean(original);
@@ -215,7 +214,7 @@ public class Users {
         
         UserDocument original = ResourceUtils.authorizeUser(httpHeaders.getRequestHeaders(), id, usersDBClient, LOGGER);
         
-        usersDBClient.deleteUser(original);
+        usersDBClient.delete(original);
         
         return new StatusBean();
     }

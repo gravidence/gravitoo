@@ -23,7 +23,11 @@
  */
 package org.gravidence.gravifon.db;
 
+import java.util.List;
+import java.util.Locale;
 import javax.ws.rs.client.WebTarget;
+import org.apache.commons.lang.StringUtils;
+import org.gravidence.gravifon.db.domain.ArtistDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -33,41 +37,29 @@ import org.springframework.beans.factory.InitializingBean;
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
-public class ArtistsDBClient implements InitializingBean {
+public class ArtistsDBClient extends BasicDBClient<ArtistDocument> implements InitializingBean {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(ArtistsDBClient.class);
-    
-    /**
-     * @see #setDbClient(org.gravidence.gravifon.db.CouchDBClient)
-     */
-    private CouchDBClient dbClient;
-    
-    /**
-     * JAX-RS client target associated with <code>/artists</code> database.
-     */
-    private WebTarget dbTarget;
     
     /**
      * JAX-RS client target associated with <code>main/all_primary_artist_variations</code> view.
      */
     private WebTarget viewMainAllPrimaryArtistVariationsTarget;
-
+    
     /**
-     * Sets {@link CouchDBClient} instance.
-     * 
-     * @param dbClient CouchDB client instance
+     * JAX-RS client target associated with <code>main/all_artist_variations</code> view.
      */
-    public void setDbClient(CouchDBClient dbClient) {
-        this.dbClient = dbClient;
-    }
+    private WebTarget viewMainAllArtistVariationsTarget;
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        dbTarget = dbClient.getTarget()
-                .path("artists");
+        setDbTarget(getDbClient().getTarget()
+                .path("artists"));
         
         viewMainAllPrimaryArtistVariationsTarget = ViewUtils.getViewTarget(
-                dbTarget, "main", "all_primary_artist_variations");
+                getDbTarget(), "main", "all_primary_artist_variations");
+        viewMainAllArtistVariationsTarget = ViewUtils.getViewTarget(
+                getDbTarget(), "main", "all_artist_variations");
     }
     
     /**
@@ -81,6 +73,35 @@ public class ArtistsDBClient implements InitializingBean {
      */
     public long retrievePrimaryArtistVariationAmount() {
         return ViewQueryExecutor.querySize(viewMainAllPrimaryArtistVariationsTarget);
+    }
+    
+    /**
+     * Retrieves existing artist {@link ArtistDocument document}.
+     * 
+     * @param id artist identifier
+     * @return artist details document if found, <code>null</code> otherwise
+     */
+    public ArtistDocument retrieveArtistByID(String id) {
+        return retrieve(id, ArtistDocument.class);
+    }
+    
+    /**
+     * Retrieves existing artist {@link ArtistDocument documents}.<p>
+     * Makes sure that <code>name</code> written in lower case
+     * since <code>main/all_artist_variations</code> view is case sensitive.
+     * 
+     * @param name artist name
+     * @return list of artist details documents if found, <code>null</code> otherwise
+     */
+    public List<ArtistDocument> retrieveArtistsByName(String name) {
+        ViewQueryArguments args = new ViewQueryArguments()
+                .addKey(StringUtils.lowerCase(name, Locale.ENGLISH))
+                .addIncludeDocs(true);
+        
+        List<ArtistDocument> documents = ViewQueryExecutor.queryDocuments(viewMainAllArtistVariationsTarget, args,
+                ArtistDocument.class);
+        
+        return documents;
     }
     
 }
