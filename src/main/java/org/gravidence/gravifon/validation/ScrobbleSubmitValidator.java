@@ -41,7 +41,7 @@ public class ScrobbleSubmitValidator extends AbstractValidator<List<ScrobbleBean
     @Override
     protected void validateHeaders(MultivaluedMap<String, String> headers)
             throws GravifonException, ValidationException {
-        // No headers expected.
+        checkRequiredAuthorizationHeader(headers);
     }
 
     @Override

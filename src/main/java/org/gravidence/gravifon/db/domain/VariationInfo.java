@@ -34,6 +34,12 @@ import java.util.List;
 public class VariationInfo {
     
     /**
+     * @see #getKey()
+     */
+    @JsonProperty
+    private List<String> key;
+    
+    /**
      * @see #getUpvotes()
      */
     @JsonProperty
@@ -50,6 +56,23 @@ public class VariationInfo {
      */
     @JsonProperty("variation_ids")
     private List<String> variationIds;
+
+    /**
+     * Returns entity variation key.
+     * 
+     * @return entity variation key
+     */
+    public List<String> getKey() {
+        return key;
+    }
+
+    /**
+     * @param key
+     * @see #getKey()
+     */
+    public void setKey(List<String> key) {
+        this.key = key;
+    }
 
     /**
      * Returns list of entity variation upvotes.

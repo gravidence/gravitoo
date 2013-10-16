@@ -23,8 +23,11 @@
  */
 package org.gravidence.gravifon.db;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import org.gravidence.gravifon.exception.JsonException;
 
 /**
  * Design document view query arguments container.
@@ -61,7 +64,30 @@ public class ViewQueryArguments {
      * @return reference to this object
      */
     public ViewQueryArguments addKey(String value) {
-        arguments.put("key", String.format("\"%s\"", value));
+        String key = String.format("\"%s\"", value);
+        
+        arguments.put("key", key);
+        
+        return this;
+    }
+    
+    /**
+     * Adds <code>key</code> query argument.<p>
+     * <code>Value</code> is converted to corresponding JSON object.
+     * 
+     * @param value query argument value
+     * @return reference to this object
+     */
+    public ViewQueryArguments addKey(List<?> value) {
+        String key;
+        try {
+            key = SharedInstanceHolder.OBJECT_MAPPER.writeValueAsString(value);
+        }
+        catch (JsonProcessingException ex) {
+            throw new JsonException(ex);
+        }
+        
+        arguments.put("key", key);
         
         return this;
     }

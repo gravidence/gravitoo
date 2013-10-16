@@ -24,6 +24,8 @@
 package org.gravidence.gravifon.resource.bean;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.gravidence.gravifon.db.domain.TrackDocument;
 import org.gravidence.gravifon.db.domain.VariationInfo;
@@ -227,6 +229,27 @@ public class TrackBean extends ValidateableBean {
             variationInfo.validate();
         }
     }
+    
+    /**
+     * Returns track key.<p>
+     * Consists of track artist names (asc sorted), album title and track title. The key is lower cased.
+     * 
+     * @return track key
+     */
+    public List<String> getKey() {
+        List<String> result = new ArrayList<>();
+        
+        for (ArtistBean artist : artists) {
+            result.add(BasicUtils.lowerCase(artist.getName()));
+        }
+        Collections.sort(result);
+        
+        result.add(BasicUtils.lowerCase(album.getTitle()));
+        
+        result.add(BasicUtils.lowerCase(title));
+        
+        return result;
+    }
 
     /**
      * Updates bean with created document identifier.
@@ -313,6 +336,7 @@ public class TrackBean extends ValidateableBean {
             }
             else {
                 VariationInfo vi = new VariationInfo();
+                vi.setKey(getKey());
                 vi.setUpvotes(BeanUtils.upvoteBeansToUpvotes(variationInfo.getUpvotes()));
                 vi.setPrimaryVariationId(variationInfo.getPrimaryVariationId());
                 vi.setVariationIds(BeanUtils.trackBeansToIds(variationInfo.getVariations()));

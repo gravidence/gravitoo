@@ -30,16 +30,24 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
+import org.apache.commons.collections.CollectionUtils;
+import org.gravidence.gravifon.db.AlbumsDBClient;
+import org.gravidence.gravifon.db.ArtistsDBClient;
+import org.gravidence.gravifon.db.LabelsDBClient;
 import org.gravidence.gravifon.db.ScrobblesDBClient;
+import org.gravidence.gravifon.db.TracksDBClient;
 import org.gravidence.gravifon.db.UsersDBClient;
-import org.gravidence.gravifon.exception.error.GravifonError;
+import org.gravidence.gravifon.db.domain.AlbumDocument;
+import org.gravidence.gravifon.db.domain.ScrobbleDocument;
+import org.gravidence.gravifon.db.domain.TrackDocument;
+import org.gravidence.gravifon.db.domain.UserDocument;
+import org.gravidence.gravifon.resource.bean.AlbumBean;
 import org.gravidence.gravifon.resource.bean.ScrobbleBean;
 import org.gravidence.gravifon.resource.bean.ScrobblesInfoBean;
-import org.gravidence.gravifon.resource.message.StatusResponse;
+import org.gravidence.gravifon.resource.bean.TrackBean;
 import org.gravidence.gravifon.validation.ScrobbleSubmitValidator;
 import org.gravidence.gravifon.validation.ScrobblesInfoValidator;
 import org.slf4j.Logger;
@@ -73,6 +81,30 @@ public class Scrobbles {
     @Autowired
     private ScrobblesDBClient scrobblesDBClient;
     
+    /**
+     * {@link TracksDBClient} instance.
+     */
+    @Autowired
+    private TracksDBClient tracksDBClient;
+    
+    /**
+     * {@link ArtistsDBClient} instance.
+     */
+    @Autowired
+    private ArtistsDBClient artistsDBClient;
+    
+    /**
+     * {@link AlbumsDBClient} instance.
+     */
+    @Autowired
+    private AlbumsDBClient albumsDBClient;
+    
+    /**
+     * {@link LabelsDBClient} instance.
+     */
+    @Autowired
+    private LabelsDBClient labelsDBClient;
+    
     // Validators
     private ScrobblesInfoValidator scrobblesInfoValidator = new ScrobblesInfoValidator();
     private ScrobbleSubmitValidator scrobbleSubmitValidator = new ScrobbleSubmitValidator();
@@ -94,21 +126,55 @@ public class Scrobbles {
     }
     
     /**
-     * Creates a new scrobble.
+     * Submits a list of new scrobbles.
      * 
+     * @param httpHeaders request http headers and cookies
      * @param uriInfo request URI details
      * @param scrobbles list of new scrobble details beans
      * @return 201 Created response with list of created scrobble details bean
      */
     @POST
-    public Response submit(@Context UriInfo uriInfo, List<ScrobbleBean> scrobbles) {
-        scrobbleSubmitValidator.validate(null, null, scrobbles);
+    public List<ScrobbleBean> submit(@Context HttpHeaders httpHeaders, @Context UriInfo uriInfo, List<ScrobbleBean> scrobbles) {
+        scrobbleSubmitValidator.validate(httpHeaders.getRequestHeaders(), null, scrobbles);
         
-        return Response
-                .status(Status.SERVICE_UNAVAILABLE)
-                .type(MediaType.APPLICATION_JSON_TYPE)
-                .entity(new StatusResponse(GravifonError.UNEXPECTED.getErrorCode(), "Not implemented."))
-                .build();
+        UserDocument user = ResourceUtils.authenticateUser(httpHeaders.getRequestHeaders(), usersDBClient, LOGGER);
+        
+        for (ScrobbleBean scrobble : scrobbles) {
+            resolveAlbumId(scrobble.getTrack().getAlbum());
+            resolveTrackId(scrobble.getTrack());
+            
+            ScrobbleDocument scrobbleDoc = scrobble.createDocument();
+            scrobbleDoc.setUserId(user.getId());
+            
+            scrobbleDoc = scrobblesDBClient.create(scrobbleDoc);
+            scrobble.setId(scrobbleDoc.getId());
+        }
+        
+        return scrobbles;
+    }
+    
+    private void resolveAlbumId(AlbumBean album) {
+        List<AlbumDocument> albums = albumsDBClient.retrieveAlbumsByKey(album.getKey());
+        if (CollectionUtils.isEmpty(albums)) {
+            AlbumDocument albumDoc = albumsDBClient.create(album.createDocument());
+            album.setId(albumDoc.getId());
+        }
+        else {
+            // TODO think about this hardcode
+            album.setId(albums.get(0).getId());
+        }
+    }
+    
+    private void resolveTrackId(TrackBean track) {
+        List<TrackDocument> tracks = tracksDBClient.retrieveTracksByKey(track.getKey());
+        if (CollectionUtils.isEmpty(tracks)) {
+            TrackDocument trackDoc = tracksDBClient.create(track.createDocument());
+            track.setId(trackDoc.getId());
+        }
+        else {
+            // TODO think about this hardcode
+            track.setId(tracks.get(0).getId());
+        }
     }
 
 }

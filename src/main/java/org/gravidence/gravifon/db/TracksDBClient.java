@@ -24,10 +24,9 @@
 package org.gravidence.gravifon.db;
 
 import java.util.List;
-import java.util.Locale;
 import javax.ws.rs.client.WebTarget;
-import org.apache.commons.lang.StringUtils;
 import org.gravidence.gravifon.db.domain.TrackDocument;
+import org.gravidence.gravifon.util.BasicUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -50,6 +49,11 @@ public class TracksDBClient extends BasicDBClient<TrackDocument> implements Init
      * JAX-RS client target associated with <code>main/all_track_variations</code> view.
      */
     private WebTarget viewMainAllTrackVariationsTarget;
+    
+    /**
+     * JAX-RS client target associated with <code>main/all_track_keys</code> view.
+     */
+    private WebTarget viewMainAllTrackKeysTarget;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -60,6 +64,8 @@ public class TracksDBClient extends BasicDBClient<TrackDocument> implements Init
                 getDbTarget(), "main", "all_primary_track_variations");
         viewMainAllTrackVariationsTarget = ViewUtils.getViewTarget(
                 getDbTarget(), "main", "all_track_variations");
+        viewMainAllTrackKeysTarget = ViewUtils.getViewTarget(
+                getDbTarget(), "main", "all_track_keys");
     }
     
     /**
@@ -87,18 +93,35 @@ public class TracksDBClient extends BasicDBClient<TrackDocument> implements Init
     
     /**
      * Retrieves existing track {@link TrackDocument documents}.<p>
-     * Makes sure that <code>name</code> written in lower case
+     * Makes sure that <code>title</code> written in lower case
      * since <code>main/all_track_variations</code> view is case sensitive.
      * 
-     * @param name track name
+     * @param title track title
      * @return list of track details documents if found, <code>null</code> otherwise
      */
-    public List<TrackDocument> retrieveTracksByName(String name) {
+    public List<TrackDocument> retrieveTracksByName(String title) {
         ViewQueryArguments args = new ViewQueryArguments()
-                .addKey(StringUtils.lowerCase(name, Locale.ENGLISH))
+                .addKey(BasicUtils.lowerCase(title))
                 .addIncludeDocs(true);
         
         List<TrackDocument> documents = ViewQueryExecutor.queryDocuments(viewMainAllTrackVariationsTarget, args,
+                TrackDocument.class);
+        
+        return documents;
+    }
+    
+    /**
+     * Retrieves existing track {@link TrackDocument documents}.
+     * 
+     * @param name track key
+     * @return list of track details documents if found, <code>null</code> otherwise
+     */
+    public List<TrackDocument> retrieveTracksByKey(List<String> key) {
+        ViewQueryArguments args = new ViewQueryArguments()
+                .addKey(key)
+                .addIncludeDocs(true);
+        
+        List<TrackDocument> documents = ViewQueryExecutor.queryDocuments(viewMainAllTrackKeysTarget, args,
                 TrackDocument.class);
         
         return documents;

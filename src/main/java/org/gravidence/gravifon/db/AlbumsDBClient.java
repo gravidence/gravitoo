@@ -24,10 +24,9 @@
 package org.gravidence.gravifon.db;
 
 import java.util.List;
-import java.util.Locale;
 import javax.ws.rs.client.WebTarget;
-import org.apache.commons.lang.StringUtils;
 import org.gravidence.gravifon.db.domain.AlbumDocument;
+import org.gravidence.gravifon.util.BasicUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -50,6 +49,11 @@ public class AlbumsDBClient extends BasicDBClient<AlbumDocument> implements Init
      * JAX-RS client target associated with <code>main/all_album_variations</code> view.
      */
     private WebTarget viewMainAllAlbumVariationsTarget;
+    
+    /**
+     * JAX-RS client target associated with <code>main/all_album_keys</code> view.
+     */
+    private WebTarget viewMainAllAlbumKeysTarget;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -60,6 +64,8 @@ public class AlbumsDBClient extends BasicDBClient<AlbumDocument> implements Init
                 getDbTarget(), "main", "all_primary_album_variations");
         viewMainAllAlbumVariationsTarget = ViewUtils.getViewTarget(
                 getDbTarget(), "main", "all_album_variations");
+        viewMainAllAlbumKeysTarget = ViewUtils.getViewTarget(
+                getDbTarget(), "main", "all_album_keys");
     }
     
     /**
@@ -87,18 +93,35 @@ public class AlbumsDBClient extends BasicDBClient<AlbumDocument> implements Init
     
     /**
      * Retrieves existing album {@link AlbumDocument documents}.<p>
-     * Makes sure that <code>name</code> written in lower case
+     * Makes sure that <code>title</code> written in lower case
      * since <code>main/all_album_variations</code> view is case sensitive.
      * 
-     * @param name album name
+     * @param title album title
      * @return list of album details documents if found, <code>null</code> otherwise
      */
-    public List<AlbumDocument> retrieveAlbumsByName(String name) {
+    public List<AlbumDocument> retrieveAlbumsByTitle(String title) {
         ViewQueryArguments args = new ViewQueryArguments()
-                .addKey(StringUtils.lowerCase(name, Locale.ENGLISH))
+                .addKey(BasicUtils.lowerCase(title))
                 .addIncludeDocs(true);
         
         List<AlbumDocument> documents = ViewQueryExecutor.queryDocuments(viewMainAllAlbumVariationsTarget, args,
+                AlbumDocument.class);
+        
+        return documents;
+    }
+    
+    /**
+     * Retrieves existing album {@link AlbumDocument documents}.
+     * 
+     * @param name album key
+     * @return list of album details documents if found, <code>null</code> otherwise
+     */
+    public List<AlbumDocument> retrieveAlbumsByKey(List<String> key) {
+        ViewQueryArguments args = new ViewQueryArguments()
+                .addKey(key)
+                .addIncludeDocs(true);
+        
+        List<AlbumDocument> documents = ViewQueryExecutor.queryDocuments(viewMainAllAlbumKeysTarget, args,
                 AlbumDocument.class);
         
         return documents;

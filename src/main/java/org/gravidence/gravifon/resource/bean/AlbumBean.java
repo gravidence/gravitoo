@@ -24,7 +24,10 @@
 package org.gravidence.gravifon.resource.bean;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.gravidence.gravifon.db.domain.AlbumDocument;
 import org.gravidence.gravifon.db.domain.VariationInfo;
@@ -256,6 +259,30 @@ public class AlbumBean extends ValidateableBean {
             variationInfo.validate();
         }
     }
+    
+    /**
+     * Returns album key.<p>
+     * Consists of album artist names (asc sorted) and album title. The key is lower cased.
+     * 
+     * @return track key
+     */
+    public List<String> getKey() {
+        List<String> result = new ArrayList<>();
+        
+        // TODO need some intelligence regarding following cases:
+        // - albums without album artists (sum of track artists? a const?)
+        // - VA (a const?)
+        if (CollectionUtils.isNotEmpty(artists)) {
+            for (ArtistBean artist : artists) {
+                result.add(BasicUtils.lowerCase(artist.getName()));
+            }
+            Collections.sort(result);
+        }
+        
+        result.add(BasicUtils.lowerCase(title));
+        
+        return result;
+    }
 
     /**
      * Updates bean with created document identifier.
@@ -344,6 +371,7 @@ public class AlbumBean extends ValidateableBean {
             }
             else {
                 VariationInfo vi = new VariationInfo();
+                vi.setKey(getKey());
                 vi.setUpvotes(BeanUtils.upvoteBeansToUpvotes(variationInfo.getUpvotes()));
                 vi.setPrimaryVariationId(variationInfo.getPrimaryVariationId());
                 vi.setVariationIds(BeanUtils.albumBeansToIds(variationInfo.getVariations()));
