@@ -24,7 +24,6 @@
 package org.gravidence.gravifon.db.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.joda.time.DateTime;
 
 /**
  * Scrobble document.<p>
@@ -33,6 +32,12 @@ import org.joda.time.DateTime;
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
 public class ScrobbleDocument extends CouchDBDocument {
+    
+    /**
+     * @see #getUserId()
+     */
+    @JsonProperty("user_id")
+    private String userId;
     
     /**
      * @see #getScrobbleStartDatetime()
@@ -57,6 +62,23 @@ public class ScrobbleDocument extends CouchDBDocument {
      */
     @JsonProperty
     private String trackId;
+
+    /**
+     * Returns identifier of user associated with scrobble event.
+     * 
+     * @return identifier of user associated with scrobble event
+     */
+    public String getUserId() {
+        return userId;
+    }
+
+    /**
+     * @param userId
+     * @see #getUserId()
+     */
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
 
     /**
      * Returns date and time (UTC) when scrobble event was initiated.<p>
@@ -130,7 +152,8 @@ public class ScrobbleDocument extends CouchDBDocument {
 
     @Override
     public String toString() {
-        return String.format("{id=%s, start=%s, trackId=%s}", getId(), scrobbleStartDatetime, trackId);
+        return String.format("{id=%s, start=%s, userId=%s, trackId=%s}",
+                getId(), scrobbleStartDatetime, userId, trackId);
     }
     
 }
