@@ -24,10 +24,9 @@
 package org.gravidence.gravifon.db;
 
 import java.util.List;
-import java.util.Locale;
 import javax.ws.rs.client.WebTarget;
-import org.apache.commons.lang.StringUtils;
 import org.gravidence.gravifon.db.domain.UserDocument;
+import org.gravidence.gravifon.util.BasicUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -88,7 +87,7 @@ public class UsersDBClient extends BasicDBClient<UserDocument> implements Initia
      */
     public UserDocument retrieveUserByUsername(String username) {
         ViewQueryArguments args = new ViewQueryArguments()
-                .addKey(StringUtils.lowerCase(username, Locale.ENGLISH))
+                .addKey(BasicUtils.lowerCase(username))
                 .addIncludeDocs(true);
         
         List<UserDocument> documents = ViewQueryExecutor.queryDocuments(viewMainAllUsernamesTarget, args,

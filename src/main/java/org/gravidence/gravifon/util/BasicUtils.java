@@ -23,7 +23,9 @@
  */
 package org.gravidence.gravifon.util;
 
+import java.util.Locale;
 import java.util.UUID;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Basic utility methods.
@@ -46,6 +48,16 @@ public class BasicUtils {
      */
     public static String generateUniqueIdentifier() {
         return UUID.randomUUID().toString();
+    }
+    
+    /**
+     * Converts a string to lower case using {@link Locale.ENGLISH ENGLISH} locale.
+     * 
+     * @param value string value
+     * @return string value in lower case
+     */
+    public static String lowerCase(String value) {
+        return StringUtils.lowerCase(value, Locale.ENGLISH);
     }
     
 }
