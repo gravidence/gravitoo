@@ -34,6 +34,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.gravidence.gravifon.db.AlbumsDBClient;
 import org.gravidence.gravifon.db.ArtistsDBClient;
 import org.gravidence.gravifon.db.LabelsDBClient;
@@ -41,10 +42,12 @@ import org.gravidence.gravifon.db.ScrobblesDBClient;
 import org.gravidence.gravifon.db.TracksDBClient;
 import org.gravidence.gravifon.db.UsersDBClient;
 import org.gravidence.gravifon.db.domain.AlbumDocument;
+import org.gravidence.gravifon.db.domain.ArtistDocument;
 import org.gravidence.gravifon.db.domain.ScrobbleDocument;
 import org.gravidence.gravifon.db.domain.TrackDocument;
 import org.gravidence.gravifon.db.domain.UserDocument;
 import org.gravidence.gravifon.resource.bean.AlbumBean;
+import org.gravidence.gravifon.resource.bean.ArtistBean;
 import org.gravidence.gravifon.resource.bean.ScrobbleBean;
 import org.gravidence.gravifon.resource.bean.ScrobblesInfoBean;
 import org.gravidence.gravifon.resource.bean.TrackBean;
@@ -140,8 +143,7 @@ public class Scrobbles {
         UserDocument user = ResourceUtils.authenticateUser(httpHeaders.getRequestHeaders(), usersDBClient, LOGGER);
         
         for (ScrobbleBean scrobble : scrobbles) {
-            resolveAlbumId(scrobble.getTrack().getAlbum());
-            resolveTrackId(scrobble.getTrack());
+            resolveTrackIds(scrobble.getTrack());
             
             ScrobbleDocument scrobbleDoc = scrobble.createDocument();
             scrobbleDoc.setUserId(user.getId());
@@ -153,28 +155,116 @@ public class Scrobbles {
         return scrobbles;
     }
     
-    private void resolveAlbumId(AlbumBean album) {
-        List<AlbumDocument> albums = albumsDBClient.retrieveAlbumsByKey(album.getKey());
-        if (CollectionUtils.isEmpty(albums)) {
-            AlbumDocument albumDoc = albumsDBClient.create(album.createDocument());
-            album.setId(albumDoc.getId());
+    private ArtistDocument retrieveOrCreateArtistDocument(ArtistBean artist) {
+        ArtistDocument result;
+        
+        if (artist == null) {
+            result = null;
         }
         else {
-            // TODO think about this hardcode
-            album.setId(albums.get(0).getId());
+            List<ArtistDocument> artistDocs = artistsDBClient.retrieveArtistsByName(artist.getName());
+            if (CollectionUtils.isEmpty(artistDocs)) {
+                result = artistsDBClient.create(artist.createDocument());
+            }
+            else {
+                // TODO think about this hardcode
+                result = artistDocs.get(0);
+            }
+        }
+        
+        return result;
+    }
+    
+    private AlbumDocument retrieveOrCreateAlbumDocument(AlbumBean album) {
+        AlbumDocument result;
+        
+        if (album == null) {
+            result = null;
+        }
+        else {
+            List<AlbumDocument> albumDocs = albumsDBClient.retrieveAlbumsByKey(album.getKey());
+            if (CollectionUtils.isEmpty(albumDocs)) {
+                resolveArtistIds(album.getArtists());
+                
+                result = albumsDBClient.create(album.createDocument());
+            }
+            else {
+                // TODO think about this hardcode
+                result = albumDocs.get(0);
+            }
+        }
+        
+        return result;
+    }
+    
+    private TrackDocument retrieveOrCreateTrackDocument(TrackBean track) {
+        TrackDocument result;
+        
+        if (track == null) {
+            result = null;
+        }
+        else {
+            List<String> key = track.getKey();
+            // find exact track record
+            List<TrackDocument> trackDocs = tracksDBClient.retrieveTracksByKey(key);
+            if (CollectionUtils.isEmpty(trackDocs)) {
+                resolveAlbumIds(track.getAlbum());
+                
+                // find all tracks that belong to artists+album
+                key.remove(key.size() - 1);
+                trackDocs = tracksDBClient.retrieveTracksByIncompleteKey(key);
+                // no tracks found for artists+album, so just need to use first found artists or create new ones
+                if (CollectionUtils.isEmpty(trackDocs)) {
+                    resolveArtistIds(track.getArtists());
+                }
+                // use existing artist identifiers from found tracks
+                else {
+                    for (String artistId : trackDocs.get(0).getArtistIds()) {
+                        ArtistDocument artistDoc = artistsDBClient.retrieveArtistByID(artistId);
+                        for (ArtistBean artist : track.getArtists()) {
+                            if (StringUtils.equalsIgnoreCase(artist.getName(), artistDoc.getName())) {
+                                artist.setId(artistDoc.getId());
+                                break;
+                            }
+                        }
+                    }
+                }
+                
+                result = tracksDBClient.create(track.createDocument());
+            }
+            else {
+                // TODO think about this hardcode
+                result = trackDocs.get(0);
+            }
+        }
+        
+        return result;
+    }
+    
+    private void resolveArtistId(ArtistBean artist) {
+        ArtistDocument artistDoc = retrieveOrCreateArtistDocument(artist);
+        
+        artist.setId(artistDoc.getId());
+    }
+    
+    private void resolveArtistIds(List<ArtistBean> artists) {
+        if (CollectionUtils.isNotEmpty(artists)) {
+            for (ArtistBean artist : artists) {
+                resolveArtistId(artist);
+            }
         }
     }
     
-    private void resolveTrackId(TrackBean track) {
-        List<TrackDocument> tracks = tracksDBClient.retrieveTracksByKey(track.getKey());
-        if (CollectionUtils.isEmpty(tracks)) {
-            TrackDocument trackDoc = tracksDBClient.create(track.createDocument());
-            track.setId(trackDoc.getId());
-        }
-        else {
-            // TODO think about this hardcode
-            track.setId(tracks.get(0).getId());
-        }
+    private void resolveAlbumIds(AlbumBean album) {
+        AlbumDocument albumDoc = retrieveOrCreateAlbumDocument(album);
+        
+        album.setId(albumDoc.getId());
+    }
+    
+    private void resolveTrackIds(TrackBean track) {
+        TrackDocument trackDoc = retrieveOrCreateTrackDocument(track);
+        
+        track.setId(trackDoc.getId());
     }
 
 }

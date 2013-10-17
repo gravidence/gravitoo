@@ -111,14 +111,31 @@ public class TracksDBClient extends BasicDBClient<TrackDocument> implements Init
     }
     
     /**
-     * Retrieves existing track {@link TrackDocument documents}.
+     * Retrieves existing track {@link TrackDocument documents} by complete track key (artists+album+track).
      * 
-     * @param name track key
+     * @param key complete track key (artists+album+track)
      * @return list of track details documents if found, <code>null</code> otherwise
      */
     public List<TrackDocument> retrieveTracksByKey(List<String> key) {
         ViewQueryArguments args = new ViewQueryArguments()
                 .addKey(key)
+                .addIncludeDocs(true);
+        
+        List<TrackDocument> documents = ViewQueryExecutor.queryDocuments(viewMainAllTrackKeysTarget, args,
+                TrackDocument.class);
+        
+        return documents;
+    }
+    
+    /**
+     * Retrieves existing track {@link TrackDocument documents} by incomplete track key (artists+album).
+     * 
+     * @param key incomplete track key (artists+album)
+     * @return list of track details documents if found, <code>null</code> otherwise
+     */
+    public List<TrackDocument> retrieveTracksByIncompleteKey(List<String> key) {
+        ViewQueryArguments args = new ViewQueryArguments()
+                .addStartKey(key)
                 .addIncludeDocs(true);
         
         List<TrackDocument> documents = ViewQueryExecutor.queryDocuments(viewMainAllTrackKeysTarget, args,

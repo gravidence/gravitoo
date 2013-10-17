@@ -23,9 +23,12 @@
  */
 package org.gravidence.gravifon.util;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.Locale;
 import java.util.UUID;
 import org.apache.commons.lang.StringUtils;
+import org.gravidence.gravifon.db.SharedInstanceHolder;
+import org.gravidence.gravifon.exception.JsonException;
 
 /**
  * Basic utility methods.
@@ -58,6 +61,26 @@ public class BasicUtils {
      */
     public static String lowerCase(String value) {
         return StringUtils.lowerCase(value, Locale.ENGLISH);
+    }
+    
+    /**
+     * Converts object to JSON string.
+     * 
+     * @param value object
+     * @return JSON string that represents the object
+     * @throws JsonException in case JSON processing exception took place
+     */
+    public static String objectToJsonString(Object value) {
+        String result;
+        
+        try {
+            result = SharedInstanceHolder.OBJECT_MAPPER.writeValueAsString(value);
+        }
+        catch (JsonProcessingException ex) {
+            throw new JsonException(ex);
+        }
+        
+        return result;
     }
     
 }
