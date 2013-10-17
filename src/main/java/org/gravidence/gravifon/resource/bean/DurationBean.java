@@ -110,5 +110,29 @@ public class DurationBean extends ValidateableBean {
         
         return this;
     }
+
+    /**
+     * Returns amount in millis. Amount is converted to millis if another unit type is used.
+     * 
+     * @return amount in millis
+     */
+    public Long getMillisAmount() {
+        Long result;
+        
+        // check amount for null
+        if (amount == null) {
+            result = amount;
+        }
+        // convert all supported units to ms
+        else if ("s".equals(unit)) {
+            result = amount * 1000;
+        }
+        // no conversion needed as unit is ms
+        else {
+            result = amount;
+        }
+        
+        return result;
+    }
     
 }

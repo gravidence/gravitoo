@@ -26,6 +26,8 @@ package org.gravidence.gravifon.resource.bean;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.gravidence.gravifon.db.domain.ScrobbleDocument;
 import org.gravidence.gravifon.db.message.CreateDocumentResponse;
+import org.gravidence.gravifon.exception.ValidationException;
+import org.gravidence.gravifon.exception.error.GravifonError;
 import org.gravidence.gravifon.util.BasicUtils;
 import org.gravidence.gravifon.util.DateTimeUtils;
 import org.joda.time.DateTime;
@@ -170,10 +172,21 @@ public class ScrobbleBean extends ValidateableBean {
         checkRequired(scrobbleDuration, "scrobble_duration");
         scrobbleDuration.validate();
         
+        if (scrobbleEndDatetime.isBefore(scrobbleStartDatetime)) {
+            throw new ValidationException(
+                    GravifonError.INVALID, "Scrobble event end datetime is before start datetime.");
+        }
+        if (scrobbleEndDatetime.minusDays(1).isAfterNow()) {
+            throw new ValidationException(
+                    GravifonError.INVALID, "Scrobble event end datetime is too far in future.");
+        }
+        if (scrobbleStartDatetime.plus(scrobbleDuration.getMillisAmount()).isAfter(scrobbleEndDatetime)) {
+            throw new ValidationException(
+                    GravifonError.INVALID, "Scrobble duration is longer than scrobble event.");
+        }
+        
         checkRequired(track, "track");
         track.validate();
-        
-        // TODO add datetime/duration consistency check
     }
 
     /**
