@@ -50,12 +50,12 @@ public class UserBean extends ValidateableBean {
     /**
      * Latin-1 characters set excluding some specific ones (i.e. ":", "?", "\", etc.).
      */
-    private static final String LATIN_LIGHT = "\\w!#$%'()*+,\\-.;=@\\[\\]\\^`{}";
+    private static final String LATIN_LIGHT = "\\w!#$%'()+,\\-.;=@\\[\\]\\^`{}";
     
     /**
      * Latin-1 characters set.
      */
-    private static final String LATIN_FULL = LATIN_LIGHT + " \\\"\\&/:<>?\\\\\\|";
+    private static final String LATIN_FULL = LATIN_LIGHT + " *\\\"\\&/:<>?\\\\\\|";
 
     /**
      * {@link #getUsername() Username} attribute valid format pattern.
