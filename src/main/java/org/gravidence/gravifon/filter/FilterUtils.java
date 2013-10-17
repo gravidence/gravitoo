@@ -23,9 +23,11 @@
  */
 package org.gravidence.gravifon.filter;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import java.io.UnsupportedEncodingException;
-import java.util.regex.Pattern;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.io.IOException;
+import java.util.List;
+import org.apache.commons.collections.CollectionUtils;
 import org.gravidence.gravifon.db.SharedInstanceHolder;
 import org.slf4j.Logger;
 
@@ -37,17 +39,14 @@ import org.slf4j.Logger;
 public class FilterUtils {
     
     /**
-     * Not serialized entity placeholder. Used when serialization error occurs.
+     * Corrupted entity placeholder. Used when deserialization error occurs.
      */
-    private static final String NOT_SERIALIZED_ENTITY = "<not serialized entity>";
+    private static final String CORRUPTED_ENTITY = "<corrupted entity>";
 
     /**
      * No entity placeholder.
      */
     public static final String NO_ENTITY = "<no entity>";
-    
-    private static final Pattern PASSWORD_PATTERN = Pattern.compile(
-            "\"password\"\\s*:\\s*\".*\"");
 
     /**
      * Preventing class instantiation.
@@ -65,7 +64,6 @@ public class FilterUtils {
      * @return <ul>
      *           <li>serialized entity in successful case</li>
      *           <li>{@link #NO_ENTITY} in case the supplied <code>entity</code> argument is <code>null</code></li>
-     *           <li>{@link #NOT_SERIALIZED_ENTITY} in case of serialization error</li>
      *         </ul>
      */
     public static String entityToString(Object entity, Logger logger) {
@@ -73,18 +71,13 @@ public class FilterUtils {
 
         if (entity == null) {
             result = NO_ENTITY;
-        } else {
-            try {
-                result = SharedInstanceHolder.OBJECT_MAPPER.writeValueAsString(entity);
-                
-                // hide sensitive information
-                result = PASSWORD_PATTERN.matcher(result).replaceAll("\"password\":\"***\"");
-            }
-            catch (JsonProcessingException ex) {
-                logger.error("Failed to serialize entity", ex);
+        }
+        else {
+            JsonNode root = SharedInstanceHolder.OBJECT_MAPPER.valueToTree(entity);
 
-                result = NOT_SERIALIZED_ENTITY;
-            }
+            hideSensitiveInformation(root, "password");
+
+            result = root.toString();
         }
 
         return result;
@@ -99,7 +92,7 @@ public class FilterUtils {
      * @return <ul>
      *           <li>serialized entity in successful case</li>
      *           <li>{@link #NO_ENTITY} in case the supplied <code>entity</code> argument is <code>null</code></li>
-     *           <li>{@link #NOT_SERIALIZED_ENTITY} in case of serialization error</li>
+     *           <li>{@link #CORRUPTED_ENTITY} in case of deserialization error</li>
      *         </ul>
      */
     public static String entityToString(byte[] entity, Logger logger) {
@@ -110,19 +103,35 @@ public class FilterUtils {
         }
         else {
             try {
-                result = new String(entity, "UTF-8").trim();
+                JsonNode root = SharedInstanceHolder.OBJECT_MAPPER.readTree(entity);
 
-                // hide sensitive information
-                result = PASSWORD_PATTERN.matcher(result).replaceAll("\"password\":\"***\"");
+                hideSensitiveInformation(root, "password");
+
+                result = root.toString();
             }
-            catch (UnsupportedEncodingException ex) {
-                logger.error("Failed to serialize entity", ex);
+            catch (IOException ex) {
+                logger.error("Failed to deserialize entity", ex);
 
-                result = NOT_SERIALIZED_ENTITY;
+                result = CORRUPTED_ENTITY;
             }
         }
         
         return result;
+    }
+    
+    /**
+     * Replaces sensitive information with placeholder.
+     * 
+     * @param root JSON object
+     * @param propertyName name of property that contains sensitive information
+     */
+    private static void hideSensitiveInformation(JsonNode root, String propertyName) {
+        List<JsonNode> nodes = root.findParents(propertyName);
+        if (CollectionUtils.isNotEmpty(nodes)) {
+            for (JsonNode node : nodes) {
+                ((ObjectNode) node).put(propertyName, "***");
+            }
+        }
     }
     
 }
