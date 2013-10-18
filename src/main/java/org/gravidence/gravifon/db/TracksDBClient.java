@@ -23,7 +23,7 @@
  */
 package org.gravidence.gravifon.db;
 
-import java.util.ArrayList;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import java.util.List;
 import javax.ws.rs.client.WebTarget;
 import org.gravidence.gravifon.db.domain.TrackDocument;
@@ -135,11 +135,12 @@ public class TracksDBClient extends BasicDBClient<TrackDocument> implements Init
      * @return list of track details documents if found, <code>null</code> otherwise
      */
     public List<TrackDocument> retrieveTracksByIncompleteKey(List<String> key) {
-        List<String> endkey = new ArrayList<>(key);
-        endkey.add("\uFFFF");
+        ArrayNode startkey = SharedInstanceHolder.OBJECT_MAPPER.valueToTree(key);
+        ArrayNode endkey = startkey.deepCopy();
+        endkey.addObject();
         
         ViewQueryArguments args = new ViewQueryArguments()
-                .addStartKey(key)
+                .addStartKey(startkey)
                 .addEndKey(endkey)
                 .addIncludeDocs(true);
         

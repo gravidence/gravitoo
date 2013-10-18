@@ -23,6 +23,7 @@
  */
 package org.gravidence.gravifon.db;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -90,8 +91,8 @@ public class ViewQueryArguments {
      * @param value query argument value
      * @return reference to this object
      */
-    public ViewQueryArguments addStartKey(List<?> value) {
-        arguments.put("startkey", BasicUtils.objectToJsonString(value));
+    public ViewQueryArguments addStartKey(JsonNode value) {
+        arguments.put("startkey", value.toString());
         
         return this;
     }
@@ -103,8 +104,8 @@ public class ViewQueryArguments {
      * @param value query argument value
      * @return reference to this object
      */
-    public ViewQueryArguments addEndKey(List<?> value) {
-        arguments.put("endkey", BasicUtils.objectToJsonString(value));
+    public ViewQueryArguments addEndKey(JsonNode value) {
+        arguments.put("endkey", value.toString());
         
         return this;
     }
