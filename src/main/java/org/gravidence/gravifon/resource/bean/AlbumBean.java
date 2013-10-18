@@ -300,7 +300,8 @@ public class AlbumBean extends ValidateableBean {
     }
     
     /**
-     * Updates bean with document values.
+     * Updates bean with document values.<p>
+     * <code>Tracks</code> are to be populated by resource (via <code>albumId</code>).
      * 
      * @param document album details document
      * @return updated bean
@@ -312,7 +313,6 @@ public class AlbumBean extends ValidateableBean {
             type = document.getType();
             releaseDate = DateTimeUtils.arrayToLocalDate(document.getReleaseDate());
             artists = BeanUtils.idsToArtistBeans(document.getArtistIds());
-            tracks = BeanUtils.idsToTrackBeans(document.getTrackIds());
             labels = BeanUtils.labelsToLabelBeans(document.getLabels());
             
             if (document.getVariationInfo() == null) {
@@ -363,7 +363,6 @@ public class AlbumBean extends ValidateableBean {
             document.setType(type);
             document.setReleaseDate(DateTimeUtils.localDateToArray(releaseDate));
             document.setArtistIds(BeanUtils.artistBeansToIds(artists));
-            document.setTrackIds(BeanUtils.trackBeansToIds(tracks));
             document.setLabels(BeanUtils.labelBeansToLabels(labels));
             
             if (variationInfo == null) {

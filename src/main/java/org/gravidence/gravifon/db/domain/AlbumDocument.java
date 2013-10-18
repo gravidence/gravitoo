@@ -59,12 +59,6 @@ public class AlbumDocument extends VariableDocument {
     private List<Label> labels;
     
     /**
-     * @see #getTrackIds()
-     */
-    @JsonProperty("track_ids")
-    private List<String> trackIds;
-    
-    /**
      * @see #getType()
      */
     @JsonProperty
@@ -137,23 +131,6 @@ public class AlbumDocument extends VariableDocument {
      */
     public void setLabels(List<Label> labels) {
         this.labels = labels;
-    }
-
-    /**
-     * Returns list of album track identifiers.
-     * 
-     * @return list of artistId track identifiers
-     */
-    public List<String> getTrackIds() {
-        return trackIds;
-    }
-
-    /**
-     * @param trackIds
-     * @see #getTrackIds()
-     */
-    public void setTrackIds(List<String> trackIds) {
-        this.trackIds = trackIds;
     }
 
     /**
