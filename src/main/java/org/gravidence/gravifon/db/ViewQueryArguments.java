@@ -97,6 +97,19 @@ public class ViewQueryArguments {
     }
     
     /**
+     * Adds <code>endkey</code> query argument.<p>
+     * <code>Value</code> is converted to corresponding JSON object.
+     * 
+     * @param value query argument value
+     * @return reference to this object
+     */
+    public ViewQueryArguments addEndKey(List<?> value) {
+        arguments.put("endkey", BasicUtils.objectToJsonString(value));
+        
+        return this;
+    }
+    
+    /**
      * Adds <code>include_docs</code> query argument.
      * 
      * @param value query argument value
