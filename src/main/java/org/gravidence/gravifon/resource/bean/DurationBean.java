@@ -23,6 +23,7 @@
  */
 package org.gravidence.gravifon.resource.bean;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.gravidence.gravifon.db.domain.Duration;
 import org.gravidence.gravifon.exception.GravifonException;
@@ -116,6 +117,7 @@ public class DurationBean extends ValidateableBean {
      * 
      * @return amount in millis
      */
+    @JsonIgnore
     public Long getMillisAmount() {
         Long result;
         
