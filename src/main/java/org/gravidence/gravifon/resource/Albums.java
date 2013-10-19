@@ -30,6 +30,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import org.gravidence.gravifon.db.AlbumsDBClient;
 import org.gravidence.gravifon.resource.bean.AlbumsInfoBean;
+import org.gravidence.gravifon.resource.message.StatusResponse;
 import org.gravidence.gravifon.validation.AlbumsInfoValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,17 +63,17 @@ public class Albums {
     /**
      * Retrieves <code>/albums</code> database info.
      * 
-     * @return <code>/albums</code> database info bean
+     * @return status response with <code>/albums</code> database info bean
      */
     @GET
-    public AlbumsInfoBean info() {
+    public StatusResponse info() {
         albumsInfoValidator.validate(null, null, null);
         
-        AlbumsInfoBean result = new AlbumsInfoBean();
+        AlbumsInfoBean entity = new AlbumsInfoBean();
         
-        result.setAlbumAmount(albumsDBClient.retrievePrimaryAlbumVariationAmount());
+        entity.setAlbumAmount(albumsDBClient.retrievePrimaryAlbumVariationAmount());
         
-        return result;
+        return new StatusResponse<>(entity);
     }
 
 }

@@ -29,6 +29,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import org.gravidence.gravifon.resource.bean.ApplicationInfoBean;
+import org.gravidence.gravifon.resource.message.StatusResponse;
 import org.gravidence.gravifon.validation.ApplicationInfoValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,13 +60,13 @@ public class Application {
     /**
      * Retrieves Gravifon application info.
      * 
-     * @return Gravifon application info bean
+     * @return status response with Gravifon application info bean
      */
     @GET
-    public ApplicationInfoBean info() {
+    public StatusResponse info() {
         applicationInfoValidator.validate(null, null, null);
         
-        return applicationInfo;
+        return new StatusResponse<>(applicationInfo);
     }
 
 }

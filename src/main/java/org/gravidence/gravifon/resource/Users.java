@@ -43,9 +43,9 @@ import org.gravidence.gravifon.db.domain.UserDocument;
 import org.gravidence.gravifon.exception.GravifonException;
 import org.gravidence.gravifon.exception.UserNotFoundException;
 import org.gravidence.gravifon.exception.error.GravifonError;
-import org.gravidence.gravifon.resource.bean.StatusBean;
 import org.gravidence.gravifon.resource.bean.UserBean;
 import org.gravidence.gravifon.resource.bean.UsersInfoBean;
+import org.gravidence.gravifon.resource.message.StatusResponse;
 import org.gravidence.gravifon.validation.UserCreateValidator;
 import org.gravidence.gravifon.validation.UserDeleteValidator;
 import org.gravidence.gravifon.validation.UserRetrieveValidator;
@@ -88,17 +88,17 @@ public class Users {
     /**
      * Retrieves <code>/users</code> database info.
      * 
-     * @return <code>/users</code> database info bean
+     * @return status response with <code>/users</code> database info bean
      */
     @GET
-    public UsersInfoBean info() {
+    public StatusResponse info() {
         usersInfoValidator.validate(null, null, null);
         
-        UsersInfoBean result = new UsersInfoBean();
+        UsersInfoBean entity = new UsersInfoBean();
         
-        result.setUserAmount(usersDBClient.retrieveUserAmount());
+        entity.setUserAmount(usersDBClient.retrieveUserAmount());
         
-        return result;
+        return new StatusResponse<>(entity);
     }
     
     /**
@@ -106,7 +106,7 @@ public class Users {
      * 
      * @param uriInfo request URI details
      * @param user new user details bean
-     * @return 201 Created response with created user details bean
+     * @return 201 Created with status response with user identifier
      */
     @POST
     public Response create(@Context UriInfo uriInfo, UserBean user) {
@@ -120,12 +120,9 @@ public class Users {
         
         UserDocument document = usersDBClient.create(user.createDocument());
         
-        // Call database again in order to retrieve all system generated attributes
-        original = usersDBClient.retrieveUserByID(document.getId());
-        
         return Response
                 .created(UriBuilder.fromUri(uriInfo.getAbsolutePath()).path(document.getId()).build())
-                .entity(user.updateBean(original))
+                .entity(new StatusResponse<UserBean>(document.getId()))
                 .build();
     }
     
@@ -136,16 +133,16 @@ public class Users {
      * 
      * @param httpHeaders request http headers and cookies
      * @param id user identifier
-     * @return user details bean
+     * @return status response with user details bean
      */
     @GET
     @Path("{user_id}")
-    public UserBean retrieve(@Context HttpHeaders httpHeaders, @PathParam("user_id") String id) {
+    public StatusResponse retrieve(@Context HttpHeaders httpHeaders, @PathParam("user_id") String id) {
         userRetrieveValidator.validate(httpHeaders.getRequestHeaders(), null, null);
         
         UserDocument document = ResourceUtils.authorizeUser(httpHeaders.getRequestHeaders(), id, usersDBClient, LOGGER);
         
-        return new UserBean().updateBean(document);
+        return new StatusResponse<>(new UserBean().updateBean(document));
     }
     
     /**
@@ -154,11 +151,11 @@ public class Users {
      * 
      * @param uriInfo request URI details
      * @param username username
-     * @return user details bean (<code>id</code> and <code>username</code> only)
+     * @return status response with user details bean (<code>id</code> and <code>username</code> only)
      */
     @GET
     @Path("search")
-    public UserBean search(@Context UriInfo uriInfo, @QueryParam("username") String username) {
+    public StatusResponse search(@Context UriInfo uriInfo, @QueryParam("username") String username) {
         userSearchValidator.validate(null, uriInfo.getQueryParameters(), null);
         
         UserDocument document = usersDBClient.retrieveUserByUsername(username);
@@ -168,11 +165,11 @@ public class Users {
             throw new UserNotFoundException();
         }
         
-        UserBean result = new UserBean();
-        result.setId(document.getId());
-        result.setUsername(document.getUsername());
+        UserBean entity = new UserBean();
+        entity.setId(document.getId());
+        entity.setUsername(document.getUsername());
         
-        return result;
+        return new StatusResponse<>(entity);
     }
     
     /**
@@ -183,19 +180,18 @@ public class Users {
      * @param httpHeaders request http headers and cookies
      * @param id user identifier
      * @param user details bean
-     * @return updated user details bean
+     * @return status response
      */
     @PUT
     @Path("{user_id}")
-    public UserBean update(@Context HttpHeaders httpHeaders, @PathParam("user_id") String id, UserBean user) {
+    public StatusResponse update(@Context HttpHeaders httpHeaders, @PathParam("user_id") String id, UserBean user) {
         userUpdateValidator.validate(httpHeaders.getRequestHeaders(), null, user);
         
         UserDocument original = ResourceUtils.authorizeUser(httpHeaders.getRequestHeaders(), id, usersDBClient, LOGGER);
         
         usersDBClient.update(user.updateDocument(original));
         
-        // Update bean with original document details as identifier is not changed after update
-        return user.updateBean(original);
+        return new StatusResponse();
     }
     
     /**
@@ -205,18 +201,18 @@ public class Users {
      * 
      * @param httpHeaders request http headers and cookies
      * @param id user identifier
-     * @return status bean
+     * @return status response
      */
     @DELETE
     @Path("{user_id}")
-    public StatusBean delete(@Context HttpHeaders httpHeaders, @PathParam("user_id") String id) {
+    public StatusResponse delete(@Context HttpHeaders httpHeaders, @PathParam("user_id") String id) {
         userDeleteValidator.validate(httpHeaders.getRequestHeaders(), null, null);
         
         UserDocument original = ResourceUtils.authorizeUser(httpHeaders.getRequestHeaders(), id, usersDBClient, LOGGER);
         
         usersDBClient.delete(original);
         
-        return new StatusBean();
+        return new StatusResponse();
     }
 
 }

@@ -30,6 +30,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import org.gravidence.gravifon.db.TracksDBClient;
 import org.gravidence.gravifon.resource.bean.TracksInfoBean;
+import org.gravidence.gravifon.resource.message.StatusResponse;
 import org.gravidence.gravifon.validation.TracksInfoValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,17 +63,17 @@ public class Tracks {
     /**
      * Retrieves <code>/tracks</code> database info.
      * 
-     * @return <code>/tracks</code> database info bean
+     * @return status response with <code>/tracks</code> database info bean
      */
     @GET
-    public TracksInfoBean info() {
+    public StatusResponse info() {
         tracksInfoValidator.validate(null, null, null);
         
-        TracksInfoBean result = new TracksInfoBean();
+        TracksInfoBean entity = new TracksInfoBean();
         
-        result.setTrackAmount(tracksDBClient.retrievePrimaryTrackVariationAmount());
+        entity.setTrackAmount(tracksDBClient.retrievePrimaryTrackVariationAmount());
         
-        return result;
+        return new StatusResponse<>(entity);
     }
 
 }

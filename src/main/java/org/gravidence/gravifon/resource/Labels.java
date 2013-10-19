@@ -30,6 +30,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import org.gravidence.gravifon.db.LabelsDBClient;
 import org.gravidence.gravifon.resource.bean.LabelsInfoBean;
+import org.gravidence.gravifon.resource.message.StatusResponse;
 import org.gravidence.gravifon.validation.LabelsInfoValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,17 +63,17 @@ public class Labels {
     /**
      * Retrieves <code>/labels</code> database info.
      * 
-     * @return <code>/labels</code> database info bean
+     * @return status response with <code>/labels</code> database info bean
      */
     @GET
-    public LabelsInfoBean info() {
+    public StatusResponse info() {
         labelsInfoValidator.validate(null, null, null);
         
-        LabelsInfoBean result = new LabelsInfoBean();
+        LabelsInfoBean entity = new LabelsInfoBean();
         
-        result.setLabelAmount(labelsDBClient.retrievePrimaryLabelVariationAmount());
+        entity.setLabelAmount(labelsDBClient.retrievePrimaryLabelVariationAmount());
         
-        return result;
+        return new StatusResponse<>(entity);
     }
 
 }

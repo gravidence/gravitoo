@@ -34,6 +34,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
 @JsonIgnoreProperties(ignoreUnknown=true)
-public class IOBean extends StatusBean {
+public class IOBean {
 
 }

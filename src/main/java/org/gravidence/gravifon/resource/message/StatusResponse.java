@@ -28,12 +28,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Status response bean.<p>
- * Represents technical response details: status, error code and error description.
+ * Represents technical response details (status, error code and error description)
+ * as well as business details (entity identifier or entity itself).
  * Error related fields are not populated if response {@link #isOk() status} is successful.
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
-public class StatusResponse {
+public class StatusResponse<T> {
 
     /**
      * @see #isOk()
@@ -54,6 +55,20 @@ public class StatusResponse {
     @JsonProperty("error_description")
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String errorDescription;
+    
+    /**
+     * @see #getId()
+     */
+    @JsonProperty
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String id;
+    
+    /**
+     * @see #getEntity()
+     */
+    @JsonProperty
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private T entity;
 
     /**
      * Constructs successful status response.
@@ -79,6 +94,26 @@ public class StatusResponse {
         this.ok = false;
         this.errorCode = errorCode;
         this.errorDescription = errorDescription;
+    }
+    
+    /**
+     * Constructs successful status response with entity identifier.
+     * 
+     * @param id entity identifier
+     */
+    public StatusResponse(String id) {
+        this();
+        this.id = id;
+    }
+    
+    /**
+     * Constructs successful status response with entity.
+     * 
+     * @param entity entity
+     */
+    public StatusResponse(T entity) {
+        this();
+        this.entity = entity;
     }
 
     /**
@@ -108,6 +143,24 @@ public class StatusResponse {
      */
     public String getErrorDescription() {
         return errorDescription;
+    }
+
+    /**
+     * Returns entity identifier.
+     * 
+     * @return entity identifier
+     */
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * Returns entity.
+     * 
+     * @return entity
+     */
+    public T getEntity() {
+        return entity;
     }
     
 }
