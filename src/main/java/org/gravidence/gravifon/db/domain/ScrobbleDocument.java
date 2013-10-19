@@ -24,6 +24,7 @@
 package org.gravidence.gravifon.db.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Arrays;
 
 /**
  * Scrobble document.<p>
@@ -153,7 +154,7 @@ public class ScrobbleDocument extends CouchDBDocument {
     @Override
     public String toString() {
         return String.format("{id=%s, start=%s, userId=%s, trackId=%s}",
-                getId(), scrobbleStartDatetime, userId, trackId);
+                getId(), Arrays.toString(scrobbleStartDatetime), userId, trackId);
     }
     
 }
