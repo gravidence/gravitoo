@@ -23,6 +23,7 @@
  */
 package org.gravidence.gravifon.resource;
 
+import java.util.ArrayList;
 import java.util.List;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -46,11 +47,13 @@ import org.gravidence.gravifon.db.domain.ArtistDocument;
 import org.gravidence.gravifon.db.domain.ScrobbleDocument;
 import org.gravidence.gravifon.db.domain.TrackDocument;
 import org.gravidence.gravifon.db.domain.UserDocument;
+import org.gravidence.gravifon.exception.GravifonException;
 import org.gravidence.gravifon.resource.bean.AlbumBean;
 import org.gravidence.gravifon.resource.bean.ArtistBean;
 import org.gravidence.gravifon.resource.bean.ScrobbleBean;
 import org.gravidence.gravifon.resource.bean.ScrobblesInfoBean;
 import org.gravidence.gravifon.resource.bean.TrackBean;
+import org.gravidence.gravifon.resource.message.StatusResponse;
 import org.gravidence.gravifon.validation.ScrobbleSubmitValidator;
 import org.gravidence.gravifon.validation.ScrobblesInfoValidator;
 import org.slf4j.Logger;
@@ -115,17 +118,17 @@ public class Scrobbles {
     /**
      * Retrieves <code>/scrobbles</code> database info.
      * 
-     * @return <code>/scrobbles</code> database info bean
+     * @return status response with <code>/scrobbles</code> database info bean
      */
     @GET
-    public ScrobblesInfoBean info() {
+    public StatusResponse<ScrobblesInfoBean> info() {
         scrobblesInfoValidator.validate(null, null, null);
         
-        ScrobblesInfoBean result = new ScrobblesInfoBean();
+        ScrobblesInfoBean entity = new ScrobblesInfoBean();
         
-        result.setScrobbleAmount(scrobblesDBClient.retrieveScrobbleAmount());
+        entity.setScrobbleAmount(scrobblesDBClient.retrieveScrobbleAmount());
         
-        return result;
+        return new StatusResponse<>(entity);
     }
     
     /**
@@ -134,25 +137,36 @@ public class Scrobbles {
      * @param httpHeaders request http headers and cookies
      * @param uriInfo request URI details
      * @param scrobbles list of new scrobble details beans
-     * @return 201 Created response with list of created scrobble details bean
+     * @return list of status responses with scrobble identifiers
      */
     @POST
-    public List<ScrobbleBean> submit(@Context HttpHeaders httpHeaders, @Context UriInfo uriInfo, List<ScrobbleBean> scrobbles) {
+    public List<StatusResponse> submit(@Context HttpHeaders httpHeaders, @Context UriInfo uriInfo,
+            List<ScrobbleBean> scrobbles) {
         scrobbleSubmitValidator.validate(httpHeaders.getRequestHeaders(), null, scrobbles);
         
         UserDocument user = ResourceUtils.authenticateUser(httpHeaders.getRequestHeaders(), usersDBClient, LOGGER);
         
+        List<StatusResponse> result = new ArrayList<>(scrobbles.size() + 1);
+        
         for (ScrobbleBean scrobble : scrobbles) {
-            resolveTrackIds(scrobble.getTrack());
-            
-            ScrobbleDocument scrobbleDoc = scrobble.createDocument();
-            scrobbleDoc.setUserId(user.getId());
-            
-            scrobbleDoc = scrobblesDBClient.create(scrobbleDoc);
-            scrobble.setId(scrobbleDoc.getId());
+            try {
+                scrobble.validate();
+
+                resolveTrackIds(scrobble.getTrack());
+
+                ScrobbleDocument scrobbleDoc = scrobble.createDocument();
+                scrobbleDoc.setUserId(user.getId());
+
+                scrobbleDoc = scrobblesDBClient.create(scrobbleDoc);
+                
+                result.add(new StatusResponse(scrobbleDoc.getId()));
+            }
+            catch (GravifonException ex) {
+                result.add(new StatusResponse(ex.getError().getErrorCode(), ex.getMessage()));
+            }
         }
         
-        return scrobbles;
+        return result;
     }
     
     private ArtistDocument retrieveOrCreateArtistDocument(ArtistBean artist) {

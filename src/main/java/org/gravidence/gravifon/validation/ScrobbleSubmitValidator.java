@@ -56,12 +56,10 @@ public class ScrobbleSubmitValidator extends AbstractValidator<List<ScrobbleBean
         }
         
         if (entity.size() > 20) {
-            throw new ValidationException(GravifonError.INVALID, "Too many scrobbles at a time.");
+            throw new ValidationException(GravifonError.TOO_MANY_SCROBBLES, "Too many scrobbles at a time.");
         }
         
-        for (ScrobbleBean scrobble : entity) {
-            scrobble.validate();
-        }
+        // No further validation. Each scrobble is processed in isolation of others.
     }
     
 }

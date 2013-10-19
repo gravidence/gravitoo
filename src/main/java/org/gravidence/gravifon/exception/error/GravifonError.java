@@ -74,7 +74,11 @@ public enum GravifonError {
     /**
      * Unknown property value error. Property value is unknown. Applicable to enum restricted properties.
      */
-    UNKNOWN(10002, 400);
+    UNKNOWN(10002, 400),
+    /**
+     * Too many scrobbles error. Submitted scrobble list size violates max restriction.
+     */
+    TOO_MANY_SCROBBLES(10003, 400);
     
     /**
      * @see #getErrorCode()
