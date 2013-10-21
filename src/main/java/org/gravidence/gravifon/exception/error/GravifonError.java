@@ -64,6 +64,10 @@ public enum GravifonError {
      */
     USER_EXISTS(3001, 409),
     /**
+     * Entity not found error. Database reported that requested entity document is not found.
+     */
+    ENTITY_NOT_FOUND(3002, 404),
+    /**
      * Required property error. Property is missed.
      */
     REQUIRED(10000, 400),

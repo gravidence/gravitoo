@@ -26,9 +26,11 @@ package org.gravidence.gravifon.resource;
 import java.util.ArrayList;
 import java.util.List;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
@@ -47,13 +49,16 @@ import org.gravidence.gravifon.db.domain.ArtistDocument;
 import org.gravidence.gravifon.db.domain.ScrobbleDocument;
 import org.gravidence.gravifon.db.domain.TrackDocument;
 import org.gravidence.gravifon.db.domain.UserDocument;
+import org.gravidence.gravifon.exception.EntityNotFoundException;
 import org.gravidence.gravifon.exception.GravifonException;
+import org.gravidence.gravifon.exception.error.GravifonError;
 import org.gravidence.gravifon.resource.bean.AlbumBean;
 import org.gravidence.gravifon.resource.bean.ArtistBean;
 import org.gravidence.gravifon.resource.bean.ScrobbleBean;
 import org.gravidence.gravifon.resource.bean.ScrobblesInfoBean;
 import org.gravidence.gravifon.resource.bean.TrackBean;
 import org.gravidence.gravifon.resource.message.StatusResponse;
+import org.gravidence.gravifon.validation.ScrobbleDeleteValidator;
 import org.gravidence.gravifon.validation.ScrobbleSubmitValidator;
 import org.gravidence.gravifon.validation.ScrobblesInfoValidator;
 import org.slf4j.Logger;
@@ -114,6 +119,7 @@ public class Scrobbles {
     // Validators
     private ScrobblesInfoValidator scrobblesInfoValidator = new ScrobblesInfoValidator();
     private ScrobbleSubmitValidator scrobbleSubmitValidator = new ScrobbleSubmitValidator();
+    private ScrobbleDeleteValidator scrobbleDeleteValidator = new ScrobbleDeleteValidator();
     
     /**
      * Retrieves <code>/scrobbles</code> database info.
@@ -167,6 +173,33 @@ public class Scrobbles {
         }
         
         return result;
+    }
+    
+    /**
+     * Deletes existing scrobble.<p>
+     * Basic HTTP Authorization details are required. {@link GravifonError#NOT_ALLOWED NOT_ALLOWED} error is thrown
+     * in case requested scrobble doesn't belong to user specified in authorization details.
+     * 
+     * @param httpHeaders request http headers and cookies
+     * @param id scrobble identifier
+     * @return status response
+     */
+    @DELETE
+    @Path("{scrobble_id}")
+    public StatusResponse delete(@Context HttpHeaders httpHeaders, @PathParam("scrobble_id") String id) {
+        scrobbleDeleteValidator.validate(httpHeaders.getRequestHeaders(), null, null);
+        
+        ScrobbleDocument scrobble = scrobblesDBClient.retrieveScrobbleByID(id);
+        
+        if (scrobble == null) {
+            throw new EntityNotFoundException("Scrobble not found.");
+        }
+        
+        ResourceUtils.authorizeUser(httpHeaders.getRequestHeaders(), scrobble.getUserId(), usersDBClient, LOGGER);
+        
+        scrobblesDBClient.delete(scrobble);
+        
+        return new StatusResponse();
     }
     
     private ArtistDocument retrieveOrCreateArtistDocument(ArtistBean artist) {
