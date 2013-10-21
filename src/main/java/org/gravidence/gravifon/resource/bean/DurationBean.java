@@ -88,7 +88,7 @@ public class DurationBean extends ValidateableBean {
         checkRequired(amount, "amount");
         if (amount < 1) {
             throw new GravifonException(GravifonError.INVALID,
-                    "Invalid 'amount' property value. It must be positive number.");
+                    "Invalid 'amount' property value. It must be a positive number.");
         }
         
         checkRequired(unit, "unit");

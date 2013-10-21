@@ -79,21 +79,21 @@ public class ResourceUtils {
     
     /**
      * Verifies that Basic HTTP Authorization details are presented,
-     * correct and matches requested resource owner identifier.
+     * correct and matches identifier of requested resource owner.
      * 
      * @param headers request headers
-     * @param id requested resource owner identifier
+     * @param userId identifier of requested resource owner
      * @param usersDBClient <code>/users</code> database client instance
      * @param logger logger instance
      * @return authorized user details document
      * @throws GravifonException in case user not found, credentials are invalid
      * or access to requested resource is denied
      */
-    public static UserDocument authorizeUser(MultivaluedMap<String, String> headers, String id,
+    public static UserDocument authorizeUser(MultivaluedMap<String, String> headers, String userId,
             UsersDBClient usersDBClient, Logger logger) throws GravifonException {
         UserDocument user = authenticateUser(headers, usersDBClient, logger);
         
-        if (StringUtils.equals(user.getId(), id)) {
+        if (StringUtils.equals(user.getId(), userId)) {
             logger.trace("'{}' user successfully authorized.", user);
         }
         else {
