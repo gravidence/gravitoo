@@ -23,6 +23,7 @@
  */
 package org.gravidence.gravifon.resource.bean;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -236,6 +237,7 @@ public class TrackBean extends ValidateableBean {
      * 
      * @return track key
      */
+    @JsonIgnore
     public List<String> getKey() {
         List<String> result = new ArrayList<>();
         
