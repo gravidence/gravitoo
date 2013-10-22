@@ -32,6 +32,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -59,6 +60,7 @@ import org.gravidence.gravifon.resource.bean.ScrobblesInfoBean;
 import org.gravidence.gravifon.resource.bean.TrackBean;
 import org.gravidence.gravifon.resource.message.StatusResponse;
 import org.gravidence.gravifon.validation.ScrobbleDeleteValidator;
+import org.gravidence.gravifon.validation.ScrobbleRetrieveValidator;
 import org.gravidence.gravifon.validation.ScrobbleSubmitValidator;
 import org.gravidence.gravifon.validation.ScrobblesInfoValidator;
 import org.slf4j.Logger;
@@ -119,6 +121,7 @@ public class Scrobbles {
     // Validators
     private ScrobblesInfoValidator scrobblesInfoValidator = new ScrobblesInfoValidator();
     private ScrobbleSubmitValidator scrobbleSubmitValidator = new ScrobbleSubmitValidator();
+    private ScrobbleRetrieveValidator scrobbleRetrieveValidator = new ScrobbleRetrieveValidator();
     private ScrobbleDeleteValidator scrobbleDeleteValidator = new ScrobbleDeleteValidator();
     
     /**
@@ -173,6 +176,66 @@ public class Scrobbles {
         }
         
         return result;
+    }
+    
+    /**
+     * Retrieves existing scrobble details.<p>
+     * Basic HTTP Authorization details are required. {@link GravifonError#NOT_ALLOWED NOT_ALLOWED} error is thrown
+     * in case requested scrobble doesn't belong to user specified in authorization details.
+     * 
+     * @param httpHeaders request http headers and cookies
+     * @param uriInfo request URI details
+     * @param deep deep retrieval indicator (<code>true</code> means all child entities are to be retrieved as well)
+     * @param id scrobble identifier
+     * @return status response with scrobble details bean
+     */
+    @GET
+    @Path("{scrobble_id}")
+    public StatusResponse retrieve(@Context HttpHeaders httpHeaders, @Context UriInfo uriInfo,
+            @QueryParam("deep") Boolean deep, @PathParam("scrobble_id") String id) {
+        scrobbleRetrieveValidator.validate(httpHeaders.getRequestHeaders(), uriInfo.getQueryParameters(), null);
+        
+        ScrobbleDocument scrobble = scrobblesDBClient.retrieveScrobbleByID(id);
+        
+        if (scrobble == null) {
+            throw new EntityNotFoundException("Scrobble not found.");
+        }
+        
+        ResourceUtils.authorizeUser(httpHeaders.getRequestHeaders(), scrobble.getUserId(), usersDBClient, LOGGER);
+        
+        ScrobbleBean result = new ScrobbleBean().updateBean(scrobble);
+            
+        if (Boolean.TRUE.equals(deep)) {
+            TrackDocument track = tracksDBClient.retrieveTrackByID(scrobble.getTrackId());
+            
+            TrackBean trackBean = new TrackBean().updateBean(track);
+            result.setTrack(trackBean);
+            
+            List<ArtistBean> trackArtists = trackBean.getArtists();
+            
+            trackArtists.clear();
+            for (String artistId : track.getArtistIds()) {
+                ArtistDocument artist = artistsDBClient.retrieveArtistByID(artistId);
+                trackArtists.add(new ArtistBean().updateBean(artist));
+            }
+            
+            AlbumDocument album = albumsDBClient.retrieveAlbumByID(track.getAlbumId());
+            
+            AlbumBean albumBean = new AlbumBean().updateBean(album);
+            trackBean.setAlbum(albumBean);
+            
+            if (CollectionUtils.isNotEmpty(albumBean.getArtists())) {
+                List<ArtistBean> albumArtists = albumBean.getArtists();
+                
+                albumArtists.clear();
+                for (String artistId : album.getArtistIds()) {
+                    ArtistDocument artist = artistsDBClient.retrieveArtistByID(artistId);
+                    albumArtists.add(new ArtistBean().updateBean(artist));
+                }
+            }
+        }
+        
+        return new StatusResponse<>(result);
     }
     
     /**
