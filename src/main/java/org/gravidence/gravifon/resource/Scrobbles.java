@@ -161,7 +161,7 @@ public class Scrobbles {
             try {
                 scrobble.validate();
 
-                resolveTrackIds(scrobble.getTrack());
+                resolveTrackId(scrobble.getTrack());
 
                 ScrobbleDocument scrobbleDoc = scrobble.createDocument();
                 scrobbleDoc.setUserId(user.getId());
@@ -265,6 +265,13 @@ public class Scrobbles {
         return new StatusResponse();
     }
     
+    /**
+     * Retrieves artist document by artist name or creates a new one if nothing has been found.<p>
+     * First (e.g. default) artist is taken if many variations exist. Proper one should be chosen by voting mechanism.
+     * 
+     * @param artist artist details bean
+     * @return artist details document
+     */
     private ArtistDocument retrieveOrCreateArtistDocument(ArtistBean artist) {
         ArtistDocument result;
         
@@ -285,6 +292,14 @@ public class Scrobbles {
         return result;
     }
     
+    /**
+     * Retrieves album document by album title or creates a new one if nothing has been found.<p>
+     * First (e.g. default) album is taken if many variations exist. Proper one should be chosen by voting mechanism.<p>
+     * Album artists are retrieved/created as well.
+     * 
+     * @param album album details bean
+     * @return album details document
+     */
     private AlbumDocument retrieveOrCreateAlbumDocument(AlbumBean album) {
         AlbumDocument result;
         
@@ -307,6 +322,14 @@ public class Scrobbles {
         return result;
     }
     
+    /**
+     * Retrieves track document by track title or creates a new one if nothing has been found.<p>
+     * First (e.g. default) track is taken if many variations exist. Proper one should be chosen by voting mechanism.<p>
+     * Track artists, track album and album artists are retrieved/created as well.
+     * 
+     * @param track track details bean
+     * @return track details document
+     */
     private TrackDocument retrieveOrCreateTrackDocument(TrackBean track) {
         TrackDocument result;
         
@@ -318,7 +341,7 @@ public class Scrobbles {
             // find exact track record
             List<TrackDocument> trackDocs = tracksDBClient.retrieveTracksByKey(key);
             if (CollectionUtils.isEmpty(trackDocs)) {
-                resolveAlbumIds(track.getAlbum());
+                resolveAlbumId(track.getAlbum());
                 
                 // find all tracks that belong to artists+album
                 key.remove(key.size() - 1);
@@ -351,12 +374,27 @@ public class Scrobbles {
         return result;
     }
     
+    /**
+     * Updates artist details bean with artist identifier.<p>
+     * Appropriate artist details document is retrieved (or created) by artist name.
+     * 
+     * @param artist artist details bean
+     * 
+     * @see #retrieveOrCreateArtistDocument(org.gravidence.gravifon.resource.bean.ArtistBean)
+     */
     private void resolveArtistId(ArtistBean artist) {
         ArtistDocument artistDoc = retrieveOrCreateArtistDocument(artist);
         
         artist.setId(artistDoc.getId());
     }
     
+    /**
+     * Updates artist details beans with appropriate artist identifiers.
+     * 
+     * @param artists artist details beans
+     * 
+     * @see #resolveArtistId(org.gravidence.gravifon.resource.bean.ArtistBean)
+     */
     private void resolveArtistIds(List<ArtistBean> artists) {
         if (CollectionUtils.isNotEmpty(artists)) {
             for (ArtistBean artist : artists) {
@@ -365,13 +403,31 @@ public class Scrobbles {
         }
     }
     
-    private void resolveAlbumIds(AlbumBean album) {
-        AlbumDocument albumDoc = retrieveOrCreateAlbumDocument(album);
-        
-        album.setId(albumDoc.getId());
+    /**
+     * Updates album details bean with album identifier.<p>
+     * Appropriate album details document is retrieved (or created) by album title.
+     * 
+     * @param album album details bean
+     * 
+     * @see #retrieveOrCreateAlbumDocument(org.gravidence.gravifon.resource.bean.AlbumBean)
+     */
+    private void resolveAlbumId(AlbumBean album) {
+        if (album != null) {
+            AlbumDocument albumDoc = retrieveOrCreateAlbumDocument(album);
+
+            album.setId(albumDoc.getId());
+        }
     }
     
-    private void resolveTrackIds(TrackBean track) {
+    /**
+     * Updates track details bean with track identifier.<p>
+     * Appropriate track details document is retrieved (or created) by track title.
+     * 
+     * @param track track details bean
+     * 
+     * @see #retrieveOrCreateTrackDocument(org.gravidence.gravifon.resource.bean.TrackBean)
+     */
+    private void resolveTrackId(TrackBean track) {
         TrackDocument trackDoc = retrieveOrCreateTrackDocument(track);
         
         track.setId(trackDoc.getId());

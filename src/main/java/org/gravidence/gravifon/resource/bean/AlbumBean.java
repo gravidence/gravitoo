@@ -265,7 +265,7 @@ public class AlbumBean extends ValidateableBean {
      * Returns album key.<p>
      * Consists of album artist names (asc sorted) and album title. The key is lower cased.
      * 
-     * @return track key
+     * @return album key
      */
     @JsonIgnore
     public List<String> getKey() {
