@@ -23,6 +23,9 @@
  */
 package org.gravidence.gravifon.db;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import java.util.List;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
@@ -218,6 +221,63 @@ public class BasicDBClient<T extends CouchDBDocument> {
             
             throw new GravifonException(GravifonError.DATABASE_OPERATION, "Failed to delete document.");
         }
+    }
+    
+    // TODO add page support
+    public List<T> retrievePage(WebTarget viewTarget, ArrayNode key, JsonNode lastSubKey, boolean ascending, Long limit,
+            Class<T> documentType) {
+        ArrayNode startkey;
+        ArrayNode endkey;
+        
+        if (ascending) {
+            startkey = key;
+            
+            endkey = key.deepCopy();
+            if (lastSubKey == null) {
+                endkey.addObject();
+            }
+            else {
+                endkey.add(lastSubKey);
+            }
+        }
+        else {
+            startkey = key.deepCopy();
+            if (lastSubKey == null) {
+                startkey.addObject();
+            }
+            else {
+                startkey.add(lastSubKey);
+            }
+            
+            endkey = key;
+        }
+        
+        ViewQueryArguments args = new ViewQueryArguments()
+                .addStartKey(startkey)
+                .addEndKey(endkey)
+                .addIncludeDocs(true);
+        
+        if (!ascending) {
+            args.addDescending();
+        }
+        
+        if (limit != null) {
+            if (lastSubKey == null) {
+                args.addLimit(limit);
+            }
+            else {
+                args.addLimit(limit + 1);
+            }
+        }
+        
+        List<T> documents = ViewQueryExecutor.queryDocuments(viewTarget, args, documentType);
+        
+        // TODO take a look if extra last sub key element removal is needed
+//        if (CollectionUtils.isNotEmpty(documents) && lastSubKey != null) {
+//            documents.remove(0);
+//        }
+        
+        return documents;
     }
     
 }

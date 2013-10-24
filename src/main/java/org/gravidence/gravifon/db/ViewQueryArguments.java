@@ -134,4 +134,15 @@ public class ViewQueryArguments {
         return this;
     }
     
+    /**
+     * Adds <code>descending</code> query argument.
+     * 
+     * @return reference to this object
+     */
+    public ViewQueryArguments addDescending() {
+        arguments.put("descending", Boolean.TRUE.toString());
+        
+        return this;
+    }
+    
 }

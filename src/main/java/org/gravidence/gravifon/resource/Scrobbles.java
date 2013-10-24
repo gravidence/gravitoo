@@ -61,6 +61,7 @@ import org.gravidence.gravifon.resource.bean.TrackBean;
 import org.gravidence.gravifon.resource.message.StatusResponse;
 import org.gravidence.gravifon.validation.ScrobbleDeleteValidator;
 import org.gravidence.gravifon.validation.ScrobbleRetrieveValidator;
+import org.gravidence.gravifon.validation.ScrobbleSearchValidator;
 import org.gravidence.gravifon.validation.ScrobbleSubmitValidator;
 import org.gravidence.gravifon.validation.ScrobblesInfoValidator;
 import org.slf4j.Logger;
@@ -122,6 +123,7 @@ public class Scrobbles {
     private ScrobblesInfoValidator scrobblesInfoValidator = new ScrobblesInfoValidator();
     private ScrobbleSubmitValidator scrobbleSubmitValidator = new ScrobbleSubmitValidator();
     private ScrobbleRetrieveValidator scrobbleRetrieveValidator = new ScrobbleRetrieveValidator();
+    private ScrobbleSearchValidator scrobbleSearchValidator = new ScrobbleSearchValidator();
     private ScrobbleDeleteValidator scrobbleDeleteValidator = new ScrobbleDeleteValidator();
     
     /**
@@ -206,32 +208,47 @@ public class Scrobbles {
         ScrobbleBean result = new ScrobbleBean().updateBean(scrobble);
             
         if (Boolean.TRUE.equals(deep)) {
-            TrackDocument track = tracksDBClient.retrieveTrackByID(scrobble.getTrackId());
-            
-            TrackBean trackBean = new TrackBean().updateBean(track);
-            result.setTrack(trackBean);
-            
-            List<ArtistBean> trackArtists = trackBean.getArtists();
-            
-            trackArtists.clear();
-            for (String artistId : track.getArtistIds()) {
-                ArtistDocument artist = artistsDBClient.retrieveArtistByID(artistId);
-                trackArtists.add(new ArtistBean().updateBean(artist));
-            }
-            
-            AlbumDocument album = albumsDBClient.retrieveAlbumByID(track.getAlbumId());
-            
-            AlbumBean albumBean = new AlbumBean().updateBean(album);
-            trackBean.setAlbum(albumBean);
-            
-            if (CollectionUtils.isNotEmpty(albumBean.getArtists())) {
-                List<ArtistBean> albumArtists = albumBean.getArtists();
+            retrieveCompleteScrobbleDetails(result);
+        }
+        
+        return new StatusResponse<>(result);
+    }
+    
+    /**
+     * Searches for existing scrobbles that match selected filter and user.<p>
+     * Basic HTTP Authorization details are required.
+     * 
+     * @param httpHeaders request http headers and cookies
+     * @param uriInfo request URI details
+     * @param deep deep retrieval indicator (<code>true</code> means all child entities are to be retrieved as well)
+     * @param last number of last scrobbles to retrieve
+     * @return status response with scrobble details beans
+     */
+    @GET
+    @Path("search")
+    public StatusResponse search(@Context HttpHeaders httpHeaders, @Context UriInfo uriInfo,
+            @QueryParam("deep") Boolean deep, @QueryParam("last") Long last) {
+        scrobbleSearchValidator.validate(httpHeaders.getRequestHeaders(), uriInfo.getQueryParameters(), null);
+        
+        UserDocument user = ResourceUtils.authenticateUser(httpHeaders.getRequestHeaders(), usersDBClient, LOGGER);
+        
+        List<ScrobbleBean> result = new ArrayList<>();
+        
+        List<ScrobbleDocument> scrobbles = null;
+        
+        if (last != null) {
+            scrobbles = scrobblesDBClient.retrieveLastScrobblesByUserID(user.getId(), last);
+        }
+        
+        if (scrobbles != null) {
+            for (ScrobbleDocument scrobble : scrobbles) {
+                ScrobbleBean scrobbleBean = new ScrobbleBean().updateBean(scrobble);
                 
-                albumArtists.clear();
-                for (String artistId : album.getArtistIds()) {
-                    ArtistDocument artist = artistsDBClient.retrieveArtistByID(artistId);
-                    albumArtists.add(new ArtistBean().updateBean(artist));
+                if (Boolean.TRUE.equals(deep)) {
+                    retrieveCompleteScrobbleDetails(scrobbleBean);
                 }
+                
+                result.add(scrobbleBean);
             }
         }
         
@@ -431,6 +448,49 @@ public class Scrobbles {
         TrackDocument trackDoc = retrieveOrCreateTrackDocument(track);
         
         track.setId(trackDoc.getId());
+    }
+    
+    /**
+     * Retrieves complete scrobble details and updates given bean with them.<p>
+     * Scrobble document specifies just track identifier so track and child entities details
+     * (e.g. track artists, album, album artists) are retrieved by this method.
+     * 
+     * @param scrobble scrobble details bean
+     */
+    private void retrieveCompleteScrobbleDetails(ScrobbleBean scrobble) {
+        if (scrobble != null) {
+            TrackDocument trackDocument = tracksDBClient.retrieveTrackByID(scrobble.getTrack().getId());
+            
+            TrackBean track = new TrackBean().updateBean(trackDocument);
+            scrobble.setTrack(track);
+            
+            retrieveCompleteArtistsDetails(track.getArtists());
+            
+            // Album is optional attribute
+            if (trackDocument.getAlbumId() != null) {
+                AlbumDocument albumDocument = albumsDBClient.retrieveAlbumByID(trackDocument.getAlbumId());
+
+                AlbumBean album = new AlbumBean().updateBean(albumDocument);
+                track.setAlbum(album);
+
+                retrieveCompleteArtistsDetails(album.getArtists());
+            }
+        }
+    }
+    
+    /**
+     * Retrieves complete artists details and updates given beans with them.<p>
+     * Artist document specifies just artist identifier so artist details are retrieved by this method.
+     * 
+     * @param artists artist details beans
+     */
+    private void retrieveCompleteArtistsDetails(List<ArtistBean> artists) {
+        if (CollectionUtils.isNotEmpty(artists)) {
+            for (ArtistBean artist : artists) {
+                ArtistDocument artistDocument = artistsDBClient.retrieveArtistByID(artist.getId());
+                artist.updateBean(artistDocument);
+            }
+        }
     }
 
 }

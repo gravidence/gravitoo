@@ -23,6 +23,8 @@
  */
 package org.gravidence.gravifon.db;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import java.util.List;
 import javax.ws.rs.client.WebTarget;
 import org.gravidence.gravifon.db.domain.ScrobbleDocument;
 import org.slf4j.Logger;
@@ -73,6 +75,20 @@ public class ScrobblesDBClient extends BasicDBClient<ScrobbleDocument> implement
      */
     public ScrobbleDocument retrieveScrobbleByID(String id) {
         return retrieve(id, ScrobbleDocument.class);
+    }
+    
+    /**
+     * Retrieves a number of last scrobbles that belong to user.
+     * 
+     * @param userId user identifier
+     * @param amount number of last scrobbles to retrieve
+     * @return list of scrobble details documents
+     */
+    public List<ScrobbleDocument> retrieveLastScrobblesByUserID(String userId, long amount) {
+        ArrayNode key = SharedInstanceHolder.OBJECT_MAPPER.getNodeFactory().arrayNode();
+        key.add(userId);
+        
+        return retrievePage(viewMainAllScrobblesTarget, key, null, false, amount, ScrobbleDocument.class);
     }
     
 }
