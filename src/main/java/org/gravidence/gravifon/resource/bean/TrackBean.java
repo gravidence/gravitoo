@@ -246,7 +246,7 @@ public class TrackBean extends ValidateableBean {
         }
         Collections.sort(result);
         
-        result.add(BasicUtils.lowerCase(album.getTitle()));
+        result.add(album == null ? null : BasicUtils.lowerCase(album.getTitle()));
         
         result.add(BasicUtils.lowerCase(title));
         
