@@ -51,12 +51,6 @@ public class ApplicationInfoBean extends IOBean {
     private String appVersion;
 
     /**
-     * @see #getApiVersion()
-     */
-    @JsonProperty("api_version")
-    private String apiVersion;
-
-    /**
      * Returns Gravifon application name.
      * 
      * @return Gravifon application name
@@ -105,23 +99,6 @@ public class ApplicationInfoBean extends IOBean {
      */
     public void setAppVersion(String appVersion) {
         this.appVersion = appVersion;
-    }
-
-    /**
-     * Returns Gravifon API version.
-     * 
-     * @return Gravifon API version
-     */
-    public String getApiVersion() {
-        return apiVersion;
-    }
-
-    /**
-     * @param apiVersion
-     * @see #getApiVersion()
-     */
-    public void setApiVersion(String apiVersion) {
-        this.apiVersion = apiVersion;
     }
     
 }

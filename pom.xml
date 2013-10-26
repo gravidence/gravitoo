@@ -164,8 +164,6 @@ THE SOFTWARE.
     </dependencies>
     
     <properties>
-        <org.gravidence.gravifon.api.version>0.1.0</org.gravidence.gravifon.api.version>
-        
         <jersey.version>2.2</jersey.version>
         <jackson.version>2.2.2</jackson.version>
         <springframework.version>3.2.3.RELEASE</springframework.version>
