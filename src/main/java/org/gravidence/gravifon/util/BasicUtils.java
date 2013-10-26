@@ -24,11 +24,16 @@
 package org.gravidence.gravifon.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.io.UnsupportedEncodingException;
 import java.util.Locale;
 import java.util.UUID;
+import org.apache.commons.codec.CharEncoding;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.gravidence.gravifon.db.SharedInstanceHolder;
+import org.gravidence.gravifon.exception.GravifonException;
 import org.gravidence.gravifon.exception.JsonException;
+import org.gravidence.gravifon.exception.error.GravifonError;
 
 /**
  * Basic utility methods.
@@ -78,6 +83,56 @@ public class BasicUtils {
         }
         catch (JsonProcessingException ex) {
             throw new JsonException(ex);
+        }
+        
+        return result;
+    }
+    
+    /**
+     * Encodes a string according to URL safe base64 rules. UTF-8 character encoding is used.
+     * 
+     * @param input clear text string
+     * @return encoded string
+     */
+    public static String encodeToBase64(String input) {
+        String result;
+        
+        if (input == null) {
+            result = null;
+        }
+        else {
+            try {
+                result = Base64.encodeBase64URLSafeString(input.getBytes(CharEncoding.UTF_8));
+            }
+            catch (UnsupportedEncodingException ex) {
+                throw new GravifonException(
+                        GravifonError.UNEXPECTED, "UTF-8 encoding is not supported by underlying system.", ex);
+            }
+        }
+        
+        return result;
+    }
+    
+    /**
+     * Decodes a base64 string according to base64 rules. UTF-8 character encoding is used.
+     * 
+     * @param input encoded string
+     * @return decoded string
+     */
+    public static String decodeFromBase64(String input) {
+        String result;
+        
+        if (input == null) {
+            result = null;
+        }
+        else {
+            try {
+                result = new String(Base64.decodeBase64(input), CharEncoding.UTF_8);
+            }
+            catch (UnsupportedEncodingException ex) {
+                throw new GravifonException(
+                        GravifonError.UNEXPECTED, "UTF-8 encoding is not supported by underlying system.", ex);
+            }
         }
         
         return result;

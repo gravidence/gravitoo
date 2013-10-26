@@ -24,6 +24,7 @@
 package org.gravidence.gravifon.resource;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -55,10 +56,12 @@ import org.gravidence.gravifon.exception.GravifonException;
 import org.gravidence.gravifon.exception.error.GravifonError;
 import org.gravidence.gravifon.resource.bean.AlbumBean;
 import org.gravidence.gravifon.resource.bean.ArtistBean;
+import org.gravidence.gravifon.resource.bean.PageBean;
 import org.gravidence.gravifon.resource.bean.ScrobbleBean;
 import org.gravidence.gravifon.resource.bean.ScrobblesInfoBean;
 import org.gravidence.gravifon.resource.bean.TrackBean;
 import org.gravidence.gravifon.resource.message.StatusResponse;
+import org.gravidence.gravifon.util.BasicUtils;
 import org.gravidence.gravifon.validation.ScrobbleDeleteValidator;
 import org.gravidence.gravifon.validation.ScrobbleRetrieveValidator;
 import org.gravidence.gravifon.validation.ScrobbleSearchValidator;
@@ -221,34 +224,69 @@ public class Scrobbles {
      * @param httpHeaders request http headers and cookies
      * @param uriInfo request URI details
      * @param deep deep retrieval indicator (<code>true</code> means all child entities are to be retrieved as well)
-     * @param last number of last scrobbles to retrieve
-     * @return status response with scrobble details beans
+     * @param forward start scrobble identifier in forward direction 
+     * @param backward start scrobble identifier in backward direction
+     * @param amount number of scrobbles to retrieve
+     * @return status response with page bean (scrobble details beans inside)
      */
     @GET
     @Path("search")
     public StatusResponse search(@Context HttpHeaders httpHeaders, @Context UriInfo uriInfo,
-            @QueryParam("deep") Boolean deep, @QueryParam("last") Long last) {
+            @QueryParam("deep") Boolean deep,
+            @QueryParam("forward") String forward,
+            @QueryParam("backward") String backward,
+            @QueryParam("amount") Long amount) {
         scrobbleSearchValidator.validate(httpHeaders.getRequestHeaders(), uriInfo.getQueryParameters(), null);
         
         UserDocument user = ResourceUtils.authenticateUser(httpHeaders.getRequestHeaders(), usersDBClient, LOGGER);
         
-        List<ScrobbleBean> result = new ArrayList<>();
+        PageBean<ScrobbleBean> result = new PageBean<>();
+        result.setItems(new ArrayList<ScrobbleBean>());
         
+        // Scrobble sub key (start datetime) to start page with
+        String scrobbleStartDatetime;
+        boolean ascending;
+        if (forward != null) {
+            scrobbleStartDatetime = "".equals(forward) ? null : BasicUtils.decodeFromBase64(forward);
+            ascending = true;
+        }
+        else if (backward != null) {
+            scrobbleStartDatetime = "".equals(backward) ? null : BasicUtils.decodeFromBase64(backward);
+            ascending = false;
+        }
+        else {
+            scrobbleStartDatetime = null;
+            ascending = false;
+        }
+            
         List<ScrobbleDocument> scrobbles = null;
         
-        if (last != null) {
-            scrobbles = scrobblesDBClient.retrieveLastScrobblesByUserID(user.getId(), last);
+        if (amount != null) {
+            scrobbles = scrobblesDBClient.retrieveScrobblesByUserID(
+                    user.getId(), scrobbleStartDatetime, ascending, amount);
         }
         
         if (scrobbles != null) {
-            for (ScrobbleDocument scrobble : scrobbles) {
-                ScrobbleBean scrobbleBean = new ScrobbleBean().updateBean(scrobble);
+            int scrobblesToReturn;
+            if (amount >= scrobbles.size()) {
+                scrobblesToReturn = scrobbles.size();
+            }
+            else {
+                // Skip extra (last) scrobble - it's needed for next page info
+                scrobblesToReturn = scrobbles.size() - 1;
+                
+                scrobbleStartDatetime = Arrays.toString(scrobbles.get(scrobblesToReturn).getScrobbleStartDatetime());
+                result.setNext(BasicUtils.encodeToBase64(scrobbleStartDatetime));
+            }
+            
+            for (int i = 0; i < scrobblesToReturn; i++) {
+                ScrobbleBean scrobbleBean = new ScrobbleBean().updateBean(scrobbles.get(i));
                 
                 if (Boolean.TRUE.equals(deep)) {
                     retrieveCompleteScrobbleDetails(scrobbleBean);
                 }
                 
-                result.add(scrobbleBean);
+                result.getItems().add(scrobbleBean);
             }
         }
         

@@ -47,6 +47,8 @@ public class BasicDBClient<T extends CouchDBDocument> {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(BasicDBClient.class);
     
+    public static final long MAX_PAGE_SIZE = 50;
+    
     /**
      * @see #getDbClient()
      */
@@ -223,33 +225,36 @@ public class BasicDBClient<T extends CouchDBDocument> {
         }
     }
     
-    // TODO add page support
-    public List<T> retrievePage(WebTarget viewTarget, ArrayNode key, JsonNode lastSubKey, boolean ascending, Long limit,
+    /**
+     * Retrieves limited amount of documents (a page).<p>
+     * {@link #MAX_PAGE_SIZE} is used once it is less than <code>limit</code>.<p>
+     * No <code>subKey</code> means that retrieval is started from the very first document found by <code>key</code>.
+     * 
+     * @param viewTarget JAX-RS client target associated with particular view
+     * @param key main key that characterizes retrieve query
+     * @param subKey sub key to start from
+     * @param ascending retrieve direction
+     * @param limit max number of documents to retrieve
+     * @param documentType document object type
+     * @return documents of <code>documentType</code> type if found, <code>null</code> otherwise
+     */
+    public List<T> retrievePage(WebTarget viewTarget, ArrayNode key, JsonNode subKey, boolean ascending, Long limit,
             Class<T> documentType) {
         ArrayNode startkey;
         ArrayNode endkey;
         
-        if (ascending) {
-            startkey = key;
-            
-            endkey = key.deepCopy();
-            if (lastSubKey == null) {
-                endkey.addObject();
-            }
-            else {
-                endkey.add(lastSubKey);
-            }
+        startkey = key;
+        endkey = key.deepCopy();
+        
+        if (subKey != null) {
+            startkey.add(subKey);
         }
-        else {
-            startkey = key.deepCopy();
-            if (lastSubKey == null) {
-                startkey.addObject();
-            }
-            else {
-                startkey.add(lastSubKey);
-            }
-            
-            endkey = key;
+        else if (!ascending) {
+            startkey.addObject();
+        }
+        
+        if (ascending) {
+            endkey.addObject();
         }
         
         ViewQueryArguments args = new ViewQueryArguments()
@@ -261,21 +266,12 @@ public class BasicDBClient<T extends CouchDBDocument> {
             args.addDescending();
         }
         
-        if (limit != null) {
-            if (lastSubKey == null) {
-                args.addLimit(limit);
-            }
-            else {
-                args.addLimit(limit + 1);
-            }
+        if (limit == null || limit > MAX_PAGE_SIZE) {
+            limit = MAX_PAGE_SIZE;
         }
+        args.addLimit(limit + 1);
         
         List<T> documents = ViewQueryExecutor.queryDocuments(viewTarget, args, documentType);
-        
-        // TODO take a look if extra last sub key element removal is needed
-//        if (CollectionUtils.isNotEmpty(documents) && lastSubKey != null) {
-//            documents.remove(0);
-//        }
         
         return documents;
     }

@@ -23,10 +23,13 @@
  */
 package org.gravidence.gravifon.db;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import java.io.IOException;
 import java.util.List;
 import javax.ws.rs.client.WebTarget;
 import org.gravidence.gravifon.db.domain.ScrobbleDocument;
+import org.gravidence.gravifon.exception.JsonException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -78,17 +81,33 @@ public class ScrobblesDBClient extends BasicDBClient<ScrobbleDocument> implement
     }
     
     /**
-     * Retrieves a number of last scrobbles that belong to user.
+     * Retrieves a number of scrobbles that belong to user.
      * 
      * @param userId user identifier
-     * @param amount number of last scrobbles to retrieve
+     * @param scrobbleStartDatetime scrobble datetime to start from
+     * @param ascending retrieve direction
+     * @param limit max number of scrobbles to retrieve
      * @return list of scrobble details documents
      */
-    public List<ScrobbleDocument> retrieveLastScrobblesByUserID(String userId, long amount) {
+    public List<ScrobbleDocument> retrieveScrobblesByUserID(String userId, String scrobbleStartDatetime,
+            boolean ascending, long limit) {
         ArrayNode key = SharedInstanceHolder.OBJECT_MAPPER.getNodeFactory().arrayNode();
         key.add(userId);
         
-        return retrievePage(viewMainAllScrobblesTarget, key, null, false, amount, ScrobbleDocument.class);
+        JsonNode subKey;
+        if (scrobbleStartDatetime == null) {
+            subKey = null;
+        }
+        else {
+            try {
+                subKey = SharedInstanceHolder.OBJECT_MAPPER.readTree(scrobbleStartDatetime);
+            }
+            catch (IOException ex) {
+                throw new JsonException(ex);
+            }
+        }
+        
+        return retrievePage(viewMainAllScrobblesTarget, key, subKey, ascending, limit, ScrobbleDocument.class);
     }
     
 }
