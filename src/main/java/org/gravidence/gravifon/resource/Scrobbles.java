@@ -167,6 +167,10 @@ public class Scrobbles {
             try {
                 scrobble.validate();
 
+                // "Fraud" checks
+                checkForDuplicates(user.getId(), scrobble);
+                checkForIntersections(user.getId(), scrobble);
+
                 resolveTrackId(scrobble.getTrack());
 
                 ScrobbleDocument scrobbleDoc = scrobble.createDocument();
@@ -543,6 +547,31 @@ public class Scrobbles {
                 artist.updateBean(artistDocument);
             }
         }
+    }
+
+    /**
+     * Checks that same scrobble wasn't already processed.<p>
+     * "Same scrobble" means that absolutely identical scrobble event start datetime exists in database.
+     * 
+     * @param userId user identifier
+     * @param scrobble scrobble details bean to check
+     */
+    private void checkForDuplicates(String userId, ScrobbleBean scrobble) {
+        List<ScrobbleDocument> history = scrobblesDBClient.retrieveScrobblesByUserIDAndDateRange(
+                userId, null, scrobble.getScrobbleStartDatetime(), null, true, 1L);
+        if (CollectionUtils.isNotEmpty(history)) {
+            throw new GravifonException(GravifonError.DUPLICATE_SCROBBLE, "Scrobble was already processed.");
+        }
+    }
+    
+    // TODO implement the logic
+    private void checkForIntersections(String userId, ScrobbleBean scrobble) {
+//        DateTime checkRangeStart = scrobble.getScrobbleStartDatetime().minusHours(3);
+//        DateTime checkRangeEnd = scrobble.getScrobbleEndDatetime().plusHours(3);
+//        
+//        // TODO take care of pagination
+//        List<ScrobbleDocument> history = scrobblesDBClient.retrieveScrobblesByUserIDAndDateRange(
+//                userId, null, checkRangeStart, checkRangeEnd, true, null);
     }
 
 }

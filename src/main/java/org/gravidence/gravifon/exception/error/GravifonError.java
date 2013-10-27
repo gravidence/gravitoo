@@ -82,7 +82,15 @@ public enum GravifonError {
     /**
      * Too many scrobbles error. Submitted scrobble list size violates max restriction.
      */
-    TOO_MANY_SCROBBLES(10003, 400);
+    TOO_MANY_SCROBBLES(10003, 400),
+    /**
+     * Duplicate scrobble error. Submitted scrobble was already processed.
+     */
+    DUPLICATE_SCROBBLE(10004, 400),
+    /**
+     * Fraud scrobble error. Submitted scrobble event intersects with other already processed scrobble.
+     */
+    FRAUD_SCROBBLE(10005, 400);
     
     /**
      * @see #getErrorCode()
