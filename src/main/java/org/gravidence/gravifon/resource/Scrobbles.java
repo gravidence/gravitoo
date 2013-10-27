@@ -67,6 +67,7 @@ import org.gravidence.gravifon.validation.ScrobbleRetrieveValidator;
 import org.gravidence.gravifon.validation.ScrobbleSearchValidator;
 import org.gravidence.gravifon.validation.ScrobbleSubmitValidator;
 import org.gravidence.gravifon.validation.ScrobblesInfoValidator;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -227,6 +228,8 @@ public class Scrobbles {
      * @param forward start scrobble identifier in forward direction 
      * @param backward start scrobble identifier in backward direction
      * @param amount number of scrobbles to retrieve
+     * @param start opening bound of date range
+     * @param end closing bound of date range
      * @return status response with page bean (scrobble details beans inside)
      */
     @GET
@@ -235,7 +238,9 @@ public class Scrobbles {
             @QueryParam("deep") Boolean deep,
             @QueryParam("forward") String forward,
             @QueryParam("backward") String backward,
-            @QueryParam("amount") Long amount) {
+            @QueryParam("amount") Long amount,
+            @QueryParam("start") String start,
+            @QueryParam("end") String end) {
         scrobbleSearchValidator.validate(httpHeaders.getRequestHeaders(), uriInfo.getQueryParameters(), null);
         
         UserDocument user = ResourceUtils.authenticateUser(httpHeaders.getRequestHeaders(), usersDBClient, LOGGER);
@@ -261,7 +266,16 @@ public class Scrobbles {
             
         List<ScrobbleDocument> scrobbles = null;
         
-        if (amount != null) {
+        // TODO these two should be combined perhaps
+        if (start != null || end != null) {
+            // TODO more elegant datetime handling needed
+            DateTime startDatetime = start == null ? null : DateTime.parse(start);
+            DateTime endDatetime = end == null ? null : DateTime.parse(end);
+            
+            scrobbles = scrobblesDBClient.retrieveScrobblesByUserIDAndDateRange(
+                    user.getId(), scrobbleStartDatetime, startDatetime, endDatetime, ascending, amount);
+        }
+        else {
             scrobbles = scrobblesDBClient.retrieveScrobblesByUserID(
                     user.getId(), scrobbleStartDatetime, ascending, amount);
         }

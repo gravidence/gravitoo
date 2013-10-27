@@ -30,6 +30,8 @@ import java.util.List;
 import javax.ws.rs.client.WebTarget;
 import org.gravidence.gravifon.db.domain.ScrobbleDocument;
 import org.gravidence.gravifon.exception.JsonException;
+import org.gravidence.gravifon.util.DateTimeUtils;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -90,24 +92,63 @@ public class ScrobblesDBClient extends BasicDBClient<ScrobbleDocument> implement
      * @return list of scrobble details documents
      */
     public List<ScrobbleDocument> retrieveScrobblesByUserID(String userId, String scrobbleStartDatetime,
-            boolean ascending, long limit) {
+            boolean ascending, Long limit) {
+        return retrieveScrobblesByUserIDAndDateRange(userId, scrobbleStartDatetime, null, null, ascending, limit);
+    }
+    
+    /**
+     * Retrieves a number of scrobbles that belong to user.
+     * 
+     * @param userId user identifier
+     * @param scrobbleStartDatetime scrobble datetime to start from
+     * @param start opening bound of date range
+     * @param end closing bound of date range
+     * @param ascending retrieve direction
+     * @param limit max number of scrobbles to retrieve
+     * @return list of scrobble details documents
+     */
+    public List<ScrobbleDocument> retrieveScrobblesByUserIDAndDateRange(String userId, String scrobbleStartDatetime,
+            DateTime start, DateTime end, boolean ascending, Long limit) {
         ArrayNode key = SharedInstanceHolder.OBJECT_MAPPER.getNodeFactory().arrayNode();
         key.add(userId);
         
-        JsonNode subKey;
-        if (scrobbleStartDatetime == null) {
-            subKey = null;
-        }
-        else {
+        JsonNode scrobbleStart;
+        if (scrobbleStartDatetime != null) {
             try {
-                subKey = SharedInstanceHolder.OBJECT_MAPPER.readTree(scrobbleStartDatetime);
+                scrobbleStart = SharedInstanceHolder.OBJECT_MAPPER.readTree(scrobbleStartDatetime);
             }
             catch (IOException ex) {
                 throw new JsonException(ex);
             }
         }
+        else {
+            scrobbleStart = null;
+        }
         
-        return retrievePage(viewMainAllScrobblesTarget, key, subKey, ascending, limit, ScrobbleDocument.class);
+        JsonNode subKeyStart;
+        if (ascending && scrobbleStart != null) {
+            subKeyStart = scrobbleStart;
+        }
+        else if (start != null) {
+            subKeyStart = SharedInstanceHolder.OBJECT_MAPPER.valueToTree(DateTimeUtils.dateTimeToArray(start));
+        }
+        else {
+            subKeyStart = null;
+        }
+        
+        JsonNode subKeyEnd;
+        if (!ascending && scrobbleStart != null) {
+            subKeyEnd = scrobbleStart;
+        }
+        else if (end != null) {
+            subKeyEnd = SharedInstanceHolder.OBJECT_MAPPER.valueToTree(DateTimeUtils.dateTimeToArray(end));
+        }
+        else {
+            subKeyEnd = null;
+        }
+        
+        return retrievePage(viewMainAllScrobblesTarget, key, subKeyStart, subKeyEnd, ascending, limit,
+                ScrobbleDocument.class);
     }
     
 }

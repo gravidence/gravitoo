@@ -228,33 +228,48 @@ public class BasicDBClient<T extends CouchDBDocument> {
     /**
      * Retrieves limited amount of documents (a page).<p>
      * {@link #MAX_PAGE_SIZE} is used once it is less than <code>limit</code>.<p>
-     * No <code>subKey</code> means that retrieval is started from the very first document found by <code>key</code>.
+     * No <code>subKeyStart</code> means that retrieval is started from the very first document found by <code>key</code>.
+     * No <code>subKeyEnd</code> means that retrieval is finished at the very last document found by <code>key</code>
+     * if page limit is not reached ealier.
      * 
      * @param viewTarget JAX-RS client target associated with particular view
      * @param key main key that characterizes retrieve query
-     * @param subKey sub key to start from
+     * @param subKeyStart sub key to start from
+     * @param subKeyEnd sub key to finish at
      * @param ascending retrieve direction
      * @param limit max number of documents to retrieve
      * @param documentType document object type
      * @return documents of <code>documentType</code> type if found, <code>null</code> otherwise
      */
-    public List<T> retrievePage(WebTarget viewTarget, ArrayNode key, JsonNode subKey, boolean ascending, Long limit,
-            Class<T> documentType) {
+    public List<T> retrievePage(WebTarget viewTarget, ArrayNode key, JsonNode subKeyStart, JsonNode subKeyEnd,
+            boolean ascending, Long limit, Class<T> documentType) {
         ArrayNode startkey;
         ArrayNode endkey;
         
         startkey = key;
         endkey = key.deepCopy();
         
-        if (subKey != null) {
-            startkey.add(subKey);
-        }
-        else if (!ascending) {
-            startkey.addObject();
-        }
-        
         if (ascending) {
-            endkey.addObject();
+            if (subKeyStart != null) {
+                startkey.add(subKeyStart);
+            }
+            if (subKeyEnd != null) {
+                endkey.add(subKeyEnd);
+            }
+            else {
+                endkey.addObject();
+            }
+        }
+        else {
+            if (subKeyEnd != null) {
+                startkey.add(subKeyEnd);
+            }
+            else {
+                startkey.addObject();
+            }
+            if (subKeyStart != null) {
+                endkey.add(subKeyStart);
+            }
         }
         
         ViewQueryArguments args = new ViewQueryArguments()
@@ -266,7 +281,7 @@ public class BasicDBClient<T extends CouchDBDocument> {
             args.addDescending();
         }
         
-        if (limit == null || limit > MAX_PAGE_SIZE) {
+        if (limit == null || limit < 1 || limit > MAX_PAGE_SIZE) {
             limit = MAX_PAGE_SIZE;
         }
         args.addLimit(limit + 1);
