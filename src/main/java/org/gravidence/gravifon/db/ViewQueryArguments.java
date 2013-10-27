@@ -72,6 +72,18 @@ public class ViewQueryArguments {
     }
     
     /**
+     * Adds <code>key</code> query argument.
+     * 
+     * @param value query argument value
+     * @return reference to this object
+     */
+    public ViewQueryArguments addKey(JsonNode value) {
+        arguments.put("key", value.toString());
+        
+        return this;
+    }
+    
+    /**
      * Adds <code>key</code> query argument.<p>
      * <code>Value</code> is converted to corresponding JSON object.
      * 
@@ -85,8 +97,7 @@ public class ViewQueryArguments {
     }
     
     /**
-     * Adds <code>startkey</code> query argument.<p>
-     * <code>Value</code> is converted to corresponding JSON object.
+     * Adds <code>startkey</code> query argument.
      * 
      * @param value query argument value
      * @return reference to this object
@@ -98,8 +109,7 @@ public class ViewQueryArguments {
     }
     
     /**
-     * Adds <code>endkey</code> query argument.<p>
-     * <code>Value</code> is converted to corresponding JSON object.
+     * Adds <code>endkey</code> query argument.
      * 
      * @param value query argument value
      * @return reference to this object

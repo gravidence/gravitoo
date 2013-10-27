@@ -557,10 +557,21 @@ public class Scrobbles {
      * @param scrobble scrobble details bean to check
      */
     private void checkForDuplicates(String userId, ScrobbleBean scrobble) {
-        List<ScrobbleDocument> history = scrobblesDBClient.retrieveScrobblesByUserIDAndDateRange(
-                userId, null, scrobble.getScrobbleStartDatetime(), null, true, 1L);
+        List<ScrobbleDocument> history = scrobblesDBClient.retrieveScrobblesByKey(
+                userId, scrobble.getScrobbleStartDatetime());
         if (CollectionUtils.isNotEmpty(history)) {
-            throw new GravifonException(GravifonError.DUPLICATE_SCROBBLE, "Scrobble was already processed.");
+            for (ScrobbleDocument doc : history) {
+                // Scrobble event start datetime already compared as part of complete key
+                // so compare durations only
+                if (doc.getScrobbleDuration().getAmount().equals(scrobble.getScrobbleDuration().getAmount())
+                        && doc.getScrobbleDuration().getUnit().equals(scrobble.getScrobbleDuration().getUnit())) {
+                    throw new GravifonException(GravifonError.DUPLICATE_SCROBBLE, "Scrobble was already processed.");
+                }
+                else {
+                    throw new GravifonException(GravifonError.FRAUD_SCROBBLE,
+                            "Another scrobble was already processed at that time.");
+                }
+            }
         }
     }
     

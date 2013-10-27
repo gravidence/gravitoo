@@ -226,6 +226,24 @@ public class BasicDBClient<T extends CouchDBDocument> {
     }
     
     /**
+     * Retrieves documents by complete key.
+     * 
+     * @param viewTarget JAX-RS client target associated with particular view
+     * @param key complete key
+     * @param documentType document object type
+     * @return documents of <code>documentType</code> type if found, <code>null</code> otherwise
+     */
+    public List<T> retrieveByKey(WebTarget viewTarget, JsonNode key, Class<T> documentType) {
+        ViewQueryArguments args = new ViewQueryArguments()
+                .addKey(key)
+                .addIncludeDocs(true);
+        
+        List<T> documents = ViewQueryExecutor.queryDocuments(viewTarget, args, documentType);
+        
+        return documents;
+    }
+    
+    /**
      * Retrieves limited amount of documents (a page).<p>
      * {@link #MAX_PAGE_SIZE} is used once it is less than <code>limit</code>.<p>
      * No <code>subKeyStart</code> means that retrieval is started from the very first document found by <code>key</code>.

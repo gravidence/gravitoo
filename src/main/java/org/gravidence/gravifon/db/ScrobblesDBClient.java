@@ -83,6 +83,21 @@ public class ScrobblesDBClient extends BasicDBClient<ScrobbleDocument> implement
     }
     
     /**
+     * Retrieves scrobbles by complete key.
+     * 
+     * @param userId user identifier
+     * @param scrobbleStartDatetime scrobble event start datetime
+     * @return list of scrobble details documents
+     */
+    public List<ScrobbleDocument> retrieveScrobblesByKey(String userId, DateTime scrobbleStartDatetime) {
+        ArrayNode key = SharedInstanceHolder.OBJECT_MAPPER.getNodeFactory().arrayNode();
+        key.add(userId);
+        key.add(SharedInstanceHolder.OBJECT_MAPPER.valueToTree(DateTimeUtils.dateTimeToArray(scrobbleStartDatetime)));
+        
+        return retrieveByKey(viewMainAllScrobblesTarget, key, ScrobbleDocument.class);
+    }
+    
+    /**
      * Retrieves a number of scrobbles that belong to user.
      * 
      * @param userId user identifier
