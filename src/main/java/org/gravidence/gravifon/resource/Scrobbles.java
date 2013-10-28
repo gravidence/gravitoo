@@ -53,6 +53,7 @@ import org.gravidence.gravifon.db.domain.TrackDocument;
 import org.gravidence.gravifon.db.domain.UserDocument;
 import org.gravidence.gravifon.exception.EntityNotFoundException;
 import org.gravidence.gravifon.exception.GravifonException;
+import org.gravidence.gravifon.exception.ValidationException;
 import org.gravidence.gravifon.exception.error.GravifonError;
 import org.gravidence.gravifon.resource.bean.AlbumBean;
 import org.gravidence.gravifon.resource.bean.ArtistBean;
@@ -268,21 +269,13 @@ public class Scrobbles {
             ascending = false;
         }
             
-        List<ScrobbleDocument> scrobbles = null;
+        List<ScrobbleDocument> scrobbles;
         
-        // TODO these two should be combined perhaps
-        if (start != null || end != null) {
-            // TODO more elegant datetime handling needed
-            DateTime startDatetime = start == null ? null : DateTime.parse(start);
-            DateTime endDatetime = end == null ? null : DateTime.parse(end);
-            
-            scrobbles = scrobblesDBClient.retrieveScrobblesByUserIDAndDateRange(
-                    user.getId(), scrobbleStartDatetime, startDatetime, endDatetime, ascending, amount);
-        }
-        else {
-            scrobbles = scrobblesDBClient.retrieveScrobblesByUserID(
-                    user.getId(), scrobbleStartDatetime, ascending, amount);
-        }
+        DateTime startDatetime = extractDatetimeFromQueryParam(start, "start");
+        DateTime endDatetime = extractDatetimeFromQueryParam(end, "end");
+
+        scrobbles = scrobblesDBClient.retrieveScrobblesByUserID(
+                user.getId(), scrobbleStartDatetime, startDatetime, endDatetime, ascending, amount);
         
         if (scrobbles != null) {
             int scrobblesToReturn;
@@ -550,13 +543,14 @@ public class Scrobbles {
     }
 
     /**
-     * Checks that same scrobble wasn't already processed.<p>
-     * "Same scrobble" means that absolutely identical scrobble event start datetime exists in database.
+     * Checks that scrobble wasn't already processed.<p>
+     * "Scrobble already processed" means that absolutely identical scrobble event start datetime exists in database.
      * 
      * @param userId user identifier
      * @param scrobble scrobble details bean to check
+     * @throws GravifonException in case supplied scrobble classified as duplicate/fraud
      */
-    private void checkForDuplicates(String userId, ScrobbleBean scrobble) {
+    private void checkForDuplicates(String userId, ScrobbleBean scrobble) throws GravifonException {
         List<ScrobbleDocument> history = scrobblesDBClient.retrieveScrobblesByKey(
                 userId, scrobble.getScrobbleStartDatetime());
         if (CollectionUtils.isNotEmpty(history)) {
@@ -576,13 +570,40 @@ public class Scrobbles {
     }
     
     // TODO implement the logic
-    private void checkForIntersections(String userId, ScrobbleBean scrobble) {
+    private void checkForIntersections(String userId, ScrobbleBean scrobble) throws GravifonException {
 //        DateTime checkRangeStart = scrobble.getScrobbleStartDatetime().minusHours(3);
 //        DateTime checkRangeEnd = scrobble.getScrobbleEndDatetime().plusHours(3);
 //        
 //        // TODO take care of pagination
 //        List<ScrobbleDocument> history = scrobblesDBClient.retrieveScrobblesByUserIDAndDateRange(
 //                userId, null, checkRangeStart, checkRangeEnd, true, null);
+    }
+    
+    /**
+     * Converts raw query param value to datetime.
+     * 
+     * @param paramValue query param value
+     * @param paramName query param name (to specify in error message if any)
+     * @return extracted datetime
+     * @throws ValidationException in case supplied query param value is not <code>null</code> and is not valid datetime
+     */
+    private DateTime extractDatetimeFromQueryParam(String paramValue, String paramName) throws ValidationException {
+        DateTime result;
+        
+        if (paramValue == null) {
+            result = null;
+        }
+        else {
+            try {
+                result = DateTime.parse(paramValue);
+            }
+            catch (Exception ex) {
+                throw new ValidationException(
+                        GravifonError.INVALID, String.format("Query param '%s' is invalid.", paramName));
+            }
+        }
+        
+        return result;
     }
 
 }

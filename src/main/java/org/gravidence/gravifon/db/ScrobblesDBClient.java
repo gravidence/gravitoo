@@ -98,21 +98,8 @@ public class ScrobblesDBClient extends BasicDBClient<ScrobbleDocument> implement
     }
     
     /**
-     * Retrieves a number of scrobbles that belong to user.
-     * 
-     * @param userId user identifier
-     * @param scrobbleStartDatetime scrobble datetime to start from
-     * @param ascending retrieve direction
-     * @param limit max number of scrobbles to retrieve
-     * @return list of scrobble details documents
-     */
-    public List<ScrobbleDocument> retrieveScrobblesByUserID(String userId, String scrobbleStartDatetime,
-            boolean ascending, Long limit) {
-        return retrieveScrobblesByUserIDAndDateRange(userId, scrobbleStartDatetime, null, null, ascending, limit);
-    }
-    
-    /**
-     * Retrieves a number of scrobbles that belong to user.
+     * Retrieves a number of scrobbles that belong to user and match applied optional filter params
+     * (page [particular scrobble to start from] and/or date range).
      * 
      * @param userId user identifier
      * @param scrobbleStartDatetime scrobble datetime to start from
@@ -122,7 +109,7 @@ public class ScrobblesDBClient extends BasicDBClient<ScrobbleDocument> implement
      * @param limit max number of scrobbles to retrieve
      * @return list of scrobble details documents
      */
-    public List<ScrobbleDocument> retrieveScrobblesByUserIDAndDateRange(String userId, String scrobbleStartDatetime,
+    public List<ScrobbleDocument> retrieveScrobblesByUserID(String userId, String scrobbleStartDatetime,
             DateTime start, DateTime end, boolean ascending, Long limit) {
         ArrayNode key = SharedInstanceHolder.OBJECT_MAPPER.getNodeFactory().arrayNode();
         key.add(userId);
