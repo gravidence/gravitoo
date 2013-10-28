@@ -58,7 +58,7 @@ public class Tracks {
     private TracksDBClient tracksDBClient;
     
     // Validators
-    private TracksInfoValidator tracksInfoValidator = new TracksInfoValidator();
+    private final TracksInfoValidator tracksInfoValidator = new TracksInfoValidator();
     
     /**
      * Retrieves <code>/tracks</code> database info.

@@ -55,7 +55,7 @@ public class Application {
     private ApplicationInfoBean applicationInfo;
     
     // Validators
-    private ApplicationInfoValidator applicationInfoValidator = new ApplicationInfoValidator();
+    private final ApplicationInfoValidator applicationInfoValidator = new ApplicationInfoValidator();
     
     /**
      * Retrieves Gravifon application info.

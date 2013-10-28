@@ -58,7 +58,7 @@ public class Artists {
     private ArtistsDBClient artistsDBClient;
     
     // Validators
-    private ArtistsInfoValidator artistsInfoValidator = new ArtistsInfoValidator();
+    private final ArtistsInfoValidator artistsInfoValidator = new ArtistsInfoValidator();
     
     /**
      * Retrieves <code>/artists</code> database info.

@@ -58,7 +58,7 @@ public class Labels {
     private LabelsDBClient labelsDBClient;
     
     // Validators
-    private LabelsInfoValidator labelsInfoValidator = new LabelsInfoValidator();
+    private final LabelsInfoValidator labelsInfoValidator = new LabelsInfoValidator();
     
     /**
      * Retrieves <code>/labels</code> database info.

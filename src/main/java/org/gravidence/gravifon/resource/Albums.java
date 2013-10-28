@@ -58,7 +58,7 @@ public class Albums {
     private AlbumsDBClient albumsDBClient;
     
     // Validators
-    private AlbumsInfoValidator albumsInfoValidator = new AlbumsInfoValidator();
+    private final AlbumsInfoValidator albumsInfoValidator = new AlbumsInfoValidator();
     
     /**
      * Retrieves <code>/albums</code> database info.

@@ -125,11 +125,11 @@ public class Scrobbles {
     private LabelsDBClient labelsDBClient;
     
     // Validators
-    private ScrobblesInfoValidator scrobblesInfoValidator = new ScrobblesInfoValidator();
-    private ScrobbleSubmitValidator scrobbleSubmitValidator = new ScrobbleSubmitValidator();
-    private ScrobbleRetrieveValidator scrobbleRetrieveValidator = new ScrobbleRetrieveValidator();
-    private ScrobbleSearchValidator scrobbleSearchValidator = new ScrobbleSearchValidator();
-    private ScrobbleDeleteValidator scrobbleDeleteValidator = new ScrobbleDeleteValidator();
+    private final ScrobblesInfoValidator scrobblesInfoValidator = new ScrobblesInfoValidator();
+    private final ScrobbleSubmitValidator scrobbleSubmitValidator = new ScrobbleSubmitValidator();
+    private final ScrobbleRetrieveValidator scrobbleRetrieveValidator = new ScrobbleRetrieveValidator();
+    private final ScrobbleSearchValidator scrobbleSearchValidator = new ScrobbleSearchValidator();
+    private final ScrobbleDeleteValidator scrobbleDeleteValidator = new ScrobbleDeleteValidator();
     
     /**
      * Retrieves <code>/scrobbles</code> database info.

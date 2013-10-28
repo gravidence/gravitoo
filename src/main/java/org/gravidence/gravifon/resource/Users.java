@@ -78,12 +78,12 @@ public class Users {
     private UsersDBClient usersDBClient;
     
     // Validators
-    private UsersInfoValidator usersInfoValidator = new UsersInfoValidator();
-    private UserCreateValidator userCreateValidator = new UserCreateValidator();
-    private UserRetrieveValidator userRetrieveValidator = new UserRetrieveValidator();
-    private UserSearchValidator userSearchValidator = new UserSearchValidator();
-    private UserUpdateValidator userUpdateValidator = new UserUpdateValidator();
-    private UserDeleteValidator userDeleteValidator = new UserDeleteValidator();
+    private final UsersInfoValidator usersInfoValidator = new UsersInfoValidator();
+    private final UserCreateValidator userCreateValidator = new UserCreateValidator();
+    private final UserRetrieveValidator userRetrieveValidator = new UserRetrieveValidator();
+    private final UserSearchValidator userSearchValidator = new UserSearchValidator();
+    private final UserUpdateValidator userUpdateValidator = new UserUpdateValidator();
+    private final UserDeleteValidator userDeleteValidator = new UserDeleteValidator();
     
     /**
      * Retrieves <code>/users</code> database info.
