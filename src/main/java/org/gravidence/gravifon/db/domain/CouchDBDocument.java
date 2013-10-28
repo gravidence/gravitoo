@@ -33,7 +33,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
-// TODO review ignoreUnknown=true choice
+// Ignore all unknown elements to read only needed properties
+// (e.g. to remove dependency on particular CouchDB release version)
 @JsonIgnoreProperties(ignoreUnknown=true)
 public class CouchDBDocument {
     
