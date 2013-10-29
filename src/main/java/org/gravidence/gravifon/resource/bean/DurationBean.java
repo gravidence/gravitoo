@@ -115,23 +115,50 @@ public class DurationBean extends ValidateableBean {
     /**
      * Returns amount in millis. Amount is converted to millis if another unit type is used.
      * 
+     * @param duration a duration
      * @return amount in millis
      */
     @JsonIgnore
-    public Long getMillisAmount() {
+    public static Long getMillisAmount(DurationBean duration) {
         Long result;
         
-        // check amount for null
-        if (amount == null) {
-            result = amount;
+        // check duration/amount for null
+        if (duration == null || duration.getAmount() == null) {
+            result = null;
         }
         // convert all supported units to ms
-        else if ("s".equals(unit)) {
-            result = amount * 1000;
+        else if ("s".equals(duration.getUnit())) {
+            result = duration.getAmount() * 1000;
         }
         // no conversion needed as unit is ms
         else {
-            result = amount;
+            result = duration.getAmount();
+        }
+        
+        return result;
+    }
+
+    /**
+     * Returns amount in millis. Amount is converted to millis if another unit type is used.
+     * 
+     * @param duration a duration
+     * @return amount in millis
+     */
+    @JsonIgnore
+    public static Long getMillisAmount(Duration duration) {
+        Long result;
+        
+        // check duration/amount for null
+        if (duration == null || duration.getAmount() == null) {
+            result = null;
+        }
+        // convert all supported units to ms
+        else if ("s".equals(duration.getUnit())) {
+            result = duration.getAmount() * 1000;
+        }
+        // no conversion needed as unit is ms
+        else {
+            result = duration.getAmount();
         }
         
         return result;

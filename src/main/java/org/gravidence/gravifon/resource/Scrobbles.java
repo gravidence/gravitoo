@@ -38,6 +38,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriInfo;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.gravidence.gravifon.db.AlbumsDBClient;
 import org.gravidence.gravifon.db.ArtistsDBClient;
@@ -56,6 +57,7 @@ import org.gravidence.gravifon.exception.ValidationException;
 import org.gravidence.gravifon.exception.error.GravifonError;
 import org.gravidence.gravifon.resource.bean.AlbumBean;
 import org.gravidence.gravifon.resource.bean.ArtistBean;
+import org.gravidence.gravifon.resource.bean.DurationBean;
 import org.gravidence.gravifon.resource.bean.PageBean;
 import org.gravidence.gravifon.resource.bean.ScrobbleBean;
 import org.gravidence.gravifon.resource.bean.ScrobblesInfoBean;
@@ -556,8 +558,9 @@ public class Scrobbles {
             for (ScrobbleDocument doc : history) {
                 // Scrobble event start datetime already compared as part of complete key
                 // so compare durations only
-                if (doc.getScrobbleDuration().getAmount().equals(scrobble.getScrobbleDuration().getAmount())
-                        && doc.getScrobbleDuration().getUnit().equals(scrobble.getScrobbleDuration().getUnit())) {
+                if (ObjectUtils.equals(
+                        DurationBean.getMillisAmount(doc.getScrobbleDuration()),
+                        DurationBean.getMillisAmount(scrobble.getScrobbleDuration()))) {
                     throw new GravifonException(GravifonError.DUPLICATE_SCROBBLE, "Scrobble was already processed.");
                 }
                 else {
