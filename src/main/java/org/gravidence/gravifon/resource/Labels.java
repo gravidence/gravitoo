@@ -27,7 +27,6 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
 import org.gravidence.gravifon.db.LabelsDBClient;
 import org.gravidence.gravifon.resource.bean.LabelsInfoBean;
 import org.gravidence.gravifon.resource.message.StatusResponse;
@@ -45,8 +44,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
 @Path("/v1/labels")
-@Consumes(MediaType.APPLICATION_JSON)
-@Produces(MediaType.APPLICATION_JSON)
+@Consumes("application/json;charset=UTF-8")
+@Produces("application/json;charset=UTF-8")
 public class Labels {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(Labels.class);

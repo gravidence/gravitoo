@@ -36,7 +36,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -82,8 +81,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
 @Path("/v1/scrobbles")
-@Consumes(MediaType.APPLICATION_JSON)
-@Produces(MediaType.APPLICATION_JSON)
+@Consumes("application/json;charset=UTF-8")
+@Produces("application/json;charset=UTF-8")
 public class Scrobbles {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(Scrobbles.class);
