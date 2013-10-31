@@ -68,6 +68,10 @@ public enum GravifonError {
      */
     ENTITY_NOT_FOUND(3002, 404),
     /**
+     * User account registration not completed error. 2nd phase of user account registration failed.
+     */
+    USER_REGISTRATION_NOT_COMPLETED(3003, 400),
+    /**
      * Required property error. Property is missed.
      */
     REQUIRED(10000, 400),

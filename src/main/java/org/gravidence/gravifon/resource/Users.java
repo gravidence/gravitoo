@@ -45,12 +45,17 @@ import org.gravidence.gravifon.exception.error.GravifonError;
 import org.gravidence.gravifon.resource.bean.UserBean;
 import org.gravidence.gravifon.resource.bean.UsersInfoBean;
 import org.gravidence.gravifon.resource.message.StatusResponse;
+import org.gravidence.gravifon.util.BasicUtils;
+import org.gravidence.gravifon.util.DateTimeUtils;
+import org.gravidence.gravifon.util.PasswordUtils;
+import org.gravidence.gravifon.validation.UserCompleteValidator;
 import org.gravidence.gravifon.validation.UserCreateValidator;
 import org.gravidence.gravifon.validation.UserDeleteValidator;
 import org.gravidence.gravifon.validation.UserRetrieveValidator;
 import org.gravidence.gravifon.validation.UserSearchValidator;
 import org.gravidence.gravifon.validation.UserUpdateValidator;
 import org.gravidence.gravifon.validation.UsersInfoValidator;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,6 +84,7 @@ public class Users {
     // Validators
     private final UsersInfoValidator usersInfoValidator = new UsersInfoValidator();
     private final UserCreateValidator userCreateValidator = new UserCreateValidator();
+    private final UserCompleteValidator userCompleteValidator = new UserCompleteValidator();
     private final UserRetrieveValidator userRetrieveValidator = new UserRetrieveValidator();
     private final UserSearchValidator userSearchValidator = new UserSearchValidator();
     private final UserUpdateValidator userUpdateValidator = new UserUpdateValidator();
@@ -102,6 +108,7 @@ public class Users {
     
     /**
      * Creates a new user if such does not exist yet.
+     * This is 1st phase of user account registration flow.
      * 
      * @param uriInfo request URI details
      * @param user new user details bean
@@ -111,18 +118,80 @@ public class Users {
     public Response create(@Context UriInfo uriInfo, UserBean user) {
         userCreateValidator.validate(null, null, user);
         
-        UserDocument original = usersDBClient.retrieveUserByUsername(user.getUsername());
-        
-        if (original != null) {
+        UserDocument document = usersDBClient.retrieveUserByUsername(user.getUsername());
+
+        if (document != null) {
             throw new GravifonException(GravifonError.USER_EXISTS, "User already exists.");
         }
-        
-        UserDocument document = usersDBClient.create(user.createDocument());
-        
+
+        String registrationKey = BasicUtils.generateUniqueIdentifier();
+
+        document = usersDBClient.create(user.createDocument(registrationKey));
+
+        // TODO send an email with registration key to user
+        // TODO remove the logging once email feature is implemented
+        LOGGER.info("Registration key for '{}' user is '{}'", document, registrationKey);
+
         return Response
                 .created(UriBuilder.fromUri(uriInfo.getAbsolutePath()).path(document.getId()).build())
                 .entity(new StatusResponse<UserBean>(document.getId()))
                 .build();
+    }
+    
+    /**
+     * Tries to complete user account registration by verifying supplied registration key.
+     * This is 2nd phase of user account registration flow.
+     * 
+     * @param uriInfo request URI details
+     * @param id user identifier
+     * @param registrationKey key that is required for user account registration completion
+     * @return 200 OK with empty status response
+     */
+    @GET
+    @Path("{user_id}/complete")
+    public Response complete(@Context UriInfo uriInfo,
+            @PathParam("user_id") String id, @QueryParam("registration_key") String registrationKey) {
+        userCompleteValidator.validate(null, uriInfo.getQueryParameters(), null);
+        
+        Response result;
+        
+        UserDocument document = usersDBClient.retrieveUserByID(id);
+
+        if (document == null) {
+            throw new UserNotFoundException();
+        }
+        else {
+            DateTime registrationDatetime = DateTimeUtils.arrayToDateTime(document.getRegistrationDatetime());
+            // TODO move expiration bound to configuration
+            if (registrationDatetime.plusHours(24).isBeforeNow()) {
+                // TODO think about expired user account deletion (batch job or manually)
+
+                throw new GravifonException(GravifonError.USER_REGISTRATION_NOT_COMPLETED,
+                        "Registration key has been expired.");
+            }
+            
+            if (document.getRegistrationKeyHash() == null) {
+                throw new GravifonException(GravifonError.USER_REGISTRATION_NOT_COMPLETED,
+                        "User registration was already completed.");
+            }
+
+            if (PasswordUtils.verify(registrationKey, document.getRegistrationKeyHash())) {
+                // Clear registration key hash as registration is completed
+                document.setRegistrationKeyHash(null);
+
+                usersDBClient.update(document);
+
+                result = Response
+                        .ok(new StatusResponse())
+                        .build();
+            }
+            else {
+                throw new GravifonException(GravifonError.USER_REGISTRATION_NOT_COMPLETED,
+                        "Invalid registration key.");
+            }
+        }
+        
+        return result;
     }
     
     /**

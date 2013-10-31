@@ -23,6 +23,7 @@
  */
 package org.gravidence.gravifon.db.domain;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -56,6 +57,13 @@ public class UserDocument extends CouchDBDocument {
      */
     @JsonProperty
     private String email;
+    
+    /**
+     * @see #getRegistrationKeyHash()
+     */
+    @JsonProperty("registration_key_hash")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private SaltedHash registrationKeyHash;
     
     /**
      * @see #getRegistrationDatetime()
@@ -129,6 +137,23 @@ public class UserDocument extends CouchDBDocument {
      */
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    /**
+     * Returns salted hash of key that is required for user account registration completion.
+     * 
+     * @return salted hash of key that is required for user account registration completion
+     */
+    public SaltedHash getRegistrationKeyHash() {
+        return registrationKeyHash;
+    }
+
+    /**
+     * @param registrationKeyHash
+     * @see #getRegistrationKeyHash()
+     */
+    public void setRegistrationKeyHash(SaltedHash registrationKeyHash) {
+        this.registrationKeyHash = registrationKeyHash;
     }
 
     /**
