@@ -28,7 +28,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.util.List;
 import org.apache.commons.collections.CollectionUtils;
-import org.gravidence.gravifon.db.SharedInstanceHolder;
+import org.gravidence.gravifon.util.SharedInstanceHolder;
 import org.slf4j.Logger;
 
 /**

@@ -23,6 +23,7 @@
  */
 package org.gravidence.gravifon.db;
 
+import org.gravidence.gravifon.util.SharedInstanceHolder;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import java.io.IOException;

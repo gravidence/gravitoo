@@ -26,7 +26,7 @@ package org.gravidence.gravifon;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javax.ws.rs.ext.ContextResolver;
 import javax.ws.rs.ext.Provider;
-import org.gravidence.gravifon.db.SharedInstanceHolder;
+import org.gravidence.gravifon.util.SharedInstanceHolder;
 
 /**
  * Custom Jackson {@link ObjectMapper} provider.<p>

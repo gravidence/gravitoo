@@ -23,6 +23,7 @@
  */
 package org.gravidence.gravifon.db;
 
+import org.gravidence.gravifon.util.SharedInstanceHolder;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import java.util.List;
 import javax.ws.rs.client.WebTarget;

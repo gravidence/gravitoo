@@ -23,6 +23,7 @@
  */
 package org.gravidence.gravifon.db;
 
+import org.gravidence.gravifon.util.SharedInstanceHolder;
 import org.gravidence.gravifon.filter.LogCouchDBClientResponseFilter;
 import org.gravidence.gravifon.filter.LogCouchDBClientRequestFilter;
 import com.fasterxml.jackson.databind.JsonNode;

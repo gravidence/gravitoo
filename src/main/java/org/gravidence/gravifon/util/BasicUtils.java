@@ -30,7 +30,6 @@ import java.util.UUID;
 import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
-import org.gravidence.gravifon.db.SharedInstanceHolder;
 import org.gravidence.gravifon.exception.GravifonException;
 import org.gravidence.gravifon.exception.JsonException;
 import org.gravidence.gravifon.exception.error.GravifonError;
