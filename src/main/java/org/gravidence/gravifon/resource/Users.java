@@ -160,15 +160,13 @@ public class Users {
      * @param uriInfo request URI details
      * @param id user identifier
      * @param registrationKey key that is required for user account registration completion
-     * @return 200 OK with empty status response
+     * @return simple status response
      */
     @GET
     @Path("{user_id}/complete")
-    public Response complete(@Context UriInfo uriInfo,
+    public StatusResponse complete(@Context UriInfo uriInfo,
             @PathParam("user_id") String id, @QueryParam("registration_key") String registrationKey) {
         userCompleteValidator.validate(null, uriInfo.getQueryParameters(), null);
-        
-        Response result;
         
         UserDocument document = usersDBClient.retrieveUserByID(id);
 
@@ -195,10 +193,6 @@ public class Users {
                 document.setRegistrationKeyHash(null);
 
                 usersDBClient.update(document);
-
-                result = Response
-                        .ok(new StatusResponse())
-                        .build();
             }
             else {
                 throw new GravifonException(GravifonError.USER_REGISTRATION_NOT_COMPLETED,
@@ -206,7 +200,7 @@ public class Users {
             }
         }
         
-        return result;
+        return new StatusResponse();
     }
     
     /**
