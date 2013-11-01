@@ -39,12 +39,15 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import org.gravidence.gravifon.db.UsersDBClient;
 import org.gravidence.gravifon.db.domain.UserDocument;
+import org.gravidence.gravifon.email.EmailSender;
 import org.gravidence.gravifon.exception.GravifonException;
 import org.gravidence.gravifon.exception.UserNotFoundException;
 import org.gravidence.gravifon.exception.error.GravifonError;
 import org.gravidence.gravifon.resource.bean.UserBean;
 import org.gravidence.gravifon.resource.bean.UsersInfoBean;
 import org.gravidence.gravifon.resource.message.StatusResponse;
+import org.gravidence.gravifon.template.TemplateProcessor;
+import org.gravidence.gravifon.template.email.UserRegistrationConfirmationEmailData;
 import org.gravidence.gravifon.util.BasicUtils;
 import org.gravidence.gravifon.util.DateTimeUtils;
 import org.gravidence.gravifon.util.PasswordUtils;
@@ -80,6 +83,18 @@ public class Users {
      */
     @Autowired
     private UsersDBClient usersDBClient;
+    
+    /**
+     * A {@link TemplateProcessor} implementation instance.
+     */
+    @Autowired
+    private TemplateProcessor templateProcessor;
+    
+    /**
+     * An {@link EmailSender} implementation instance.
+     */
+    @Autowired
+    private EmailSender emailSender;
     
     // Validators
     private final UsersInfoValidator usersInfoValidator = new UsersInfoValidator();
@@ -127,13 +142,13 @@ public class Users {
         String registrationKey = BasicUtils.generateUniqueIdentifier();
 
         document = usersDBClient.create(user.createDocument(registrationKey));
+        
+        UriBuilder userResourceUri = UriBuilder.fromUri(uriInfo.getAbsolutePath()).path(document.getId());
 
-        // TODO send an email with registration key to user
-        // TODO remove the logging once email feature is implemented
-        LOGGER.info("Registration key for '{}' user is '{}'", document, registrationKey);
+        sendRegistrationConfirmationEmail(document, userResourceUri, registrationKey);
 
         return Response
-                .created(UriBuilder.fromUri(uriInfo.getAbsolutePath()).path(document.getId()).build())
+                .created(userResourceUri.build())
                 .entity(new StatusResponse<UserBean>(document.getId()))
                 .build();
     }
@@ -281,6 +296,27 @@ public class Users {
         usersDBClient.delete(original);
         
         return new StatusResponse();
+    }
+
+    /**
+     * Sends registration confirmation email to user.
+     * 
+     * @param user user document details
+     * @param userResourceUri absolute uri to registered user resource
+     * @param registrationKey user's registration confirmation key
+     */
+    private void sendRegistrationConfirmationEmail(UserDocument user, UriBuilder userResourceUri,
+            String registrationKey) {
+        String recipientName = user.getFullname() == null ? user.getUsername() : user.getFullname();
+        
+        UserRegistrationConfirmationEmailData data = new UserRegistrationConfirmationEmailData(recipientName,
+                userResourceUri.path("complete").queryParam("registration_key", registrationKey).build().toString());
+        
+        String textMessage = templateProcessor.processUserRegistrationConfirmationEmail(data);
+        
+        // TODO move subject text to locale specific configuration
+        emailSender.send(user.getEmail(), recipientName, "Confirmation of new Gravifon user account created",
+                null, textMessage);
     }
 
 }
