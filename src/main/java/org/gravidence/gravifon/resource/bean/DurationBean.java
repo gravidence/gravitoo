@@ -26,6 +26,7 @@ package org.gravidence.gravifon.resource.bean;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.gravidence.gravifon.db.domain.Duration;
+import org.gravidence.gravifon.db.domain.DurationUnit;
 import org.gravidence.gravifon.exception.GravifonException;
 import org.gravidence.gravifon.exception.error.GravifonError;
 
@@ -46,7 +47,7 @@ public class DurationBean extends ValidateableBean {
      * @see #getUnit()
      */
     @JsonProperty
-    private String unit;
+    private DurationUnit unit;
 
     /**
      * Returns duration amount.
@@ -66,12 +67,11 @@ public class DurationBean extends ValidateableBean {
     }
 
     /**
-     * Returns duration unit.<p>
-     * Allowed values are: "s" for seconds and "ms" for milliseconds.
+     * Returns duration unit.
      * 
      * @return duration unit
      */
-    public String getUnit() {
+    public DurationUnit getUnit() {
         return unit;
     }
 
@@ -79,7 +79,7 @@ public class DurationBean extends ValidateableBean {
      * @param unit
      * @see #getUnit()
      */
-    public void setUnit(String unit) {
+    public void setUnit(DurationUnit unit) {
         this.unit = unit;
     }
 
@@ -92,9 +92,6 @@ public class DurationBean extends ValidateableBean {
         }
         
         checkRequired(unit, "unit");
-        if (!("s".equals(unit) || "ms".equals(unit))) {
-            throw new GravifonException(GravifonError.UNKNOWN, "Unsupported 'unit' property value.");
-        }
     }
     
     /**
@@ -122,17 +119,18 @@ public class DurationBean extends ValidateableBean {
     public static Long getMillisAmount(DurationBean duration) {
         Long result;
         
-        // check duration/amount for null
         if (duration == null || duration.getAmount() == null) {
             result = null;
         }
-        // convert all supported units to ms
-        else if ("s".equals(duration.getUnit())) {
-            result = duration.getAmount() * 1000;
-        }
-        // no conversion needed as unit is ms
         else {
-            result = duration.getAmount();
+            switch (duration.getUnit()) {
+                case SECOND:
+                    result = duration.getAmount() * 1000;
+                    break;
+                case MILLISECOND:
+                default:
+                    result = duration.getAmount();
+            }
         }
         
         return result;
@@ -148,17 +146,18 @@ public class DurationBean extends ValidateableBean {
     public static Long getMillisAmount(Duration duration) {
         Long result;
         
-        // check duration/amount for null
         if (duration == null || duration.getAmount() == null) {
             result = null;
         }
-        // convert all supported units to ms
-        else if ("s".equals(duration.getUnit())) {
-            result = duration.getAmount() * 1000;
-        }
-        // no conversion needed as unit is ms
         else {
-            result = duration.getAmount();
+            switch (duration.getUnit()) {
+                case SECOND:
+                    result = duration.getAmount() * 1000;
+                    break;
+                case MILLISECOND:
+                default:
+                    result = duration.getAmount();
+            }
         }
         
         return result;

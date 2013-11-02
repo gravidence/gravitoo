@@ -23,59 +23,61 @@
  */
 package org.gravidence.gravifon.db.domain;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+import org.apache.commons.lang.StringUtils;
 
 /**
- * Duration information.
+ * Duration unit enumeration.
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
-public class Duration {
+public enum DurationUnit {
+    
+    MILLISECOND("ms"),
+    SECOND("s");
     
     /**
-     * @see #getAmount()
+     * @see #toString()
      */
-    @JsonProperty
-    private Long amount;
+    private final String value;
     
     /**
-     * @see #getUnit()
-     */
-    @JsonProperty
-    private DurationUnit unit;
-
-    /**
-     * Returns duration amount.
+     * Constructor that initiates particular duration unit with human-friendly string representation.
      * 
-     * @return duration amount
+     * @param value string representation of particular duration unit
      */
-    public Long getAmount() {
-        return amount;
+    private DurationUnit(String value) {
+        this.value = value;
     }
-
+    
     /**
-     * @param amount
-     * @see #getAmount()
-     */
-    public void setAmount(Long amount) {
-        this.amount = amount;
-    }
-
-    /**
-     * Returns duration unit.
+     * Returns string representation of particular duration unit.
      * 
+     * @return string representation of particular duration unit
+     */
+    @Override
+    @JsonValue
+    public String toString() {
+        return value;
+    }
+    
+    /**
+     * Returns duration unit that corresponds to supplied <code>value</code>.
+     * 
+     * @param value string representation of duration unit
      * @return duration unit
+     * @throws IllegalArgumentException in case supplied <code>value</code> is not supported
      */
-    public DurationUnit getUnit() {
-        return unit;
-    }
-
-    /**
-     * @param unit
-     * @see #getUnit()
-     */
-    public void setUnit(DurationUnit unit) {
-        this.unit = unit;
+    @JsonCreator
+    public static DurationUnit fromString(String value) throws IllegalArgumentException {
+        for (DurationUnit unit : DurationUnit.values()) {
+            if (StringUtils.equalsIgnoreCase(unit.toString(), value)) {
+                return unit;
+            }
+        }
+        
+        throw new IllegalArgumentException();
     }
     
 }
