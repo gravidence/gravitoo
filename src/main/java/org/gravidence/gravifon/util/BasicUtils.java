@@ -25,6 +25,8 @@ package org.gravidence.gravifon.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
+import java.security.SecureRandom;
 import java.util.Locale;
 import java.util.UUID;
 import org.apache.commons.codec.CharEncoding;
@@ -42,6 +44,11 @@ import org.gravidence.gravifon.exception.error.GravifonError;
 public class BasicUtils {
 
     /**
+     * {@link SecureRandom} instance initiated with default random number algorithm.
+     */
+    public static final SecureRandom SECURE_RANDOM = new SecureRandom();
+    
+    /**
      * Preventing class instantiation.
      */
     private BasicUtils() {
@@ -55,6 +62,17 @@ public class BasicUtils {
      */
     public static String generateUniqueIdentifier() {
         return UUID.randomUUID().toString();
+    }
+
+    /**
+     * Generates secure random token of specified length.<p>
+     * Generated token contains following characters: <code>[0-9a-z]</code>.
+     * 
+     * @param numberOfBits token length in bits
+     * @return secure random token
+     */
+    public static String generateToken(int numberOfBits) {
+        return new BigInteger(numberOfBits, SECURE_RANDOM).toString(Character.MAX_RADIX);
     }
     
     /**

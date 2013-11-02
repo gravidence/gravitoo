@@ -37,6 +37,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
+import org.apache.commons.lang.StringUtils;
 import org.gravidence.gravifon.db.UsersDBClient;
 import org.gravidence.gravifon.db.domain.UserDocument;
 import org.gravidence.gravifon.email.EmailSender;
@@ -50,7 +51,6 @@ import org.gravidence.gravifon.template.TemplateProcessor;
 import org.gravidence.gravifon.template.email.UserRegistrationConfirmationEmailData;
 import org.gravidence.gravifon.util.BasicUtils;
 import org.gravidence.gravifon.util.DateTimeUtils;
-import org.gravidence.gravifon.util.PasswordUtils;
 import org.gravidence.gravifon.validation.UserCompleteValidator;
 import org.gravidence.gravifon.validation.UserCreateValidator;
 import org.gravidence.gravifon.validation.UserDeleteValidator;
@@ -139,7 +139,7 @@ public class Users {
             throw new GravifonException(GravifonError.USER_EXISTS, "User already exists.");
         }
 
-        String registrationKey = BasicUtils.generateUniqueIdentifier();
+        String registrationKey = BasicUtils.generateToken(256);
 
         document = usersDBClient.create(user.createDocument(registrationKey));
         
@@ -183,14 +183,14 @@ public class Users {
                         "Registration key has been expired.");
             }
             
-            if (document.getRegistrationKeyHash() == null) {
+            if (document.getRegistrationKey() == null) {
                 throw new GravifonException(GravifonError.USER_REGISTRATION_NOT_COMPLETED,
                         "User registration was already completed.");
             }
 
-            if (PasswordUtils.verify(registrationKey, document.getRegistrationKeyHash())) {
-                // Clear registration key hash as registration is completed
-                document.setRegistrationKeyHash(null);
+            if (StringUtils.equals(registrationKey, document.getRegistrationKey())) {
+                // Clear registration key as registration is completed
+                document.setRegistrationKey(null);
 
                 usersDBClient.update(document);
             }

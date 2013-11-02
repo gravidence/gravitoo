@@ -59,11 +59,11 @@ public class UserDocument extends CouchDBDocument {
     private String email;
     
     /**
-     * @see #getRegistrationKeyHash()
+     * @see #getRegistrationKey()
      */
-    @JsonProperty("registration_key_hash")
+    @JsonProperty("registration_key")
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    private SaltedHash registrationKeyHash;
+    private String registrationKey;
     
     /**
      * @see #getRegistrationDatetime()
@@ -140,20 +140,20 @@ public class UserDocument extends CouchDBDocument {
     }
 
     /**
-     * Returns salted hash of key that is required for user account registration completion.
+     * Returns key that is required for user account registration completion.
      * 
-     * @return salted hash of key that is required for user account registration completion
+     * @return key that is required for user account registration completion
      */
-    public SaltedHash getRegistrationKeyHash() {
-        return registrationKeyHash;
+    public String getRegistrationKey() {
+        return registrationKey;
     }
 
     /**
-     * @param registrationKeyHash
-     * @see #getRegistrationKeyHash()
+     * @param registrationKey
+     * @see #getRegistrationKey()
      */
-    public void setRegistrationKeyHash(SaltedHash registrationKeyHash) {
-        this.registrationKeyHash = registrationKeyHash;
+    public void setRegistrationKey(String registrationKey) {
+        this.registrationKey = registrationKey;
     }
 
     /**
