@@ -163,6 +163,8 @@ public class Scrobbles {
         
         UserDocument user = ResourceUtils.authenticateUser(httpHeaders.getRequestHeaders(), usersDBClient, LOGGER);
         
+        ResourceUtils.checkUserStatus(user);
+        
         List<StatusResponse> result = new ArrayList<>(scrobbles.size() + 1);
         
         for (ScrobbleBean scrobble : scrobbles) {
@@ -213,7 +215,10 @@ public class Scrobbles {
             throw new EntityNotFoundException("Scrobble not found.");
         }
         
-        ResourceUtils.authorizeUser(httpHeaders.getRequestHeaders(), scrobble.getUserId(), usersDBClient, LOGGER);
+        UserDocument user = ResourceUtils.authorizeUser(
+                httpHeaders.getRequestHeaders(), scrobble.getUserId(), usersDBClient, LOGGER);
+        
+        ResourceUtils.checkUserStatus(user);
         
         ScrobbleBean result = new ScrobbleBean().updateBean(scrobble);
             
@@ -250,6 +255,8 @@ public class Scrobbles {
         scrobbleSearchValidator.validate(httpHeaders.getRequestHeaders(), uriInfo.getQueryParameters(), null);
         
         UserDocument user = ResourceUtils.authenticateUser(httpHeaders.getRequestHeaders(), usersDBClient, LOGGER);
+        
+        ResourceUtils.checkUserStatus(user);
         
         PageBean<ScrobbleBean> result = new PageBean<>();
         result.setItems(new ArrayList<ScrobbleBean>());
@@ -325,7 +332,10 @@ public class Scrobbles {
             throw new EntityNotFoundException("Scrobble not found.");
         }
         
-        ResourceUtils.authorizeUser(httpHeaders.getRequestHeaders(), scrobble.getUserId(), usersDBClient, LOGGER);
+        UserDocument user = ResourceUtils.authorizeUser(
+                httpHeaders.getRequestHeaders(), scrobble.getUserId(), usersDBClient, LOGGER);
+        
+        ResourceUtils.checkUserStatus(user);
         
         scrobblesDBClient.delete(scrobble);
         

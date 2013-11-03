@@ -212,6 +212,8 @@ public class Users {
         
         UserDocument document = ResourceUtils.authorizeUser(httpHeaders.getRequestHeaders(), id, usersDBClient, LOGGER);
         
+        ResourceUtils.checkUserStatus(document);
+        
         return new StatusResponse<>(new UserBean().updateBean(document));
     }
     
@@ -257,9 +259,11 @@ public class Users {
     public StatusResponse update(@Context HttpHeaders httpHeaders, @PathParam("user_id") String id, UserBean user) {
         userUpdateValidator.validate(httpHeaders.getRequestHeaders(), null, user);
         
-        UserDocument original = ResourceUtils.authorizeUser(httpHeaders.getRequestHeaders(), id, usersDBClient, LOGGER);
+        UserDocument document = ResourceUtils.authorizeUser(httpHeaders.getRequestHeaders(), id, usersDBClient, LOGGER);
         
-        usersDBClient.update(user.updateDocument(original));
+        ResourceUtils.checkUserStatus(document);
+        
+        usersDBClient.update(user.updateDocument(document));
         
         return new StatusResponse();
     }
@@ -278,9 +282,11 @@ public class Users {
     public StatusResponse delete(@Context HttpHeaders httpHeaders, @PathParam("user_id") String id) {
         userDeleteValidator.validate(httpHeaders.getRequestHeaders(), null, null);
         
-        UserDocument original = ResourceUtils.authorizeUser(httpHeaders.getRequestHeaders(), id, usersDBClient, LOGGER);
+        UserDocument document = ResourceUtils.authorizeUser(httpHeaders.getRequestHeaders(), id, usersDBClient, LOGGER);
         
-        usersDBClient.delete(original);
+        ResourceUtils.checkUserStatus(document);
+        
+        usersDBClient.delete(document);
         
         return new StatusResponse();
     }

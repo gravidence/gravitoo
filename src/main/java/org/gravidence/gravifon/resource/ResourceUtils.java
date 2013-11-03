@@ -27,6 +27,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import org.apache.commons.lang.StringUtils;
 import org.gravidence.gravifon.db.UsersDBClient;
 import org.gravidence.gravifon.db.domain.UserDocument;
+import org.gravidence.gravifon.db.domain.UserStatus;
 import org.gravidence.gravifon.exception.GravifonException;
 import org.gravidence.gravifon.exception.error.GravifonError;
 import org.gravidence.gravifon.util.PasswordUtils;
@@ -103,6 +104,18 @@ public class ResourceUtils {
         }
         
         return user;
+    }
+    
+    /**
+     * Verifies that user status is {@link UserStatus#ACTIVE Active}, so s/he allowed to do things.
+     * 
+     * @param user an user
+     * @throws GravifonException in case user status is not {@link UserStatus#ACTIVE Active}
+     */
+    public static void checkUserStatus(UserDocument user) throws GravifonException {
+        if (!UserStatus.ACTIVE.equals(user.getStatus())) {
+            throw new GravifonException(GravifonError.NOT_ALLOWED, "Operation is not allowed due to user status.");
+        }
     }
     
 }
