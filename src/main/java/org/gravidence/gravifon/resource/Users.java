@@ -51,7 +51,6 @@ import org.gravidence.gravifon.resource.message.StatusResponse;
 import org.gravidence.gravifon.template.TemplateProcessor;
 import org.gravidence.gravifon.template.email.UserRegistrationConfirmationEmailData;
 import org.gravidence.gravifon.util.BasicUtils;
-import org.gravidence.gravifon.util.DateTimeUtils;
 import org.gravidence.gravifon.validation.UserCompleteValidator;
 import org.gravidence.gravifon.validation.UserCreateValidator;
 import org.gravidence.gravifon.validation.UserDeleteValidator;
@@ -59,7 +58,6 @@ import org.gravidence.gravifon.validation.UserRetrieveValidator;
 import org.gravidence.gravifon.validation.UserSearchValidator;
 import org.gravidence.gravifon.validation.UserUpdateValidator;
 import org.gravidence.gravifon.validation.UsersInfoValidator;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -171,23 +169,12 @@ public class Users {
         
         UserDocument document = usersDBClient.retrieveUserByID(id);
 
+        // User was removed automatically by scheduled task because registration was not completed in time
         if (document == null) {
             throw new UserNotFoundException();
         }
-        else if (document.getStatus() != UserStatus.CREATED) {
-            throw new GravifonException(GravifonError.USER_REGISTRATION_NOT_COMPLETED,
-                    "User registration was already completed.");
-        }
-        else {
-            DateTime registrationDatetime = DateTimeUtils.arrayToDateTime(document.getRegistrationDatetime());
-            // TODO move expiration bound to configuration
-            if (registrationDatetime.plusHours(24).isBeforeNow()) {
-                // TODO think about expired user account deletion (batch job or manually)
-
-                throw new GravifonException(GravifonError.USER_REGISTRATION_NOT_COMPLETED,
-                        "Registration key has been expired.");
-            }
-
+        // User is allowed to complete the registration
+        else if (document.getStatus() == UserStatus.CREATED) {
             if (StringUtils.equals(registrationKey, document.getRegistrationKey())) {
                 // Registration completed - change user status
                 document.setStatus(UserStatus.ACTIVE);
@@ -200,6 +187,10 @@ public class Users {
                 throw new GravifonException(GravifonError.USER_REGISTRATION_NOT_COMPLETED,
                         "Invalid registration key.");
             }
+        }
+        else {
+            throw new GravifonException(GravifonError.USER_REGISTRATION_NOT_COMPLETED,
+                    "User registration was already completed.");
         }
         
         return new StatusResponse();

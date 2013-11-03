@@ -23,10 +23,17 @@
  */
 package org.gravidence.gravifon.db;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import java.util.List;
 import javax.ws.rs.client.WebTarget;
 import org.gravidence.gravifon.db.domain.UserDocument;
+import org.gravidence.gravifon.db.domain.UserStatus;
 import org.gravidence.gravifon.util.BasicUtils;
+import org.gravidence.gravifon.util.DateTimeUtils;
+import org.gravidence.gravifon.util.SharedInstanceHolder;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -44,6 +51,11 @@ public class UsersDBClient extends BasicDBClient<UserDocument> implements Initia
      * JAX-RS client target associated with <code>main/all_usernames</code> view.
      */
     private WebTarget viewMainAllUsernamesTarget;
+    
+    /**
+     * JAX-RS client target associated with <code>main/by_status</code> view.
+     */
+    private WebTarget viewMainByStatusTarget;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -52,6 +64,8 @@ public class UsersDBClient extends BasicDBClient<UserDocument> implements Initia
         
         viewMainAllUsernamesTarget = ViewUtils.getViewTarget(
                 getDbTarget(), "main", "all_usernames");
+        viewMainByStatusTarget = ViewUtils.getViewTarget(
+                getDbTarget(), "main", "by_status");
     }
     
     /**
@@ -95,6 +109,33 @@ public class UsersDBClient extends BasicDBClient<UserDocument> implements Initia
         
         // usernames are unique, so don't care about multiple results
         return documents == null ? null : documents.get(0);
+    }
+    
+    /**
+     * Retrieves user accounts that didn't manage to complete registration in time.
+     * 
+     * @param threshold max allowed amount of time to complete the registration
+     * @return list of user details documents
+     */
+    public List<UserDocument> retrieveUsersFailedToCompleteRegistration(Duration threshold) {
+        ArrayNode startkey = SharedInstanceHolder.OBJECT_MAPPER.getNodeFactory().arrayNode();
+        startkey.add(UserStatus.CREATED.toString());
+        
+        ArrayNode endkey = startkey.deepCopy();
+        
+        startkey.add(SharedInstanceHolder.OBJECT_MAPPER.valueToTree(
+                DateTimeUtils.dateTimeToArray(DateTime.now(DateTimeZone.UTC).minus(threshold))));
+        
+        ViewQueryArguments args = new ViewQueryArguments()
+                .addStartKey(startkey)
+                .addEndKey(endkey)
+                .addIncludeDocs(true)
+                .addDescending();
+        
+        List<UserDocument> documents = ViewQueryExecutor.queryDocuments(
+                viewMainByStatusTarget, args, UserDocument.class);
+        
+        return documents;
     }
     
 }

@@ -47,6 +47,12 @@ public class UserDocument extends CouchDBDocument {
     private UserStatus status;
     
     /**
+     * @see #getLastActivityDatetime()
+     */
+    @JsonProperty("last_activity_datetime")
+    private int[] lastActivityDatetime;
+    
+    /**
      * @see #getFullname()
      */
     @JsonProperty
@@ -109,6 +115,24 @@ public class UserDocument extends CouchDBDocument {
      */
     public void setStatus(UserStatus status) {
         this.status = status;
+    }
+
+    /**
+     * Returns user account last activity datetime (UTC).<p>
+     * Array content is as follows: <code>[yyyy,MM,dd,HH,mm,ss,SSS]</code>.
+     * 
+     * @return user account last activity datetime (UTC)
+     */
+    public int[] getLastActivityDatetime() {
+        return lastActivityDatetime;
+    }
+
+    /**
+     * @param lastActivityDatetime
+     * @see #getLastActivityDatetime()
+     */
+    public void setLastActivityDatetime(int[] lastActivityDatetime) {
+        this.lastActivityDatetime = lastActivityDatetime;
     }
 
     /**
