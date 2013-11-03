@@ -25,30 +25,8 @@ THE SOFTWARE.
 <beans
     xmlns="http://www.springframework.org/schema/beans"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:context="http://www.springframework.org/schema/context"
     xsi:schemaLocation="
-        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
-
-    <context:property-placeholder location="classpath:**/*.properties"/>
-    
-    <bean id="applicationInfo" class="org.gravidence.gravifon.resource.bean.ApplicationInfoBean">
-        <property name="appName" value="${org.gravidence.gravifon.application.name}"/>
-        <property name="appDescription" value="${org.gravidence.gravifon.application.description}"/>
-        <property name="appVersion" value="${org.gravidence.gravifon.application.version}"/>
-    </bean>
-    
-    <bean id="templateProcessor" class="org.gravidence.gravifon.template.FreemarkerTemplateProcessor">
-    </bean>
-    
-    <bean id="emailSender" class="org.gravidence.gravifon.email.ApacheCommonsEmailSender">
-        <property name="host" value="${org.gravidence.gravifon.email.host}"/>
-        <property name="port" value="${org.gravidence.gravifon.email.port}"/>
-        <property name="username" value="${org.gravidence.gravifon.email.username}"/>
-        <property name="password" value="${org.gravidence.gravifon.email.password}"/>
-        <property name="fromAddress" value="${org.gravidence.gravifon.email.from.address}"/>
-        <property name="fromName" value="${org.gravidence.gravifon.email.from.name}"/>
-    </bean>
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
     
     <bean id="dbClientRequestFilter" class="org.gravidence.gravifon.filter.LogCouchDBClientRequestFilter"/>
     <bean id="dbClientResponseFilter" class="org.gravidence.gravifon.filter.LogCouchDBClientResponseFilter"/>
