@@ -40,6 +40,7 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.commons.lang.StringUtils;
 import org.gravidence.gravifon.db.UsersDBClient;
 import org.gravidence.gravifon.db.domain.UserDocument;
+import org.gravidence.gravifon.db.domain.UserStatus;
 import org.gravidence.gravifon.email.EmailSender;
 import org.gravidence.gravifon.exception.GravifonException;
 import org.gravidence.gravifon.exception.UserNotFoundException;
@@ -173,6 +174,10 @@ public class Users {
         if (document == null) {
             throw new UserNotFoundException();
         }
+        else if (document.getStatus() != UserStatus.CREATED) {
+            throw new GravifonException(GravifonError.USER_REGISTRATION_NOT_COMPLETED,
+                    "User registration was already completed.");
+        }
         else {
             DateTime registrationDatetime = DateTimeUtils.arrayToDateTime(document.getRegistrationDatetime());
             // TODO move expiration bound to configuration
@@ -182,14 +187,11 @@ public class Users {
                 throw new GravifonException(GravifonError.USER_REGISTRATION_NOT_COMPLETED,
                         "Registration key has been expired.");
             }
-            
-            if (document.getRegistrationKey() == null) {
-                throw new GravifonException(GravifonError.USER_REGISTRATION_NOT_COMPLETED,
-                        "User registration was already completed.");
-            }
 
             if (StringUtils.equals(registrationKey, document.getRegistrationKey())) {
-                // Clear registration key as registration is completed
+                // Registration completed - change user status
+                document.setStatus(UserStatus.ACTIVE);
+                // There is no sense to keep the registration key for fully registered used
                 document.setRegistrationKey(null);
 
                 usersDBClient.update(document);

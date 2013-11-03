@@ -41,6 +41,12 @@ public class UserDocument extends CouchDBDocument {
     private String username;
     
     /**
+     * @see #getStatus()
+     */
+    @JsonProperty
+    private UserStatus status;
+    
+    /**
      * @see #getFullname()
      */
     @JsonProperty
@@ -86,6 +92,23 @@ public class UserDocument extends CouchDBDocument {
      */
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    /**
+     * Returns user account status.
+     * 
+     * @return user account status
+     */
+    public UserStatus getStatus() {
+        return status;
+    }
+
+    /**
+     * @param status
+     * @see #getStatus()
+     */
+    public void setStatus(UserStatus status) {
+        this.status = status;
     }
 
     /**
