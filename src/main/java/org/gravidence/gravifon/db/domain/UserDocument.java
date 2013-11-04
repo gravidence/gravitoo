@@ -47,6 +47,12 @@ public class UserDocument extends CouchDBDocument {
     private UserStatus status;
     
     /**
+     * @see #getRole()
+     */
+    @JsonProperty
+    private UserRole role;
+    
+    /**
      * @see #getLastActivityDatetime()
      */
     @JsonProperty("last_activity_datetime")
@@ -115,6 +121,23 @@ public class UserDocument extends CouchDBDocument {
      */
     public void setStatus(UserStatus status) {
         this.status = status;
+    }
+
+    /**
+     * Returns user account role.
+     * 
+     * @return user account role
+     */
+    public UserRole getRole() {
+        return role;
+    }
+
+    /**
+     * @param role
+     * @see #getRole()
+     */
+    public void setRole(UserRole role) {
+        this.role = role;
     }
 
     /**
