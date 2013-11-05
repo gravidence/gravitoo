@@ -64,6 +64,7 @@ import org.gravidence.gravifon.resource.bean.ScrobblesInfoBean;
 import org.gravidence.gravifon.resource.bean.TrackBean;
 import org.gravidence.gravifon.resource.message.StatusResponse;
 import org.gravidence.gravifon.util.BasicUtils;
+import org.gravidence.gravifon.util.DateTimeUtils;
 import org.gravidence.gravifon.validation.ScrobbleDeleteValidator;
 import org.gravidence.gravifon.validation.ScrobbleRetrieveValidator;
 import org.gravidence.gravifon.validation.ScrobbleSearchValidator;
@@ -165,6 +166,9 @@ public class Scrobbles {
         
         ResourceUtils.checkUserStatus(user);
         
+        DateTime userLastActivityDatetime = DateTimeUtils.arrayToDateTime(user.getLastActivityDatetime());
+        DateTime lastScrobbleDatetime = new DateTime(userLastActivityDatetime);
+        
         List<StatusResponse> result = new ArrayList<>(scrobbles.size() + 1);
         
         for (ScrobbleBean scrobble : scrobbles) {
@@ -183,10 +187,20 @@ public class Scrobbles {
                 scrobbleDoc = scrobblesDBClient.create(scrobbleDoc);
                 
                 result.add(new StatusResponse(scrobbleDoc.getId()));
+                
+                if (scrobble.getScrobbleStartDatetime().isAfter(lastScrobbleDatetime)) {
+                    lastScrobbleDatetime = scrobble.getScrobbleStartDatetime();
+                }
             }
             catch (GravifonException ex) {
                 result.add(new StatusResponse(ex.getError().getErrorCode(), ex.getMessage()));
             }
+        }
+        
+        if (lastScrobbleDatetime.isAfter(userLastActivityDatetime)) {
+            user.setLastActivityDatetime(DateTimeUtils.dateTimeToArray(lastScrobbleDatetime));
+            
+            usersDBClient.update(user);
         }
         
         return result;
