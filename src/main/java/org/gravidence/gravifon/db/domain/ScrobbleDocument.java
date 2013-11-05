@@ -61,7 +61,7 @@ public class ScrobbleDocument extends CouchDBDocument {
     /**
      * @see #getTrackId()
      */
-    @JsonProperty
+    @JsonProperty("track_id")
     private String trackId;
 
     /**
