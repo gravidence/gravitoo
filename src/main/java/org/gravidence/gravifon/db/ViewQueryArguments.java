@@ -39,7 +39,7 @@ public class ViewQueryArguments {
     /**
      * @see #getArguments()
      */
-    private Map<String, String> arguments;
+    private final Map<String, String> arguments;
     
     /**
      * Initializes arguments map instance.
@@ -151,6 +151,18 @@ public class ViewQueryArguments {
      */
     public ViewQueryArguments addDescending() {
         arguments.put("descending", Boolean.TRUE.toString());
+        
+        return this;
+    }
+    
+    /**
+     * Adds <code>group_level</code> query argument.
+     * 
+     * @param value query argument value
+     * @return reference to this object
+     */
+    public ViewQueryArguments addGroupLevel(long value) {
+        arguments.put("group_level", Long.toString(value));
         
         return this;
     }

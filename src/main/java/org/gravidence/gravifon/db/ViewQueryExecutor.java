@@ -81,6 +81,43 @@ public class ViewQueryExecutor {
     }
     
     /**
+     * Executes a view query and extracts all values from results.
+     * 
+     * @param target JAX-RS target to CouchDB database design document view
+     * @param args view query arguments
+     * @param valueType value object type
+     * @return list of <code>valueType</code> objects if any, or <code>null</code> otherwise
+     * 
+     * @see ViewQueryResultsExtractor#extractValues(java.lang.Class, java.io.InputStream)
+     */
+    public static <T> List<T> queryValues(WebTarget target, ViewQueryArguments args, Class<T> valueType) {
+        target = addQueryParams(target, args);
+        
+        Response response = target
+                .request(MediaType.APPLICATION_JSON_TYPE)
+                .get();
+        
+        List<T> values = null;
+        
+        try {
+            if (CouchDBClient.isSuccessful(response)) {
+                InputStream json = response.readEntity(InputStream.class);
+                values = ViewQueryResultsExtractor.extractValues(valueType, json);
+            }
+            else {
+                LOGGER.error("Failed to execute '{}' view query: [{}] {}", target.getUri().getPath(),
+                        response.getStatus(), response.getStatusInfo().getReasonPhrase());
+                throw new GravifonException(GravifonError.DATABASE_OPERATION, "Failed to execute view query.");
+            }
+        }
+        finally {
+            response.close();
+        }
+        
+        return values;
+    }
+    
+    /**
      * Executes a view query and extracts all documents from results.
      * 
      * @param target JAX-RS target to CouchDB database design document view
