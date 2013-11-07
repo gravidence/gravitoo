@@ -53,6 +53,11 @@ public class UsersDBClient extends BasicDBClient<UserDocument> implements Initia
     private WebTarget viewMainAllUsernamesTarget;
     
     /**
+     * JAX-RS client target associated with <code>main/all_emails</code> view.
+     */
+    private WebTarget viewMainAllEmailsTarget;
+    
+    /**
      * JAX-RS client target associated with <code>main/by_status</code> view.
      */
     private WebTarget viewMainByStatusTarget;
@@ -64,6 +69,8 @@ public class UsersDBClient extends BasicDBClient<UserDocument> implements Initia
         
         viewMainAllUsernamesTarget = ViewUtils.getViewTarget(
                 getDbTarget(), "main", "all_usernames");
+        viewMainAllEmailsTarget = ViewUtils.getViewTarget(
+                getDbTarget(), "main", "all_emails");
         viewMainByStatusTarget = ViewUtils.getViewTarget(
                 getDbTarget(), "main", "by_status");
     }
@@ -108,6 +115,26 @@ public class UsersDBClient extends BasicDBClient<UserDocument> implements Initia
                 UserDocument.class);
         
         // usernames are unique, so don't care about multiple results
+        return documents == null ? null : documents.get(0);
+    }
+    
+    /**
+     * Retrieves existing user {@link UserDocument document}.<p>
+     * Makes sure that <code>email</code> written in lower case
+     * since <code>main/all_emails</code> view is case sensitive.
+     * 
+     * @param email user email
+     * @return user details document if found, <code>null</code> otherwise
+     */
+    public UserDocument retrieveUserByEmail(String email) {
+        ViewQueryArguments args = new ViewQueryArguments()
+                .addKey(BasicUtils.lowerCase(email))
+                .addIncludeDocs(true);
+        
+        List<UserDocument> documents = ViewQueryExecutor.queryDocuments(viewMainAllEmailsTarget, args,
+                UserDocument.class);
+        
+        // emails are unique, so don't care about multiple results
         return documents == null ? null : documents.get(0);
     }
     

@@ -137,6 +137,10 @@ public class Users {
         if (document != null) {
             throw new GravifonException(GravifonError.USER_EXISTS, "User already exists.");
         }
+        
+        if (usersDBClient.retrieveUserByEmail(user.getEmail()) != null) {
+            throw new GravifonException(GravifonError.EMAIL_IN_USE, "Email already in use.");
+        }
 
         String registrationKey = BasicUtils.generateToken(256);
 
@@ -262,6 +266,11 @@ public class Users {
         UserDocument document = ResourceUtils.authorizeUser(httpHeaders.getRequestHeaders(), id, usersDBClient, LOGGER);
         
         ResourceUtils.checkUserStatus(document);
+        
+        if (!StringUtils.equalsIgnoreCase(user.getEmail(), document.getEmail())
+                && usersDBClient.retrieveUserByEmail(user.getEmail()) != null) {
+            throw new GravifonException(GravifonError.EMAIL_IN_USE, "Email already in use.");
+        }
         
         usersDBClient.update(user.updateDocument(document));
         

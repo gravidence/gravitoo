@@ -72,6 +72,10 @@ public enum GravifonError {
      */
     USER_REGISTRATION_NOT_COMPLETED(3003, 400),
     /**
+     * Email already in use error. Another user already linked with particular email.
+     */
+    EMAIL_IN_USE(3004, 409),
+    /**
      * Required property error. Property is missed.
      */
     REQUIRED(10000, 400),
@@ -99,12 +103,12 @@ public enum GravifonError {
     /**
      * @see #getErrorCode()
      */
-    private int errorCode;
+    private final int errorCode;
     
     /**
      * @see #getHttpStatusCode()
      */
-    private int httpStatusCode;
+    private final int httpStatusCode;
 
     /**
      * Constructs Gravifon service internal error.
