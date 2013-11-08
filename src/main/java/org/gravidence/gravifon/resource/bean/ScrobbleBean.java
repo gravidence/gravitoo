@@ -26,6 +26,8 @@ package org.gravidence.gravifon.resource.bean;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.gravidence.gravifon.db.domain.ScrobbleDocument;
 import org.gravidence.gravifon.db.message.CreateDocumentResponse;
+import org.gravidence.gravifon.exception.GravifonException;
+import org.gravidence.gravifon.exception.error.GravifonError;
 import org.gravidence.gravifon.util.BasicUtils;
 import org.gravidence.gravifon.util.DateTimeUtils;
 import org.joda.time.DateTime;
@@ -169,6 +171,9 @@ public class ScrobbleBean extends ValidateableBean {
         
         checkRequired(scrobbleDuration, "scrobble_duration");
         scrobbleDuration.validate();
+        if (DurationBean.getMillisAmount(scrobbleDuration) < 900) {
+            throw new GravifonException(GravifonError.TOO_SHORT_SCROBBLE, "Scrobble event duration is too short.");
+        }
         
         // Below validation is not used as causes issues in real world
         // (time corrected by ntp, duration is not accurate enough to fit event datetime range, etc.)

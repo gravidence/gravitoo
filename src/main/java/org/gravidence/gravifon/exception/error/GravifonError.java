@@ -98,7 +98,11 @@ public enum GravifonError {
     /**
      * Fraud scrobble error. Submitted scrobble event intersects with other already processed scrobble.
      */
-    FRAUD_SCROBBLE(10005, 400);
+    FRAUD_SCROBBLE(10005, 400),
+    /**
+     * Too short scrobble error. Submitted scrobble event duration is too short.
+     */
+    TOO_SHORT_SCROBBLE(10006, 400);
     
     /**
      * @see #getErrorCode()
