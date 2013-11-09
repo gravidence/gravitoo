@@ -63,6 +63,12 @@ public class ScrobbleDocument extends CouchDBDocument {
      */
     @JsonProperty("track_id")
     private String trackId;
+    
+    /**
+     * @see #getPrimaryTrackId()
+     */
+    @JsonProperty("primary_track_id")
+    private String primaryTrackId;
 
     /**
      * Returns identifier of user associated with scrobble event.
@@ -149,6 +155,23 @@ public class ScrobbleDocument extends CouchDBDocument {
      */
     public void setTrackId(String trackId) {
         this.trackId = trackId;
+    }
+
+    /**
+     * Returns identifier of primary track variation associated with scrobble event.
+     * 
+     * @return identifier of primary track variation associated with scrobble event
+     */
+    public String getPrimaryTrackId() {
+        return primaryTrackId;
+    }
+
+    /**
+     * @param primaryTrackId
+     * @see #getPrimaryTrackId()
+     */
+    public void setPrimaryTrackId(String primaryTrackId) {
+        this.primaryTrackId = primaryTrackId;
     }
 
     @Override

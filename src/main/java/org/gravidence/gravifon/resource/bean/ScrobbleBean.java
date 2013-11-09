@@ -252,7 +252,15 @@ public class ScrobbleBean extends ValidateableBean {
             document.setScrobbleStartDatetime(DateTimeUtils.dateTimeToArray(scrobbleStartDatetime));
             document.setScrobbleEndDatetime(DateTimeUtils.dateTimeToArray(scrobbleEndDatetime));
             document.setScrobbleDuration(BeanUtils.durationBeanToDuration(scrobbleDuration));
-            document.setTrackId(track == null ? null : track.getId());
+            if (track == null) {
+                // TODO the case might never happen
+                document.setTrackId(null);
+                document.setPrimaryTrackId(null);
+            }
+            else {
+                document.setTrackId(track.getId());
+                document.setPrimaryTrackId(track.getVariationInfo().getPrimaryVariationId());
+            }
         }
         
         return document;
