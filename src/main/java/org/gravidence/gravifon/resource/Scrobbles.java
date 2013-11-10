@@ -139,7 +139,7 @@ public class Scrobbles {
      * @return status response with <code>/scrobbles</code> database info bean
      */
     @GET
-    public StatusResponse<ScrobblesInfoBean> info() {
+    public StatusResponse info() {
         scrobblesInfoValidator.validate(null, null, null);
         
         ScrobblesInfoBean entity = new ScrobblesInfoBean();
@@ -476,7 +476,7 @@ public class Scrobbles {
     private void resolveArtistId(ArtistBean artist) {
         ArtistDocument artistDoc = retrieveOrCreateArtistDocument(artist);
         
-        artist.setId(artistDoc.getId());
+        artist.updateBean(artistDoc);
     }
     
     /**
@@ -506,7 +506,7 @@ public class Scrobbles {
         if (album != null) {
             AlbumDocument albumDoc = retrieveOrCreateAlbumDocument(album);
 
-            album.setId(albumDoc.getId());
+            album.updateBean(albumDoc);
         }
     }
     
@@ -521,7 +521,7 @@ public class Scrobbles {
     private void resolveTrackId(TrackBean track) {
         TrackDocument trackDoc = retrieveOrCreateTrackDocument(track);
         
-        track.setId(trackDoc.getId());
+        track.updateBean(trackDoc);
     }
     
     /**
@@ -583,8 +583,7 @@ public class Scrobbles {
                 // Scrobble event start datetime already compared as part of complete key
                 // so compare durations only
                 if (ObjectUtils.equals(
-                        DurationBean.getMillisAmount(doc.getScrobbleDuration()),
-                        DurationBean.getMillisAmount(scrobble.getScrobbleDuration()))) {
+                        doc.getScrobbleDuration(), DurationBean.getMillisAmount(scrobble.getScrobbleDuration()))) {
                     throw new GravifonException(GravifonError.DUPLICATE_SCROBBLE, "Scrobble was already processed.");
                 }
                 else {

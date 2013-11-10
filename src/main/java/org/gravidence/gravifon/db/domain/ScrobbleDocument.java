@@ -56,7 +56,7 @@ public class ScrobbleDocument extends CouchDBDocument {
      * @see #getScrobbleDuration()
      */
     @JsonProperty("scrobble_duration")
-    private Duration scrobbleDuration;
+    private Long scrobbleDuration;
     
     /**
      * @see #getTrackId()
@@ -124,11 +124,11 @@ public class ScrobbleDocument extends CouchDBDocument {
     }
 
     /**
-     * Returns scrobble length.
+     * Returns scrobble length in millis.
      * 
-     * @return scrobble length
+     * @return scrobble length in millis
      */
-    public Duration getScrobbleDuration() {
+    public Long getScrobbleDuration() {
         return scrobbleDuration;
     }
 
@@ -136,7 +136,7 @@ public class ScrobbleDocument extends CouchDBDocument {
      * @param scrobbleDuration
      * @see #getScrobbleDuration()
      */
-    public void setScrobbleDuration(Duration scrobbleDuration) {
+    public void setScrobbleDuration(Long scrobbleDuration) {
         this.scrobbleDuration = scrobbleDuration;
     }
 

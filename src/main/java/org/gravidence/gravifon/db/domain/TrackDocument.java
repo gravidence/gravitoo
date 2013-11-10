@@ -50,7 +50,7 @@ public class TrackDocument extends VariableDocument {
      * @see #getLength()
      */
     @JsonProperty
-    private Duration length;
+    private Long length;
     
     /**
      * @see #getAlbumId()
@@ -99,11 +99,11 @@ public class TrackDocument extends VariableDocument {
     }
 
     /**
-     * Returns track length.
+     * Returns track length in millis.
      * 
-     * @return track length
+     * @return track length in millis
      */
-    public Duration getLength() {
+    public Long getLength() {
         return length;
     }
 
@@ -111,7 +111,7 @@ public class TrackDocument extends VariableDocument {
      * @param length
      * @see #getLength()
      */
-    public void setLength(Duration length) {
+    public void setLength(Long length) {
         this.length = length;
     }
 

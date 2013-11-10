@@ -328,7 +328,7 @@ public class TrackBean extends ValidateableBean {
     public TrackDocument updateDocument(TrackDocument document) {
         if (document != null) {
             document.setTitle(title);
-            document.setLength(BeanUtils.durationBeanToDuration(length));
+            document.setLength(DurationBean.getMillisAmount(length));
             document.setAlbumId(album == null ? null : album.getId());
             document.setPosition(position);
             document.setArtistIds(BeanUtils.artistBeansToIds(artists));

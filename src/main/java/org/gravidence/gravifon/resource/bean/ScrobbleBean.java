@@ -251,7 +251,7 @@ public class ScrobbleBean extends ValidateableBean {
         if (document != null) {
             document.setScrobbleStartDatetime(DateTimeUtils.dateTimeToArray(scrobbleStartDatetime));
             document.setScrobbleEndDatetime(DateTimeUtils.dateTimeToArray(scrobbleEndDatetime));
-            document.setScrobbleDuration(BeanUtils.durationBeanToDuration(scrobbleDuration));
+            document.setScrobbleDuration(DurationBean.getMillisAmount(scrobbleDuration));
             if (track == null) {
                 // TODO the case might never happen
                 document.setTrackId(null);

@@ -25,7 +25,6 @@ package org.gravidence.gravifon.resource.bean;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.gravidence.gravifon.db.domain.Duration;
 import org.gravidence.gravifon.db.domain.DurationUnit;
 import org.gravidence.gravifon.exception.GravifonException;
 import org.gravidence.gravifon.exception.error.GravifonError;
@@ -95,15 +94,19 @@ public class DurationBean extends ValidateableBean {
     }
     
     /**
-     * Updates bean with duration information.
+     * Updates bean with duration in millis.
      * 
-     * @param duration duration information
+     * @param duration duration in millis
      * @return duration bean
      */
-    public DurationBean updateBean(Duration duration) {
-        if (duration != null) {
-            amount = duration.getAmount();
-            unit = duration.getUnit();
+    public DurationBean updateBean(Long duration) {
+        if (duration == null) {
+            amount = null;
+            unit = null;
+        }
+        else {
+            amount = duration;
+            unit = DurationUnit.MILLISECOND;
         }
         
         return this;
@@ -117,33 +120,6 @@ public class DurationBean extends ValidateableBean {
      */
     @JsonIgnore
     public static Long getMillisAmount(DurationBean duration) {
-        Long result;
-        
-        if (duration == null || duration.getAmount() == null) {
-            result = null;
-        }
-        else {
-            switch (duration.getUnit()) {
-                case SECOND:
-                    result = duration.getAmount() * 1000;
-                    break;
-                case MILLISECOND:
-                default:
-                    result = duration.getAmount();
-            }
-        }
-        
-        return result;
-    }
-
-    /**
-     * Returns amount in millis. Amount is converted to millis if another unit type is used.
-     * 
-     * @param duration a duration
-     * @return amount in millis
-     */
-    @JsonIgnore
-    public static Long getMillisAmount(Duration duration) {
         Long result;
         
         if (duration == null || duration.getAmount() == null) {
