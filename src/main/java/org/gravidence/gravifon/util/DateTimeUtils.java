@@ -23,6 +23,7 @@
  */
 package org.gravidence.gravifon.util;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.commons.lang.ArrayUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -139,6 +140,28 @@ public class DateTimeUtils {
                     .withMinuteOfHour(value[4])
                     .withSecondOfMinute(value[5])
                     .withMillisOfSecond(value[6]);
+        }
+        
+        return result;
+    }
+    
+    /**
+     * Converts datetime object to JSON array node.<p>
+     * Given datetime object is casted to UTC.
+     * 
+     * @param value datetime object
+     * @return JSON array node (UTC)
+     */
+    public static ArrayNode dateTimeToArrayNode(DateTime value) {
+        ArrayNode result;
+        
+        if (value == null) {
+            result = null;
+        }
+        else {
+            DateTime valueUTC = value.toDateTime(DateTimeZone.UTC);
+            
+            result = SharedInstanceHolder.OBJECT_MAPPER.valueToTree(DateTimeUtils.dateTimeToArray(valueUTC));
         }
         
         return result;

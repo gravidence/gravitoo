@@ -150,8 +150,7 @@ public class UsersDBClient extends BasicDBClient<UserDocument> implements Initia
         
         ArrayNode endkey = startkey.deepCopy();
         
-        startkey.add(SharedInstanceHolder.OBJECT_MAPPER.valueToTree(
-                DateTimeUtils.dateTimeToArray(DateTime.now(DateTimeZone.UTC).minus(threshold))));
+        startkey.add(DateTimeUtils.dateTimeToArrayNode(DateTime.now(DateTimeZone.UTC).minus(threshold)));
         
         ViewQueryArguments args = new ViewQueryArguments()
                 .addStartKey(startkey)

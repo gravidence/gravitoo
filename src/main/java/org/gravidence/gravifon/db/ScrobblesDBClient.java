@@ -114,7 +114,7 @@ public class ScrobblesDBClient extends BasicDBClient<ScrobbleDocument> implement
     public List<ScrobbleDocument> retrieveScrobblesByKey(String userId, DateTime scrobbleStartDatetime) {
         ArrayNode key = SharedInstanceHolder.OBJECT_MAPPER.getNodeFactory().arrayNode();
         key.add(userId);
-        key.add(SharedInstanceHolder.OBJECT_MAPPER.valueToTree(DateTimeUtils.dateTimeToArray(scrobbleStartDatetime)));
+        key.add(DateTimeUtils.dateTimeToArrayNode(scrobbleStartDatetime));
         
         return retrieveByKey(viewMainAllUserScrobblesTarget, key, ScrobbleDocument.class);
     }
@@ -153,22 +153,16 @@ public class ScrobblesDBClient extends BasicDBClient<ScrobbleDocument> implement
         if (ascending && scrobbleStart != null) {
             subKeyStart = scrobbleStart;
         }
-        else if (start != null) {
-            subKeyStart = SharedInstanceHolder.OBJECT_MAPPER.valueToTree(DateTimeUtils.dateTimeToArray(start));
-        }
         else {
-            subKeyStart = null;
+            subKeyStart = DateTimeUtils.dateTimeToArrayNode(start);
         }
         
         JsonNode subKeyEnd;
         if (!ascending && scrobbleStart != null) {
             subKeyEnd = scrobbleStart;
         }
-        else if (end != null) {
-            subKeyEnd = SharedInstanceHolder.OBJECT_MAPPER.valueToTree(DateTimeUtils.dateTimeToArray(end));
-        }
         else {
-            subKeyEnd = null;
+            subKeyEnd = DateTimeUtils.dateTimeToArrayNode(end);
         }
         
         return retrievePage(viewMainAllUserScrobblesTarget, key, subKeyStart, subKeyEnd, ascending, limit,
