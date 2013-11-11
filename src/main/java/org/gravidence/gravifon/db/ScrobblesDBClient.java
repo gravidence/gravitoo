@@ -50,6 +50,21 @@ public class ScrobblesDBClient extends BasicDBClient<ScrobbleDocument> implement
      * JAX-RS client target associated with <code>main/all_scrobbles</code> view.
      */
     private WebTarget viewMainAllScrobblesTarget;
+    
+    /**
+     * JAX-RS client target associated with <code>main/all_user_scrobbles</code> view.
+     */
+    private WebTarget viewMainAllUserScrobblesTarget;
+    
+    /**
+     * JAX-RS client target associated with <code>main/all_track_scrobbles_amount</code> view.
+     */
+    private WebTarget viewMainAllTrackScrobblesAmountTarget;
+    
+    /**
+     * JAX-RS client target associated with <code>main/all_track_scrobbles_duration</code> view.
+     */
+    private WebTarget viewMainAllTrackScrobblesDurationTarget;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -58,6 +73,12 @@ public class ScrobblesDBClient extends BasicDBClient<ScrobbleDocument> implement
         
         viewMainAllScrobblesTarget = ViewUtils.getViewTarget(
                 getDbTarget(), "main", "all_scrobbles");
+        viewMainAllUserScrobblesTarget = ViewUtils.getViewTarget(
+                getDbTarget(), "main", "all_user_scrobbles");
+        viewMainAllTrackScrobblesAmountTarget = ViewUtils.getViewTarget(
+                getDbTarget(), "main", "all_track_scrobbles_amount");
+        viewMainAllTrackScrobblesDurationTarget = ViewUtils.getViewTarget(
+                getDbTarget(), "main", "all_track_scrobbles_duration");
     }
     
     /**
@@ -95,7 +116,7 @@ public class ScrobblesDBClient extends BasicDBClient<ScrobbleDocument> implement
         key.add(userId);
         key.add(SharedInstanceHolder.OBJECT_MAPPER.valueToTree(DateTimeUtils.dateTimeToArray(scrobbleStartDatetime)));
         
-        return retrieveByKey(viewMainAllScrobblesTarget, key, ScrobbleDocument.class);
+        return retrieveByKey(viewMainAllUserScrobblesTarget, key, ScrobbleDocument.class);
     }
     
     /**
@@ -150,7 +171,7 @@ public class ScrobblesDBClient extends BasicDBClient<ScrobbleDocument> implement
             subKeyEnd = null;
         }
         
-        return retrievePage(viewMainAllScrobblesTarget, key, subKeyStart, subKeyEnd, ascending, limit,
+        return retrievePage(viewMainAllUserScrobblesTarget, key, subKeyStart, subKeyEnd, ascending, limit,
                 ScrobbleDocument.class);
     }
     
