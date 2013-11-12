@@ -37,7 +37,7 @@ import org.apache.commons.lang.ObjectUtils;
  * 
  * @author Maksim Liauchuk <maksim_liauchuk@fastmail.fm>
  */
-public class ChartDocument extends VariableDocument {
+public class ChartDocument extends CouchDBDocument {
     
     /**
      * @see #getType()
