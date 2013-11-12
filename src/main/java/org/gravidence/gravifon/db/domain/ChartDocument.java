@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ObjectUtils;
 
 /**
@@ -175,7 +176,7 @@ public class ChartDocument extends CouchDBDocument {
             items = new ArrayList<>(size + 1);
         }
         
-        if (items.isEmpty()) {
+        if (CollectionUtils.size(items) < size) {
             items.add(new ChartItem(id, title, value));
         }
         else if (ObjectUtils.compare(value, items.get(items.size() - 1).getValue()) > 0) {
