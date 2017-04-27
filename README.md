@@ -2,10 +2,11 @@ Gravifon
 ========
 
 ## Overview
-Free and open source music scrobbling service.
+Gravifon is a web service which collects user's musical experience statistics.
+
+The aim is to give users more freedom and control over managing their musical habits data (from running own instance to extended flexibility on manipulating listening history).
 
 ## Requirements
-- Java 7
+- Java 8
 - Maven 3
-- Servlet 3.0 container
-- CouchDB 1.2
+- Gravidat 1.0
