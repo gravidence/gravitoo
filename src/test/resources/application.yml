@@ -31,9 +31,11 @@ org:
       api:
         version: TestApiVer
 
+spring:
 # An in-memory database is automatically initialized by Spring
-#spring:
 #  datasource:
 #    url: jdbc:h2:mem:gravidat
 #    username:
 #    password:
+  jooq:
+    sql-dialect: H2

@@ -59,12 +59,18 @@ public class ArtistDao {
      *
      * @param artist artist bean
      * @return Supplied artist bean updated with ID.
+     *
+     * @throws IllegalArgumentException if artist ID is specified
      */
     public ArtistBean addArtist(ArtistBean artist) {
+        if (artist.getId() != null) {
+            throw new IllegalArgumentException("Artist must have no ID at that stage.");
+        }
+
         GArtistRecord rs = dslContext.insertInto(G_ARTIST)
                 .set(G_ARTIST.TITLE, artist.getTitle())
                 .set(G_ARTIST.DESCRIPTION, artist.getDescription())
-                .set(G_ARTIST.MASTER_ID, artist.getMaster() == null ? null : artist.getMaster().getId())
+                .set(G_ARTIST.MASTER_ID, getMasterId(artist))
                 .returning(G_ARTIST.ID)
                 .fetchOne();
 
@@ -184,12 +190,40 @@ public class ArtistDao {
     }
 
     /**
+     * Updates artist record with supplied field values.
+     *
+     * @param artist artist bean
+     *
+     * @throws IllegalArgumentException if artist ID is not specified
+     */
+    public void updateArtist(ArtistBean artist) {
+        if (artist.getId() == null) {
+            throw new IllegalArgumentException("Artist must have an ID.");
+        }
+
+        dslContext.mergeInto(G_ARTIST, G_ARTIST.ID, G_ARTIST.TITLE, G_ARTIST.DESCRIPTION, G_ARTIST.MASTER_ID)
+                .key(G_ARTIST.ID)
+                .values(artist.getId(), artist.getTitle(), artist.getDescription(), getMasterId(artist))
+                .execute();
+    }
+
+    /**
+     * Null-safe getter of master artist ID.
+     *
+     * @param artist artist bean
+     * @return Master artist ID of supplied artist.
+     */
+    private static Long getMasterId(ArtistBean artist) {
+        return artist.getMaster() == null ? null : artist.getMaster().getId();
+    }
+
+    /**
      * Database to web model converter (single entity).
      *
      * @param rs database model entity
      * @return Corresponding web model entity or <code>null</code> if no value supplied.
      */
-    private ArtistBean toWebModel(GArtistRecord rs) {
+    private static ArtistBean toWebModel(GArtistRecord rs) {
         return rs == null ? null : new ArtistBean(rs.getId(), rs.getTitle(), rs.getDescription(), rs.getMasterId());
     }
 
@@ -199,7 +233,7 @@ public class ArtistDao {
      * @param rs list of database model entities
      * @return List of corresponding web model entities or <code>null</code> if no value supplied.
      */
-    private List<ArtistBean> toWebModel(Result<GArtistRecord> rs) {
+    private static List<ArtistBean> toWebModel(Result<GArtistRecord> rs) {
         List<ArtistBean> artists;
         if (CollectionUtils.isEmpty(rs)) {
             artists = null;

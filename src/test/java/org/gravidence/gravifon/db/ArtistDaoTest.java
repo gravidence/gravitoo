@@ -110,6 +110,15 @@ public class ArtistDaoTest extends TestCase {
     }
 
     /**
+     * Tests {@link ArtistDao#addArtist(ArtistBean)}.
+     * Artist ID specified (actually, should be treated as wrong usage of DAO).
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void addArtistWithId() {
+        artistDao.addArtist(new ArtistBean(42L, "Makyo", null));
+    }
+
+    /**
      * Tests {@link ArtistDao#getArtist(Long)}.<p>
      * Happy path.
      */
@@ -347,6 +356,55 @@ public class ArtistDaoTest extends TestCase {
         List<ArtistBean> actual = artistDao.getArtistAliases(beefcake.getId());
 
         assertNull(actual);
+    }
+
+    /**
+     * Tests {@link ArtistDao#updateArtist(ArtistBean)}.
+     * Happy path.
+     */
+    @Test
+    public void updateArtist() {
+        final ArtistBean vidnaObmana = artistDao.getArtist("VidnaObmana");
+
+        assertNull(vidnaObmana.getDescription());
+
+        vidnaObmana.setDescription("Dirk Serries");
+        artistDao.updateArtist(vidnaObmana);
+
+        final ArtistBean actual = artistDao.getArtist(vidnaObmana.getId());
+        assertEquals(vidnaObmana.getTitle(), actual.getTitle());
+        assertEquals(vidnaObmana.getDescription(), actual.getDescription());
+        assertEquals(vidnaObmana.getMaster().getId(), actual.getMaster().getId());
+    }
+
+    /**
+     * Tests {@link ArtistDao#updateArtist(ArtistBean)}.
+     * Not found. Fallbacks to insert.
+     */
+    @Test
+    public void updateArtistNotExists() {
+        final ArtistBean expected = new ArtistBean(9000L, "AE", "Sean Booth & Rob Brown", 1L);
+
+        assertNull(artistDao.getArtist(expected.getTitle()));
+
+        artistDao.updateArtist(expected);
+
+        final ArtistBean actual = artistDao.getArtist("AE");
+
+        assertNotNull(actual);
+        assertEquals(expected.getId(), actual.getId());
+        assertEquals(expected.getTitle(), actual.getTitle());
+        assertEquals(expected.getDescription(), actual.getDescription());
+        assertEquals(expected.getMaster().getId(), actual.getMaster().getId());
+    }
+
+    /**
+     * Tests {@link ArtistDao#updateArtist(ArtistBean)}.
+     * No artist ID specified (actually, should be treated as wrong usage of DAO).
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void updateArtistNoId() {
+        artistDao.updateArtist(new ArtistBean("Another Electronic Musician"));
     }
 
 }

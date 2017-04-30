@@ -36,3 +36,5 @@ spring:
       url: jdbc:h2:~/gravidat
       username: sa
       password:
+  jooq:
+    sql-dialect: H2
