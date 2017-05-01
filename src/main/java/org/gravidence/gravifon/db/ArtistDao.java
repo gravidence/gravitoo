@@ -30,6 +30,7 @@ import org.jooq.DSLContext;
 import org.jooq.Record1;
 import org.jooq.Result;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -139,33 +140,35 @@ public class ArtistDao {
         return toWebModel(rs);
     }
 
-    // TODO JavaDoc needs re-wording
     /**
      * Links an alias artist to master one.<p>
-     * Master and alias IDs combination must be unique.
-     * Should such violation take place, it's gracefully handled by the method (by returning <code>false</code>) and never propagated outside.
+     * Master and alias IDs are FKs, their combinations are unique:
+     * <ul>
+     *     <li>existing combination won't be added (silently);</li>
+     *     <li>combination with broken IDs won't be added.</li>
+     * </ul>
      *
      * @param masterId master artist ID
      * @param aliasId alias artist ID
-     * @return An indicator whether the operation was successful or not.
+     *
+     * @throws DataIntegrityViolationException if at least one of supplied IDs doesn't exist
      */
-    public boolean addArtistAlias(Long masterId, Long aliasId) {
-        boolean result = true;
-
+    public void addArtistAlias(Long masterId, Long aliasId) {
         try {
             dslContext.insertInto(G_ARTIST_ALIAS)
                     .set(G_ARTIST_ALIAS.MASTER_ID, masterId)
                     .set(G_ARTIST_ALIAS.ALIAS_ID, aliasId)
                     .execute();
         }
-        catch (Exception e) {
-            // TODO more specific error handling should be used here (dig exceptions and error codes)
-            // "java.lang.IllegalArgumentException: Database product name must not be null" is currently thrown for some reason
-            System.out.println(e);
-            result = false;
+        catch (DataIntegrityViolationException e) {
+            // Ignore duplicate case
+            if (!dslContext.fetchExists(
+                    dslContext.selectFrom(G_ARTIST_ALIAS)
+                        .where(G_ARTIST_ALIAS.MASTER_ID.eq(masterId))
+                        .and(G_ARTIST_ALIAS.ALIAS_ID.eq(aliasId)))) {
+                throw e;
+            }
         }
-
-        return result;
     }
 
     /**
@@ -190,7 +193,8 @@ public class ArtistDao {
     }
 
     /**
-     * Updates artist record with supplied field values.
+     * Updates artist record with supplied field values.<p>
+     * New artist is added if there's no matching ID the database.
      *
      * @param artist artist bean
      *
@@ -201,7 +205,8 @@ public class ArtistDao {
             throw new IllegalArgumentException("Artist must have an ID.");
         }
 
-        dslContext.mergeInto(G_ARTIST, G_ARTIST.ID, G_ARTIST.TITLE, G_ARTIST.DESCRIPTION, G_ARTIST.MASTER_ID)
+        dslContext.mergeInto(G_ARTIST)
+                .columns(G_ARTIST.ID, G_ARTIST.TITLE, G_ARTIST.DESCRIPTION, G_ARTIST.MASTER_ID)
                 .key(G_ARTIST.ID)
                 .values(artist.getId(), artist.getTitle(), artist.getDescription(), getMasterId(artist))
                 .execute();

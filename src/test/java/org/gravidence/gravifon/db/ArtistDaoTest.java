@@ -30,6 +30,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -281,7 +282,7 @@ public class ArtistDaoTest extends TestCase {
 
     /**
      * Tests {@link ArtistDao#addArtistAlias(Long, Long)}.<p>
-     * Adding a duplicate alias that is not allowed.
+     * Adding a duplicate alias (not allowed).
      */
     @Test
     public void addArtistAliasDuplicate() {
@@ -289,10 +290,10 @@ public class ArtistDaoTest extends TestCase {
         final List<ArtistBean> expected = artistDao.getArtistAliases(funckarma.getId());
 
         try {
-            assertFalse(artistDao.addArtistAlias(funckarma.getId(), expected.get(0).getId()));
+            artistDao.addArtistAlias(funckarma.getId(), expected.get(0).getId());
         }
-        catch (Exception e) {
-            fail("No DB exception expected here, should be gracefully handled by DAO");
+        catch (DataIntegrityViolationException e) {
+            fail("No data integrity violation exception expected here.");
         }
         final List<ArtistBean> actual = artistDao.getArtistAliases(funckarma.getId());
         assertEquals(expected.size(), actual.size());
@@ -300,30 +301,36 @@ public class ArtistDaoTest extends TestCase {
 
     /**
      * Tests {@link ArtistDao#addArtistAlias(Long, Long)}.<p>
-     * Adding an alias using non-existing IDs (either master or alias).
+     * Adding an alias using non-existing master ID.
      */
-    @Test
-    public void addArtistAliasNoArtist() {
+    @Test(expected = DataIntegrityViolationException.class)
+    public void addArtistAliasNoMasterArtist() {
         final ArtistBean bancoDeGaia = artistDao.addArtist(new ArtistBean("Banco De Gaia"));
         final Long nonExistingArtistId = System.currentTimeMillis();
 
         assertNull(artistDao.getArtistAliases(bancoDeGaia.getId()));
         assertNull(artistDao.getArtist(nonExistingArtistId));
 
-        try {
-            assertFalse(artistDao.addArtistAlias(bancoDeGaia.getId(), nonExistingArtistId));
-        }
-        catch (Exception e) {
-            fail("Exception occurred while trying to add alias reference to non-existing alias artist");
-        }
-        assertNull(artistDao.getArtistAliases(bancoDeGaia.getId()));
+        artistDao.addArtistAlias(nonExistingArtistId, bancoDeGaia.getId());
 
-        try {
-            assertFalse(artistDao.addArtistAlias(nonExistingArtistId, bancoDeGaia.getId()));
-        }
-        catch (Exception e) {
-            fail("Exception occurred while trying to add alias reference to non-existing master artist");
-        }
+        fail("Data integrity violation exception is expected.");
+    }
+
+    /**
+     * Tests {@link ArtistDao#addArtistAlias(Long, Long)}.<p>
+     * Adding an alias using non-existing alias ID.
+     */
+    @Test(expected = DataIntegrityViolationException.class)
+    public void addArtistAliasNoAliasArtist() {
+        final ArtistBean bancoDeGaia = artistDao.addArtist(new ArtistBean("Banco De Gaia"));
+        final Long nonExistingArtistId = System.currentTimeMillis();
+
+        assertNull(artistDao.getArtistAliases(bancoDeGaia.getId()));
+        assertNull(artistDao.getArtist(nonExistingArtistId));
+
+        artistDao.addArtistAlias(bancoDeGaia.getId(), nonExistingArtistId);
+
+        fail("Data integrity violation exception is expected.");
     }
 
     /**
@@ -379,7 +386,7 @@ public class ArtistDaoTest extends TestCase {
 
     /**
      * Tests {@link ArtistDao#updateArtist(ArtistBean)}.
-     * Not found. Fallbacks to insert.
+     * Not found, should fallback to insert.
      */
     @Test
     public void updateArtistNotExists() {
